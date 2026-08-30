@@ -202,7 +202,7 @@ export default function QrisPage() {
                 color: "#4ade80",
               }}
               onClick={() => {
-                markKasPaid(selected.nama);
+                markKasPaid(selected.nama, selected.nisn, 1);
                 setJustPaid(true);
                 alert(
                   `Pembayaran QRIS berhasil untuk ${selected.nama}!\nSaldo kas & histori diperbarui.`
