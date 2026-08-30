@@ -93,24 +93,42 @@ export default function JadwalPage() {
   }, [query, students]);
 
   function submitWA() {
-    if (!nama.trim()) return alert("Pilih nama siswa dulu!");
-    if (!alasan.trim()) return alert("Alasan wajib diisi!");
-    if (!fileName) return alert("Wajib lampirkan foto/surat!");
+  if (!nama.trim()) {
+    alert("Pilih nama siswa dulu!");
+    return;
+  }
+  if (!alasan.trim()) {
+    alert("Alasan wajib diisi!");
+    return;
+  }
+  if (!fileName) {
+    alert("Wajib lampirkan foto/surat!");
+    return;
+  }
 
-    const phone = "628561534411";
-    const text =
-      `*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n` +
-      `*Nama Siswa:* ${nama}\n` +
-      `*Jenis Izin:* ${izinType}\n` +
-      `*Tanggal:* ${new Date().toLocaleDateString("id-ID")}\n\n` +
-      `*Keterangan / Alasan:*\n${alasan}\n\n` +
-      `*(Lampiran file disiapkan di chat)*\n\n` +
-      `_Digenerate via Portal X TKJ-5_`;
+  const phone = "628561534411";
 
-    window.open(
-      `https://wa.me/\( {phone}?text= \){encodeURIComponent(text)}`,
-      "_blank"
-    );
+  const message =
+    "*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n" +
+    "*Nama Siswa:* " +
+    nama +
+    "\n" +
+    "*Jenis Izin:* " +
+    izinType +
+    "\n" +
+    "*Tanggal:* " +
+    new Date().toLocaleDateString("id-ID") +
+    "\n\n" +
+    "*Keterangan / Alasan:*\n" +
+    alasan +
+    "\n\n" +
+    "*(Lampiran file disiapkan di chat)*\n\n" +
+    "_Digenerate via Portal X TKJ-5_";
+
+  const url =
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
+
+  window.open(url, "_blank");
   }
 
   function renderScheduleBlock(
