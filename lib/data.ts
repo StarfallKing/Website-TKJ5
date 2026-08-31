@@ -130,7 +130,14 @@ export const masterSchedule: {
       { mapel: "ISTIRAHAT", start: "09:10", end: "09:40" },
       { mapel: "IPAS", start: "09:40", end: "12:00" },
     ],
-    Selasa: [{ mapel: "LIBUR TANGGAL MERAH", start: "00:00", end: "23:59" }],
+    Selasa: [
+      { mapel: "B. INGGRIS", start: "06:30", end: "07:50" },
+      { mapel: "MATEMATIKA", start: "07:50", end: "09:10" },
+      { mapel: "ISTIRAHAT", start: "09:10", end: "09:40" },
+      { mapel: "INFORMATIKA", start: "09:40", end: "10:50" },
+      { mapel: "KEJURUAN TKJ", start: "10:50", end: "12:00" },
+      { mapel: "PPKN - DARING", start: "14:00", end: "15:00" },
+    ],
     Rabu: [
       { mapel: "WAWASAN DUNIA KERJA & K3LH", start: "06:30", end: "08:30" },
       { mapel: "PJOK", start: "08:30", end: "09:10" },
