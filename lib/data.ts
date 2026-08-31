@@ -137,19 +137,22 @@ export const masterSchedule: {
       { mapel: "ISTIRAHAT", start: "09:10", end: "09:40" },
       { mapel: "PJOK", start: "09:40", end: "10:50" },
       { mapel: "KEJURUAN TKJ", start: "10:50", end: "12:00" },
+      { mapel: "B. INDONESIA - DARING", start: "14:00", end: "15:00" },
     ],
     Kamis: [
       { mapel: "B.INGGRIS", start: "06:30", end: "07:50" },
       { mapel: "MTK", start: "07:50", end: "09:10" },
       { mapel: "ISTIRAHAT", start: "09:10", end: "09:40" },
       { mapel: "SENI BUDAYA", start: "09:40", end: "10:50" },
-      { mapel: "B.INDONESIA", start: "10:50", end: "12:00" },
+      { mapel: "B. INDONESIA", start: "10:50", end: "12:00" },
+      { mapel: "B. SUNDA - DARING", start: "14:00", end: "15:00" },
     ],
     Jumat: [
       { mapel: "KEJURUAN TKJ", start: "06:30", end: "07:50" },
       { mapel: "INFORMATIKA", start: "07:50", end: "09:10" },
       { mapel: "ISTIRAHAT", start: "09:10", end: "09:40" },
       { mapel: "WAWASAN DUNIA KERJA & K3LH", start: "09:40", end: "11:20" },
+      { mapel: "SEJARAH - DARING", start: "14:00", end: "15:00" },
     ],
     Sabtu: [{ mapel: "LIBUR AKHIR PEKAN", start: "00:00", end: "23:59" }],
     Minggu: [{ mapel: "LIBUR AKHIR PEKAN", start: "00:00", end: "23:59" }],
@@ -163,6 +166,7 @@ export const masterSchedule: {
       { mapel: "PAI", start: "15:40", end: "17:10" },
     ],
     Selasa: [
+      { mapel: "IPAS - DARING", start: "08:30", end: "09:30" },
       { mapel: "KEJURUAN TKJ", start: "12:30", end: "13:50" },
       { mapel: "SEJARAH", start: "13:50", end: "15:10" },
       { mapel: "ISTIRAHAT", start: "15:10", end: "15:40" },
@@ -177,6 +181,7 @@ export const masterSchedule: {
       { mapel: "WAWASAN DUNIA KERJA & K3LH", start: "16:10", end: "17:30" },
     ],
     Kamis: [
+      { mapel: "SENI BUDAYA - DARING", start: "08:30", end: "09:30" },
       { mapel: "B. INDONESIA", start: "12:30", end: "13:50" },
       { mapel: "B. INGGRIS", start: "13:50", end: "15:10" },
       { mapel: "ISTIRAHAT", start: "15:10", end: "15:40" },
@@ -184,6 +189,7 @@ export const masterSchedule: {
       { mapel: "PPKN", start: "16:40", end: "17:30" },
     ],
     Jumat: [
+      { mapel: "INFORMATIKA - DARING", start: "08:30", end: "09:30" },
       { mapel: "WAWASAN DUNIA KERJA & K3LH", start: "13:00", end: "15:00" },
       { mapel: "KEJURUAN TKJ", start: "15:00", end: "15:40" },
       { mapel: "ISTIRAHAT", start: "15:40", end: "16:10" },
