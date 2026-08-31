@@ -156,6 +156,7 @@ export const masterSchedule: {
   },
   siang: {
     Senin: [
+      { mapel: "B. INGGRIS - DARING", start: "08:30", end: "09:30" },
       { mapel: "B. SUNDA", start: "12:30", end: "13:50" },
       { mapel: "IPAS", start: "13:50", end: "15:10" },
       { mapel: "ISTIRAHAT", start: "15:10", end: "15:40" },
