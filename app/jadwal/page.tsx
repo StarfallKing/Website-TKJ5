@@ -30,15 +30,17 @@ const templates = {
   ],
 };
 
-function getRotatedSession() {
-  const baseDate = new Date(2026, 6, 20);
+function getRotatedSession(): "pagi" | "siang" {
+  const baseDate = new Date(2026, 6, 20); // 20 Juli 2026
   const now = new Date();
   const diffDays = Math.floor(
     Math.abs(now.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24)
   );
   const weekIndex = Math.floor(diffDays / 7);
-  return weekIndex % 2 === 0 ? "pagi" : "siang";
-}
+
+  // Minggu ini SIANG, minggu depan PAGI, dst.
+  return weekIndex % 2 === 0 ? "siang" : "pagi";
+             }
 
 function isLessonNow(start: string, end: string) {
   const now = new Date();
