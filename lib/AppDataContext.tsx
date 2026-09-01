@@ -12,9 +12,11 @@ import {
   allStudents as seedStudents,
   kasTransactionsLog as seedKas,
   paymentHistoryLogs as seedPay,
+  attendanceMap as seedAttendance,
   type Student,
   type KasTransaction,
   type PaymentHistory,
+  type StatusHarian,
   NOMINAL_KAS,
   getKasPaid as seedGetKasPaid,
 } from "@/lib/data";
@@ -25,14 +27,43 @@ type AppData = {
   payments: PaymentHistory[];
   /** key: `\( {nisn}- \){monthIndex}` → true = lunas */
   paymentOverrides: Record<string, boolean>;
+  /** key: `\( {studentIndex}- \){monthIndex}-${day}` */
+  attendanceMap: Record<string, StatusHarian>;
+  maintenanceMode: boolean;
+  setMaintenanceMode: (value: boolean) => void;
   setStudents: (s: Student[]) => void;
   updateStudent: (nisn: string, patch: Partial<Student>) => void;
   addStudent: (s: Student) => void;
   removeStudent: (nisn: string) => void;
-  addKasTransaction: (desc: string, type: "masuk" | "keluar", val: number) => void;
+  addKasTransaction: (
+    desc: string,
+    type: "masuk" | "keluar",
+    val: number
+  ) => void;
   markKasPaid: (nama: string, nisn: string, monthIndex?: number) => void;
   /** Cek status bayar: override dulu, baru seed */
-  isKasPaid: (nisn: string, studentIndex: number, monthIndex: number) => boolean;
+  isKasPaid: (
+    nisn: string,
+    studentIndex: number,
+    monthIndex: number
+  ) => boolean;
+  setKasPaid: (
+    nisn: string,
+    studentIndex: number,
+    monthIndex: number,
+    paid: boolean
+  ) => void;
+  setAttendanceCell: (
+    studentIndex: number,
+    monthIndex: number,
+    day: number,
+    status: StatusHarian
+  ) => void;
+  getAttendanceCell: (
+    studentIndex: number,
+    monthIndex: number,
+    day: number
+  ) => StatusHarian;
 };
 
 const Ctx = createContext<AppData | null>(null);
@@ -42,7 +73,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>(seedStudents);
   const [kasLog, setKasLog] = useState<KasTransaction[]>(seedKas);
   const [payments, setPayments] = useState<PaymentHistory[]>(seedPay);
-  const [paymentOverrides, setPaymentOverrides] = useState<Record<string, boolean>>({});
+  const [paymentOverrides, setPaymentOverrides] = useState<
+    Record<string, boolean>
+  >({});
+  const [attendanceMap, setAttendanceMap] =
+    useState<Record<string, StatusHarian>>(seedAttendance || {});
+  const [maintenanceMode, setMaintenanceModeState] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -54,18 +90,55 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (p.kasLog) setKasLog(p.kasLog);
         if (p.payments) setPayments(p.payments);
         if (p.paymentOverrides) setPaymentOverrides(p.paymentOverrides);
+        if (p.attendanceMap) setAttendanceMap(p.attendanceMap);
+        if (typeof p.maintenanceMode === "boolean") {
+          setMaintenanceModeState(p.maintenanceMode);
+        }
       }
-    } catch {}
+      // fallback key terpisah (opsional)
+      if (localStorage.getItem("tkj5-maintenance") === "1") {
+        setMaintenanceModeState(true);
+      }
+    } catch {
+      /* ignore */
+    }
     setReady(true);
   }, []);
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ students, kasLog, payments, paymentOverrides })
-    );
-  }, [students, kasLog, payments, paymentOverrides, ready]);
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          students,
+          kasLog,
+          payments,
+          paymentOverrides,
+          attendanceMap,
+          maintenanceMode,
+        })
+      );
+      localStorage.setItem(
+        "tkj5-maintenance",
+        maintenanceMode ? "1" : "0"
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [
+    students,
+    kasLog,
+    payments,
+    paymentOverrides,
+    attendanceMap,
+    maintenanceMode,
+    ready,
+  ]);
+
+  function setMaintenanceMode(value: boolean) {
+    setMaintenanceModeState(value);
+  }
 
   const value = useMemo<AppData>(
     () => ({
@@ -73,6 +146,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       kasLog,
       payments,
       paymentOverrides,
+      attendanceMap,
+      maintenanceMode,
+      setMaintenanceMode,
       setStudents,
       updateStudent: (nisn, patch) => {
         setStudents((prev) =>
@@ -105,8 +181,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
       isKasPaid: (nisn, studentIndex, monthIndex) => {
         const key = `\( {nisn}- \){monthIndex}`;
-        if (paymentOverrides[key] !== undefined) return paymentOverrides[key];
+        if (paymentOverrides[key] !== undefined) {
+          return paymentOverrides[key];
+        }
         return seedGetKasPaid(studentIndex, monthIndex);
+      },
+      setKasPaid: (nisn, _studentIndex, monthIndex, paid) => {
+        const key = `\( {nisn}- \){monthIndex}`;
+        setPaymentOverrides((prev) => ({ ...prev, [key]: paid }));
       },
       markKasPaid: (nama, nisn, monthIndex = 1) => {
         const key = `\( {nisn}- \){monthIndex}`;
@@ -124,7 +206,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
                 year: "numeric",
               }),
               desc: `Setoran Kas Online QRIS - ${nama}`,
-              type: "masuk",
+              type: "masuk" as const,
               val: NOMINAL_KAS,
               balance: last + NOMINAL_KAS,
             },
@@ -132,14 +214,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         });
 
         const now = new Date();
-        const time = `\( {now.getHours().toString().padStart(2, "0")}: \){now
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`;
+        const hh = now.getHours().toString().padStart(2, "0");
+        const mm = now.getMinutes().toString().padStart(2, "0");
         setPayments((prev) => [
           {
             name: nama,
-            date: `${now.toLocaleDateString("id-ID")} - ${time} WIB`,
+            date: `${now.toLocaleDateString("id-ID")} - \( {hh}: \){mm} WIB`,
             code: `Kas-TKJ5-\( {nisn.substring(0, 5)}- \){Date.now()}`,
             status: "LUNAS",
             amount: NOMINAL_KAS,
@@ -147,8 +227,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           ...prev,
         ]);
       },
+      setAttendanceCell: (studentIndex, monthIndex, day, status) => {
+        const key = `\( {studentIndex}- \){monthIndex}-${day}`;
+        setAttendanceMap((prev) => ({ ...prev, [key]: status }));
+      },
+      getAttendanceCell: (studentIndex, monthIndex, day) => {
+        const key = `\( {studentIndex}- \){monthIndex}-${day}`;
+        return attendanceMap[key] ?? "-";
+      },
     }),
-    [students, kasLog, payments, paymentOverrides]
+    [
+      students,
+      kasLog,
+      payments,
+      paymentOverrides,
+      attendanceMap,
+      maintenanceMode,
+    ]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -158,4 +253,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+  }
