@@ -57,6 +57,69 @@ export const allStudents: Student[] = [
   { nama: "ZIDRAM AIDIL ADHA", gender: "L", nisn: "0081234043", hadir: 27, izin: 1, sakit: 0, alpa: 0 },
 ];
 
+/* ========== ABSENSI HARIAN (bisa diedit per anak / tanggal) ========== */
+export type StatusHarian = "H" | "I" | "S" | "A" | "-";
+
+/**
+ * Key: `\( {nisn}- \){bulanIndex}-${tanggal}`
+ * bulanIndex: 0=Juli ... 11=Juni (ikut monthConfigs)
+ *
+ * Contoh:
+ * "0087654321-0-15": "H"  → Affan, Juli, tgl 15 Hadir
+ * "0087654321-1-3": "S"   → Affan, Agustus, tgl 3 Sakit
+ */
+export const attendanceMap: Record<string, StatusHarian> = {
+  // --- contoh (boleh dihapus / diganti data asli) ---
+  // "0087654321-0-1": "H",
+  // "0087654321-0-2": "I",
+};
+
+export function attendanceKey(nisn: string, monthIndex: number, day: number) {
+  return `\( {nisn}- \){monthIndex}-${day}`;
+}
+
+/** Baca status 1 hari. Belum diisi → default "-" */
+export function getDailyStatus(
+  _studentIndex: number,
+  day: number,
+  monthIndex: number,
+  nisn?: string
+): StatusHarian {
+  if (!nisn) return "-";
+  const key = attendanceKey(nisn, monthIndex, day);
+  return attendanceMap[key] ?? "-";
+}
+
+/** Isi / ubah 1 sel (siap dipakai admin nanti) */
+export function setDailyStatus(
+  nisn: string,
+  monthIndex: number,
+  day: number,
+  status: StatusHarian
+) {
+  attendanceMap[attendanceKey(nisn, monthIndex, day)] = status;
+}
+
+/** Hitung total H/I/S/A 1 siswa di 1 bulan (hari aktif saja, skip "-") */
+export function sumMonthAttendance(
+  nisn: string,
+  monthIndex: number,
+  daysInMonth: number
+) {
+  let hadir = 0,
+    izin = 0,
+    sakit = 0,
+    alpa = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const st = getDailyStatus(0, d, monthIndex, nisn);
+    if (st === "H") hadir++;
+    else if (st === "I") izin++;
+    else if (st === "S") sakit++;
+    else if (st === "A") alpa++;
+  }
+  return { hadir, izin, sakit, alpa };
+        }
+
 export const NOMINAL_KAS = 5000;
 
 export function getInitials(name: string) {
