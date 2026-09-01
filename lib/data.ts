@@ -57,52 +57,51 @@ export const allStudents: Student[] = [
   { nama: "ZIDRAM AIDIL ADHA", gender: "L", nisn: "0081234043", hadir: 27, izin: 1, sakit: 0, alpa: 0 },
 ];
 
-/* ========== ABSENSI HARIAN (bisa diedit per anak / tanggal) ========== */
+/* ========== ABSENSI HARIAN (edit per index / bulan / tanggal) ========== */
 export type StatusHarian = "H" | "I" | "S" | "A" | "-";
 
 /**
- * Key: `\( {nisn}- \){bulanIndex}-${tanggal}`
- * bulanIndex: 0=Juli ... 11=Juni (ikut monthConfigs)
+ * Key: `\( {indexSiswa}- \){bulanIndex}-${tanggal}`
+ * indexSiswa = urutan di allStudents (0 = Affan, 1 = Ahmad, ...)
+ * bulanIndex: 0=Juli ... 11=Juni
  *
  * Contoh:
- * "0087654321-0-15": "H"  → Affan, Juli, tgl 15 Hadir
- * "0087654321-1-3": "S"   → Affan, Agustus, tgl 3 Sakit
+ * "0-0-15": "H"  → Affan, Juli tgl 15
+ * "15-1-3": "S"  → Irfan (index 15), Agustus tgl 3
  */
 export const attendanceMap: Record<string, StatusHarian> = {
-  // --- contoh (boleh dihapus / diganti data asli) ---
-  // "0087654321-0-1": "H",
-  // "0087654321-0-2": "I",
+  // "0-0-1": "H",
+  // "0-0-2": "I",
 };
 
-export function attendanceKey(nisn: string, monthIndex: number, day: number) {
-  return `\( {nisn}- \){monthIndex}-${day}`;
-}
-
-/** Baca status 1 hari. Belum diisi → default "-" */
-export function getDailyStatus(
-  _studentIndex: number,
-  day: number,
+export function attendanceKey(
+  studentIndex: number,
   monthIndex: number,
-  nisn?: string
-): StatusHarian {
-  if (!nisn) return "-";
-  const key = attendanceKey(nisn, monthIndex, day);
-  return attendanceMap[key] ?? "-";
+  day: number
+) {
+  return `\( {studentIndex}- \){monthIndex}-${day}`;
 }
 
-/** Isi / ubah 1 sel (siap dipakai admin nanti) */
+/** Baca 1 hari. Belum diisi → "-" */
+export function getDailyStatus(
+  studentIndex: number,
+  day: number,
+  monthIndex: number
+): StatusHarian {
+  return attendanceMap[attendanceKey(studentIndex, monthIndex, day)] ?? "-";
+}
+
 export function setDailyStatus(
-  nisn: string,
+  studentIndex: number,
   monthIndex: number,
   day: number,
   status: StatusHarian
 ) {
-  attendanceMap[attendanceKey(nisn, monthIndex, day)] = status;
+  attendanceMap[attendanceKey(studentIndex, monthIndex, day)] = status;
 }
 
-/** Hitung total H/I/S/A 1 siswa di 1 bulan (hari aktif saja, skip "-") */
 export function sumMonthAttendance(
-  nisn: string,
+  studentIndex: number,
   monthIndex: number,
   daysInMonth: number
 ) {
@@ -111,14 +110,14 @@ export function sumMonthAttendance(
     sakit = 0,
     alpa = 0;
   for (let d = 1; d <= daysInMonth; d++) {
-    const st = getDailyStatus(0, d, monthIndex, nisn);
+    const st = getDailyStatus(studentIndex, d, monthIndex);
     if (st === "H") hadir++;
     else if (st === "I") izin++;
     else if (st === "S") sakit++;
     else if (st === "A") alpa++;
   }
   return { hadir, izin, sakit, alpa };
-        }
+}
 
 export const NOMINAL_KAS = 5000;
 
@@ -142,43 +141,36 @@ export type KasTransaction = {
   balance: number;
 };
 
-export const kasTransactionsLog: KasTransaction[] = [
-  { no: 1, date: "02 Jul 2026", desc: "Saldo Sisa Kas Kelas Periode Lalu", type: "masuk", val: 150000, balance: 150000 },
-  { no: 2, date: "05 Jul 2026", desc: "Pembelian Spidol & Penghapus Papan Tulis", type: "keluar", val: 35000, balance: 115000 },
-  { no: 3, date: "10 Jul 2026", desc: "Setoran Kas Mingguan Juli (Minggu 1)", type: "masuk", val: 215000, balance: 330000 },
-  { no: 4, date: "15 Jul 2026", desc: "Beli Alat Kebersihan & Sapu Kelas", type: "keluar", val: 85000, balance: 245000 },
-  { no: 5, date: "18 Jul 2026", desc: "Setoran Kas Mingguan Juli (Minggu 2)", type: "masuk", val: 200000, balance: 445000 },
-  { no: 6, date: "22 Jul 2026", desc: "Print Format Presensi & Mapel Kelas", type: "keluar", val: 20000, balance: 425000 },
-  { no: 7, date: "25 Jul 2026", desc: "Setoran Kas Mingguan Juli (Minggu 3)", type: "masuk", val: 190000, balance: 615000 },
-  { no: 8, date: "28 Jul 2026", desc: "Pembelian Kertas HVS & Map Administrasi", type: "keluar", val: 45000, balance: 570000 },
-  { no: 9, date: "01 Agu 2026", desc: "Hadiah Juara Lomba Kebersihan Kelas", type: "masuk", val: 100000, balance: 670000 },
-  { no: 10, date: "03 Agu 2026", desc: "Setoran Kas Mingguan Agustus (Minggu 1)", type: "masuk", val: 210000, balance: 880000 },
-  { no: 11, date: "06 Agu 2026", desc: "Konsumsi Kerja Bakti Kebersihan Ruang TKJ-5", type: "keluar", val: 120000, balance: 760000 },
-  { no: 12, date: "10 Agu 2026", desc: "Setoran Kas Mingguan Agustus (Minggu 2)", type: "masuk", val: 205000, balance: 965000 },
-  { no: 13, date: "12 Agu 2026", desc: "Service & Refill Tinta Printer Kelas", type: "keluar", val: 65000, balance: 900000 },
-  { no: 14, date: "15 Agu 2026", desc: "Setoran Kas Online QRIS - Affan Assakha", type: "masuk", val: 5000, balance: 905000 },
-  { no: 15, date: "16 Agu 2026", desc: "Dekorasi Kelas HUT RI ke-81", type: "keluar", val: 175000, balance: 730000 },
-  { no: 16, date: "18 Agu 2026", desc: "Setoran Kas Online QRIS - Irfan Dzaki", type: "masuk", val: 5000, balance: 735000 },
-  { no: 17, date: "20 Agu 2026", desc: "Beli Galon Air Minum Kelas (2x)", type: "keluar", val: 38000, balance: 697000 },
-  { no: 18, date: "21 Agu 2026", desc: "Setoran Kas Online QRIS - Suci Wulandari", type: "masuk", val: 5000, balance: 702000 },
-  { no: 19, date: "22 Agu 2026", desc: "Pembelian Kabel HDMI & Adaptor Display", type: "keluar", val: 95000, balance: 607000 },
-  { no: 20, date: "23 Agu 2026", desc: "Setoran Kas Online QRIS - Fhabyan Arrya", type: "masuk", val: 5000, balance: 612000 },
-  { no: 21, date: "24 Agu 2026", desc: "Beli Obat-obatan P3K Kelas", type: "keluar", val: 42000, balance: 570000 },
-  { no: 22, date: "24 Agu 2026", desc: "Setoran Kas Online QRIS - Regina Yuniar", type: "masuk", val: 5000, balance: 575000 },
-  { no: 23, date: "25 Agu 2026", desc: "Pembelian Taplak Meja & Jam Dinding Kelas", type: "keluar", val: 68000, balance: 507000 },
-  { no: 24, date: "25 Agu 2026", desc: "Setoran Kas Online QRIS - Azzahra Putri", type: "masuk", val: 5000, balance: 512000 },
-  { no: 25, date: "26 Agu 2026", desc: "Beli Kemoceng & Stiker Inventaris", type: "keluar", val: 25000, balance: 487000 },
-  { no: 26, date: "26 Agu 2026", desc: "Setoran Kas Online QRIS - M. Ihza Fahrezi", type: "masuk", val: 5000, balance: 492000 },
-  { no: 27, date: "26 Agu 2026", desc: "Sumbangan Sosial Kasih Ibu", type: "keluar", val: 100000, balance: 392000 },
-  { no: 28, date: "26 Agu 2026", desc: "Setoran Kas Online QRIS - Fathan Wayfi", type: "masuk", val: 5000, balance: 397000 },
-  { no: 29, date: "26 Agu 2026", desc: "Beli Spidol Boardmarker Warna Blue & Red", type: "keluar", val: 28000, balance: 369000 },
-  { no: 30, date: "26 Agu 2026", desc: "Setoran Kas Online QRIS - Satria Putra", type: "masuk", val: 5000, balance: 374000 },
+/** 30 baris tetap ada, data kosong */
+export const kasTransactionsLog: KasTransaction[] = Array.from(
+  { length: 30 },
+  (_, i) => ({
+    no: i + 1,
+    date: "",
+    desc: "",
+    type: "masuk" as const,
+    val: 0,
+    balance: 0,
+  })
+);
+
+export const monthShort = [
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
 ];
 
-export const monthShort = ["Jul", "Agu", "Sep", "Okt", "Nov", "Des", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun"];
-
 export function getKasPaid(siswaIndex: number, monthIndex: number) {
-  return ((siswaIndex * 17 + monthIndex * 31) % 100) < 82;
+  return (siswaIndex * 17 + monthIndex * 31) % 100 < 82;
 }
 
 export type Lesson = { mapel: string; start: string; end: string };
@@ -271,7 +263,13 @@ export const masterSchedule: {
   },
 };
 
-export const scheduleDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"] as const;
+export const scheduleDays = [
+  "Senin",
+  "Selasa",
+  "Rabu",
+  "Kamis",
+  "Jumat",
+] as const;
 
 export const monthConfigs = [
   { name: "Juli 2026", days: 31 },
@@ -288,19 +286,6 @@ export const monthConfigs = [
   { name: "Juni 2027", days: 30 },
 ];
 
-export function getDailyStatus(
-  studentIndex: number,
-  day: number,
-  mIndex: number
-): "H" | "I" | "S" | "A" | "-" {
-  if (day % 7 === 0 || day % 7 === 6) return "-";
-  const seed = (studentIndex * 37 + day * 13 + mIndex * 19) % 100;
-  if (seed < 85) return "H";
-  if (seed < 92) return "I";
-  if (seed < 97) return "S";
-  return "A";
-}
-
 export type PaymentHistory = {
   name: string;
   date: string;
@@ -309,33 +294,5 @@ export type PaymentHistory = {
   amount: number;
 };
 
-export const paymentHistoryLogs: PaymentHistory[] = [
-  {
-    name: "Nama Siswa",
-    date: "Tanggal - Jam WIB",
-    code: "xxxxxxxxxxxxxxxxxx",
-    status: "Tidak Ada",
-    amount: 5000,
-  },
-  {
-    name: "Nama Siswa",
-    date: "Tanggal - Jam WIB",
-    code: "xxxxxxxxxxxxxxxxxx",
-    status: "Tidak Ada",
-    amount: 5000,
-  },
-  {
-    name: "Nama Siswa",
-    date: "Tanggal - Jam WIB",
-    code: "xxxxxxxxxxxxxxxxxx",
-    status: "Tidak Ada",
-    amount: 5000,
-  },
-  {
-    name: "Nama Siswa",
-    date: "Tanggal - Jam WIB",
-    code: "xxxxxxxxxxxxxxxxxx",
-    status: "Tidak Ada",
-    amount: 5000,
-  },
-];
+/** Histori QRIS kosong */
+export const paymentHistoryLogs: PaymentHistory[] = [];
