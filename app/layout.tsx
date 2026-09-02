@@ -4,6 +4,7 @@ import "./globals.css";
 import BottomNav from "@/components/layout/BottomNav";
 import Header from "@/components/layout/Header";
 import { AppDataProvider } from "@/lib/AppDataContext";
+import MaintenanceGate from "@/components/MaintenanceGate";
 
 export const metadata: Metadata = {
   title: "Portal X TKJ-5 - SMK PGRI 2 Cibinong",
@@ -33,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="blob-2" />
           <div className="container">
             <Header />
-            {children}
+            <MaintenanceGate>{children}</MaintenanceGate>
           </div>
           <BottomNav />
         </AppDataProvider>
