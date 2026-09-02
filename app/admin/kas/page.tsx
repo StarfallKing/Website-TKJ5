@@ -1,94 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { monthShort, formatRupiah, NOMINAL_KAS } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
-import { formatRupiah } from "@/lib/data";
 
 export default function AdminKasPage() {
-  const router = useRouter();
-  const { kasLog, addKasTransaction } = useAppData();
-  const [desc, setDesc] = useState("");
-  const [type, setType] = useState<"masuk" | "keluar">("masuk");
-  const [val, setVal] = useState(0);
-
-  useEffect(() => {
-    if (sessionStorage.getItem("admin-ok") !== "1") router.replace("/admin");
-  }, [router]);
+  const { students, isKasPaid, setKasPaid, kasLog, addKasTransaction } =
+    useAppData();
 
   return (
     <>
       <div className="glass-card text-center">
-        <div className="title-sub">KELOLA KAS</div>
-        <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
-          Tambah transaksi → saldo & tabel publik ikut berubah
+        <div className="title-sub">EDIT KAS</div>
+        <p style={{ fontSize: 11, color: "#94a3b8" }}>
+          Klik ✓ / ✕ per bulan · sinkron ke web publik
         </p>
       </div>
 
-      <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <input
-          className="form-textarea"
-          style={{ minHeight: 40 }}
-          placeholder="Keterangan transaksi"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
-        <div className="radio-group">
-          <div
-            className={`radio-card ${type === "masuk" ? "active" : ""}`}
-            onClick={() => setType("masuk")}
-          >
-            Pemasukan
-          </div>
-          <div
-            className={`radio-card ${type === "keluar" ? "active" : ""}`}
-            onClick={() => setType("keluar")}
-          >
-            Pengeluaran
-          </div>
+      <div className="glass-card" style={{ padding: 10 }}>
+        <div className="table-responsive">
+          <table className="absensi-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th style={{ textAlign: "left" }}>Nama</th>
+                {monthShort.map((m) => (
+                  <th key={m}>{m}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s, si) => (
+                <tr key={s.nisn}>
+                  <td style={{ color: "#60a5fa", fontWeight: 700 }}>{si + 1}</td>
+                  <td style={{ textAlign: "left", fontWeight: 700, fontSize: 10 }}>
+                    {s.nama}
+                  </td>
+                  {monthShort.map((_, mi) => {
+                    const paid = isKasPaid(s.nisn, si, mi);
+                    return (
+                      <td
+                        key={mi}
+                        onClick={() => setKasPaid(s.nisn, si, mi, !paid)}
+                        style={{
+                          cursor: "pointer",
+                          fontWeight: 900,
+                          color: paid ? "#4ade80" : "#f43f5e",
+                        }}
+                      >
+                        {paid ? "✓" : "✕"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <input
-          type="number"
-          className="form-textarea"
-          style={{ minHeight: 40 }}
-          placeholder="Nominal"
-          value={val || ""}
-          onChange={(e) => setVal(Number(e.target.value))}
-        />
-        <button
-          className="btn-pay-qris"
-          type="button"
-          onClick={() => {
-            if (!desc.trim() || val <= 0) return alert("Lengkapi data");
-            addKasTransaction(desc, type, val);
-            setDesc("");
-            setVal(0);
-          }}
-        >
-          Catat Transaksi
-        </button>
       </div>
 
-      <div className="glass-card" style={{ padding: 10 }}>
-        <div className="title-sub" style={{ marginBottom: 8 }}>Log terbaru</div>
-        {[...kasLog].reverse().slice(0, 15).map((t) => (
-          <div key={t.no} className="history-card-item" style={{ marginBottom: 6 }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 11 }}>{t.desc}</div>
-              <div style={{ fontSize: 9, color: "#94a3b8" }}>{t.date}</div>
-            </div>
-            <div
-              style={{
-                fontWeight: 800,
-                color: t.type === "masuk" ? "#4ade80" : "#f43f5e",
-                fontSize: 11,
-              }}
-            >
-              {t.type === "masuk" ? "+" : "-"}
-              {formatRupiah(t.val)}
-            </div>
-          </div>
-        ))}
+      <div className="glass-card" style={{ marginTop: 12 }}>
+        <div className="title-sub" style={{ marginBottom: 8 }}>
+          Tambah log cepat
+        </div>
+        <button
+          type="button"
+          className="btn-action-light"
+          onClick={() =>
+            addKasTransaction(
+              "Setoran manual admin",
+              "masuk",
+              NOMINAL_KAS
+            )
+          }
+        >
+          + Pemasukan {formatRupiah(NOMINAL_KAS)}
+        </button>
+        <p style={{ fontSize: 10, color: "#64748b", marginTop: 8 }}>
+          Baris log: {kasLog.length}
+        </p>
       </div>
     </>
   );
