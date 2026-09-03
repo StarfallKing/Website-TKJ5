@@ -46,6 +46,24 @@ export default function SiswaDetailPage() {
         </span>
       </div>
 
+      <a
+  href="https://smkpgri2cbn.sch.id/glms/siswa/login.html"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="glass-card flex-between"
+  style={{ textDecoration: "none", marginTop: 12 }}
+>
+  <div>
+    <div style={{ fontWeight: 800, fontSize: 12, color: "#f8fafc" }}>
+      GLMS Account
+    </div>
+    <div style={{ fontSize: 10, color: "#94a3b8" }}>
+      Gocir Learning Management System · Login siswa
+    </div>
+  </div>
+  <i className="fa-solid fa-arrow-up-right-from-square" style={{ color: "#60a5fa" }} />
+</a>
+      
       {/* Biodata */}
       <div
         className="glass-card text-center"
