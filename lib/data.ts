@@ -14,8 +14,8 @@ export type Student = {
 
 /** Urutan absensi resmi tabel sekolah */
 export const allStudents: Student[] = [
-  { nama: "AFFAN ASSAKHA", gender: "L", nisn: "0102586557", nis: "26100171", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
-  { nama: "AHMAD SANGAJI", gender: "L", nisn: "0114660917", nis: "26100172", role: "Wakil Ketua", roleClass: "wakil", icon: "fa-user-shield", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
+  { nama: "AFFAN ASSAKHA", gender: "L", nisn: "0102586557", nis: "26100171", role: "Wakil Ketua", roleClass: "wakil", icon: "fa-user-shield", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
+  { nama: "AHMAD SANGAJI", gender: "L", nisn: "0114660917", nis: "26100172", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
   { nama: "ALGI FAHRI TANJUNG", gender: "L", nisn: "0105664301", nis: "26100173", hadir: 24, izin: 2, sakit: 1, alpa: 1 },
   { nama: "ALVIS PRATAMA", gender: "L", nisn: "0104776171", nis: "26100174", hadir: 27, izin: 0, sakit: 1, alpa: 0 },
   { nama: "ARHAM FAUZI", gender: "L", nisn: "3100382674", nis: "26100175", hadir: 25, izin: 2, sakit: 1, alpa: 0 },
