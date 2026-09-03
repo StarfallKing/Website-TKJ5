@@ -13,10 +13,12 @@ import {
   kasTransactionsLog as seedKas,
   paymentHistoryLogs as seedPay,
   attendanceMap as seedAttendance,
+  defaultSiteContent,
   type Student,
   type KasTransaction,
   type PaymentHistory,
   type StatusHarian,
+  type SiteContent,
   NOMINAL_KAS,
   getKasPaid as seedGetKasPaid,
 } from "@/lib/data";
@@ -36,6 +38,8 @@ type AppData = {
   attendanceMap: Record<string, StatusHarian>;
   maintenanceMode: boolean;
   activityLog: ActivityLogItem[];
+  siteContent: SiteContent;
+  setSiteContent: (c: SiteContent) => void;
   setMaintenanceMode: (value: boolean) => void;
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
@@ -92,6 +96,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   >(seedAttendance || {});
   const [maintenanceMode, setMaintenanceModeState] = useState(false);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
+  const [siteContent, setSiteContentState] =
+    useState<SiteContent>(defaultSiteContent);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -108,6 +114,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           setMaintenanceModeState(p.maintenanceMode);
         }
         if (Array.isArray(p.activityLog)) setActivityLog(p.activityLog);
+        if (p.siteContent) setSiteContentState(p.siteContent);
       }
       if (localStorage.getItem("tkj5-maintenance") === "1") {
         setMaintenanceModeState(true);
@@ -131,6 +138,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           attendanceMap,
           maintenanceMode,
           activityLog,
+          siteContent,
         })
       );
       localStorage.setItem("tkj5-maintenance", maintenanceMode ? "1" : "0");
@@ -145,6 +153,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     attendanceMap,
     maintenanceMode,
     activityLog,
+    siteContent,
     ready,
   ]);
 
@@ -179,6 +188,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     );
   }
 
+  function setSiteContent(c: SiteContent) {
+    setSiteContentState(c);
+    pushLog("Update konten homepage (widget / berita)");
+  }
+
   const value = useMemo<AppData>(
     () => ({
       students,
@@ -188,6 +202,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       attendanceMap,
       maintenanceMode,
       activityLog,
+      siteContent,
+      setSiteContent,
       setMaintenanceMode,
       pushLog,
       setStudents,
@@ -225,9 +241,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             },
           ];
         });
-        pushLog(
-          "Log kas " + type + ": " + desc + " (" + val + ")"
-        );
+        pushLog("Log kas " + type + ": " + desc + " (" + val + ")");
       },
       isKasPaid: (nisn, studentIndex, monthIndex) => {
         const key = nisn + "-" + monthIndex;
@@ -319,6 +333,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       attendanceMap,
       maintenanceMode,
       activityLog,
+      siteContent,
     ]
   );
 
@@ -329,4 +344,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-  }
+}
