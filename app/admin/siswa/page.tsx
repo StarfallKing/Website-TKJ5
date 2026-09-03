@@ -103,6 +103,15 @@ export default function AdminSiswaPage() {
             disabled={!isNew}
             onChange={(e) => setEdit({ ...edit, nisn: e.target.value })}
           />
+
+          <input
+  className="search-box expanded"
+  style={{ width: "100%", padding: 10 }}
+  placeholder="NIS (Nomor Induk)"
+  value={edit.nis}
+  onChange={(e) => setEdit({ ...edit, nis: e.target.value })}
+          />
+          
           <select
             value={edit.gender}
             onChange={(e) =>
@@ -161,7 +170,9 @@ export default function AdminSiswaPage() {
                     <span>{s.role}</span>
                   </div>
                 )}
-                <span className="student-subtext">NISN: {s.nisn}</span>
+                <span className="student-subtext">
+  NISN: {s.nisn} · NIS: {s.nis}
+</span>
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
