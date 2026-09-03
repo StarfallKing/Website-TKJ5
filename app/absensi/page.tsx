@@ -1,15 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  allStudents,
-  monthConfigs,
-  getDailyStatus,
-} from "@/lib/data";
+import { allStudents, monthConfigs } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 
 export default function AbsensiPage() {
-  const { students } = useAppData();
+  const { students, getAttendanceCell } = useAppData();
   const list = students.length ? students : allStudents;
   const total = 28;
 
@@ -34,14 +30,12 @@ export default function AbsensiPage() {
     return list
       .map((s, idx) => ({ ...s, idx }))
       .filter(
-        (s) =>
-          s.nama.toLowerCase().includes(q) || s.nisn.includes(q)
+        (s) => s.nama.toLowerCase().includes(q) || s.nisn.includes(q)
       )
       .slice(0, 8);
   }, [query, list]);
 
-  const selected =
-    highlightIdx !== null ? list[highlightIdx] : null;
+  const selected = highlightIdx !== null ? list[highlightIdx] : null;
 
   function pickStudent(idx: number, nama: string) {
     setHighlightIdx(idx);
@@ -49,7 +43,7 @@ export default function AbsensiPage() {
     setShowSug(false);
     setTimeout(() => {
       document
-        .getElementById(`absensi-row-${idx}`)
+        .getElementById("absensi-row-" + idx)
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
   }
@@ -63,10 +57,10 @@ export default function AbsensiPage() {
     <>
       <div
         className="glass-card text-center"
-        style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+        style={{ display: "flex", flexDirection: "column", gap: 4 }}
       >
         <div className="title-sub">DATA KEHADIRAN & ABSENSI</div>
-        <p style={{ fontSize: "12px", color: "#fff", fontWeight: 700 }}>
+        <p style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>
           Rekapitulasi Kehadiran Kelas X TKJ–5
         </p>
       </div>
@@ -81,14 +75,14 @@ export default function AbsensiPage() {
           <div
             key={item.label}
             className="glass-card text-center"
-            style={{ padding: "8px" }}
+            style={{ padding: 8 }}
           >
-            <div className="title-sub" style={{ fontSize: "7.5px" }}>
+            <div className="title-sub" style={{ fontSize: 7.5 }}>
               {item.label}
             </div>
             <div
               className="card-val"
-              style={{ color: item.color, fontSize: "13px" }}
+              style={{ color: item.color, fontSize: 13 }}
             >
               {((item.val / n) * 100).toFixed(1)}%
             </div>
@@ -98,7 +92,7 @@ export default function AbsensiPage() {
 
       <div className="search-wrapper">
         <div
-          className={`search-box ${query ? "expanded" : ""}`}
+          className={"search-box" + (query ? " expanded" : "")}
           style={{ width: query ? "100%" : undefined }}
           onClick={(e) =>
             (e.currentTarget as HTMLElement).classList.add("expanded")
@@ -129,7 +123,7 @@ export default function AbsensiPage() {
                 onClick={() => pickStudent(s.idx, s.nama)}
               >
                 <span>{s.nama}</span>
-                <span style={{ fontSize: "9px", color: "#60a5fa" }}>
+                <span style={{ fontSize: 9, color: "#60a5fa" }}>
                   NISN: {s.nisn}
                 </span>
               </div>
@@ -143,7 +137,7 @@ export default function AbsensiPage() {
               <span>
                 <i
                   className="fa-solid fa-user-check"
-                  style={{ marginRight: "6px", color: "#60a5fa" }}
+                  style={{ marginRight: 6, color: "#60a5fa" }}
                 />
                 {selected.nama}
               </span>
@@ -183,27 +177,28 @@ export default function AbsensiPage() {
         )}
       </div>
 
-      <div className="glass-card" style={{ padding: "10px" }}>
+      {/* Rekap 1 tahun */}
+      <div className="glass-card" style={{ padding: 10 }}>
         <div
           className="flex-between"
           style={{
-            marginBottom: "10px",
-            paddingBottom: "6px",
+            marginBottom: 10,
+            paddingBottom: 6,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <span style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa" }}>
-            <i className="fa-solid fa-chart-pie" style={{ marginRight: "4px" }} />
+          <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
+            <i className="fa-solid fa-chart-pie" style={{ marginRight: 4 }} />
             Rekap Akumulasi 1 Tahun
           </span>
           <span
             style={{
-              fontSize: "8.5px",
+              fontSize: 8.5,
               background: "rgba(34,197,94,0.15)",
               color: "#4ade80",
               border: "1px solid rgba(74,222,128,0.3)",
               padding: "2px 6px",
-              borderRadius: "6px",
+              borderRadius: 6,
               fontWeight: 700,
             }}
           >
@@ -216,7 +211,7 @@ export default function AbsensiPage() {
             <thead>
               <tr>
                 <th>No</th>
-                <th style={{ textAlign: "left", paddingLeft: "10px" }}>Nama</th>
+                <th style={{ textAlign: "left", paddingLeft: 10 }}>Nama</th>
                 <th style={{ color: "#4ade80" }}>Hadir</th>
                 <th style={{ color: "#60a5fa" }}>Izin</th>
                 <th style={{ color: "#facc15" }}>Sakit</th>
@@ -243,7 +238,7 @@ export default function AbsensiPage() {
                       style={{
                         textAlign: "left",
                         fontWeight: 700,
-                        paddingLeft: "10px",
+                        paddingLeft: 10,
                       }}
                     >
                       {s.nama}
@@ -298,39 +293,40 @@ export default function AbsensiPage() {
         <div className="divider-badge">
           <i
             className="fa-solid fa-calendar-days"
-            style={{ marginRight: "5px" }}
+            style={{ marginRight: 5 }}
           />
           Rekap Harian Per Bulan (Juli 2026 – Juni 2027)
         </div>
       </div>
 
+      {/* 12 bulan — data dari Context getAttendanceCell */}
       {monthConfigs.map((mConfig, mIdx) => (
         <div
           key={mConfig.name}
           className="glass-card"
-          style={{ padding: "10px" }}
+          style={{ padding: 10 }}
         >
           <div
             className="flex-between"
             style={{
-              marginBottom: "10px",
-              paddingBottom: "6px",
+              marginBottom: 10,
+              paddingBottom: 6,
               borderBottom: "1px solid rgba(255,255,255,0.08)",
             }}
           >
             <span
-              style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa" }}
+              style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}
             >
               Presensi {mConfig.name}
             </span>
             <span
               style={{
-                fontSize: "8.5px",
+                fontSize: 8.5,
                 background: "rgba(96,165,250,0.15)",
                 color: "#60a5fa",
                 border: "1px solid rgba(96,165,250,0.3)",
                 padding: "2px 6px",
-                borderRadius: "6px",
+                borderRadius: 6,
                 fontWeight: 700,
               }}
             >
@@ -343,7 +339,7 @@ export default function AbsensiPage() {
               <thead>
                 <tr>
                   <th>No</th>
-                  <th style={{ textAlign: "left", paddingLeft: "10px" }}>
+                  <th style={{ textAlign: "left", paddingLeft: 10 }}>
                     Nama
                   </th>
                   {Array.from({ length: mConfig.days }, (_, d) => (
@@ -364,7 +360,7 @@ export default function AbsensiPage() {
                   const cells = [];
 
                   for (let d = 1; d <= mConfig.days; d++) {
-                    const st = getDailyStatus(sIdx, d, mIdx);
+                    const st = getAttendanceCell(sIdx, mIdx, d);
                     if (st === "H") mH++;
                     else if (st === "I") mI++;
                     else if (st === "S") mS++;
@@ -385,7 +381,7 @@ export default function AbsensiPage() {
                               ? "#f43f5e"
                               : "#64748b",
                           fontWeight: 700,
-                          fontSize: "9px",
+                          fontSize: 9,
                         }}
                       >
                         {st}
@@ -406,7 +402,7 @@ export default function AbsensiPage() {
                         style={{
                           textAlign: "left",
                           fontWeight: 700,
-                          paddingLeft: "10px",
+                          paddingLeft: 10,
                         }}
                       >
                         {siswa.nama}
@@ -434,4 +430,4 @@ export default function AbsensiPage() {
       ))}
     </>
   );
-  }
+        }
