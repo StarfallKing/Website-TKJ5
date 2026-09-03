@@ -282,5 +282,54 @@ export type PaymentHistory = {
   amount: number;
 };
 
+export type NewsItem = {
+  id: string;
+  title: string;
+  body: string;
+  imageUrl: string;
+  source: string; // teks sumber
+  sourceUrl: string; // link (opsional)
+};
+
+export type SiteContent = {
+  tagline: string;
+  widgets: {
+    muridLabel: string;
+    muridSub: string;
+    mapelLabel: string;
+    mapelSub: string;
+    ruangLabel: string;
+    ruangSub: string;
+    // Kas: label saja; nominal dari kasLog
+    kasLabel: string;
+  };
+  news: NewsItem[];
+};
+
+export const defaultSiteContent: SiteContent = {
+  tagline: "Transparansi Kehadiran, Kas, dan Informasi Resmi.",
+  widgets: {
+    muridLabel: "MURID",
+    muridSub: "TOTAL : 43 SISWA",
+    kasLabel: "KAS KELAS",
+    mapelLabel: "MAPEL",
+    mapelSub: "TOTAL : 13 MAPEL",
+    ruangLabel: "INFO RUANG",
+    ruangSub: "KELAS X TKJ – 5",
+  },
+  news: [
+    {
+      id: "1",
+      title:
+        "Pelantikan Kepala Sekolah SMK PGRI 2 Cibinong Periode 2026 – 2030",
+      body:
+        "Selamat atas dilantiknya Dr. Andi Hermawan, M.Pd sebagai Kepala SMK PGRI 2 Cibinong. Semoga amanah ini menjadi ladang...",
+      imageUrl: "", // isi URL atau path /public/...
+      source: "SMK PGRI 2 Cibinong",
+      sourceUrl: "",
+    },
+  ],
+};
+
 /** Histori QRIS kosong */
 export const paymentHistoryLogs: PaymentHistory[] = [];
