@@ -19,6 +19,37 @@ export default function AdminAbsensiPage() {
 
   return (
     <>
+
+      <div className="glass-card" style={{ padding: 10, marginBottom: 12 }}>
+  <div className="title-sub" style={{ marginBottom: 8 }}>Rekap 1 Tahun (dari data siswa)</div>
+  <div className="table-responsive">
+    <table className="absensi-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th style={{ textAlign: "left" }}>Nama</th>
+          <th style={{ color: "#4ade80" }}>H</th>
+          <th style={{ color: "#60a5fa" }}>I</th>
+          <th style={{ color: "#facc15" }}>S</th>
+          <th style={{ color: "#f43f5e" }}>A</th>
+        </tr>
+      </thead>
+      <tbody>
+        {students.map((s, i) => (
+          <tr key={s.nisn}>
+            <td>{i + 1}</td>
+            <td style={{ textAlign: "left", fontWeight: 700 }}>{s.nama}</td>
+            <td style={{ color: "#4ade80" }}>{s.hadir}</td>
+            <td style={{ color: "#60a5fa" }}>{s.izin}</td>
+            <td style={{ color: "#facc15" }}>{s.sakit}</td>
+            <td style={{ color: "#f43f5e" }}>{s.alpa}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+      
       <div className="glass-card text-center">
         <div className="title-sub">EDIT ABSENSI</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
