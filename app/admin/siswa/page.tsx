@@ -9,6 +9,7 @@ const empty: Student = {
   nama: "",
   gender: "L",
   nisn: "",
+  nis: "",
   hadir: 0,
   izin: 0,
   sakit: 0,
