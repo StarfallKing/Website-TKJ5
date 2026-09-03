@@ -1,9 +1,8 @@
 export type Student = {
-export type Student = {
   nama: string;
   gender: "L" | "P";
   nisn: string;
-  nis: string; // Nomor Induk
+  nis: string;
   role?: string;
   roleClass?: string;
   icon?: string;
@@ -13,6 +12,7 @@ export type Student = {
   alpa: number;
 };
 
+/** Urutan absensi resmi tabel sekolah */
 export const allStudents: Student[] = [
   { nama: "AFFAN ASSAKHA", gender: "L", nisn: "0102586557", nis: "26100171", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
   { nama: "AHMAD SANGAJI", gender: "L", nisn: "0114660917", nis: "26100172", role: "Wakil Ketua", roleClass: "wakil", icon: "fa-user-shield", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
@@ -59,32 +59,18 @@ export const allStudents: Student[] = [
   { nama: "ZIDRAM AIDIL ADHA", gender: "L", nisn: "0091703516", nis: "26100213", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
 ];
 
-/* ========== ABSENSI HARIAN (edit per index / bulan / tanggal) ========== */
 export type StatusHarian = "H" | "I" | "S" | "A" | "-";
 
-/**
- * Key: `\( {indexSiswa}- \){bulanIndex}-${tanggal}`
- * indexSiswa = urutan di allStudents (0 = Affan, 1 = Ahmad, ...)
- * bulanIndex: 0=Juli ... 11=Juni
- *
- * Contoh:
- * "0-0-15": "H"  → Affan, Juli tgl 15
- * "15-1-3": "S"  → Irfan (index 15), Agustus tgl 3
- */
-export const attendanceMap: Record<string, StatusHarian> = {
-  // "0-0-1": "H",
-  // "0-0-2": "I",
-};
+export const attendanceMap: Record<string, StatusHarian> = {};
 
 export function attendanceKey(
   studentIndex: number,
   monthIndex: number,
   day: number
 ) {
-  return `\( {studentIndex}- \){monthIndex}-${day}`;
+  return studentIndex + "-" + monthIndex + "-" + day;
 }
 
-/** Baca 1 hari. Belum diisi → "-" */
 export function getDailyStatus(
   studentIndex: number,
   day: number,
