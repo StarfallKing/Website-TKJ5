@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getInitials, type Student } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 
@@ -15,6 +16,7 @@ const empty: Student = {
 };
 
 export default function AdminSiswaPage() {
+  const router = useRouter();
   const { students, addStudent, updateStudent, removeStudent } = useAppData();
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Student | null>(null);
@@ -65,7 +67,10 @@ export default function AdminSiswaPage() {
         + Tambah siswa
       </button>
 
-      <div className="search-box expanded" style={{ width: "100%", marginBottom: 10 }}>
+      <div
+        className="search-box expanded"
+        style={{ width: "100%", marginBottom: 10 }}
+      >
         <div className="search-icon">
           <i className="fa-solid fa-magnifying-glass" />
         </div>
@@ -77,8 +82,11 @@ export default function AdminSiswaPage() {
       </div>
 
       {edit && (
-        <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div className="title-sub">{isNew ? "TAMBAH" : "EDIT"}</div>
+        <div
+          className="glass-card"
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        >
+          <div className="title-sub">{isNew ? "TAMBAH" : "EDIT CEPAT"}</div>
           <input
             className="search-box expanded"
             style={{ width: "100%", padding: 10 }}
@@ -99,7 +107,12 @@ export default function AdminSiswaPage() {
             onChange={(e) =>
               setEdit({ ...edit, gender: e.target.value as "L" | "P" })
             }
-            style={{ padding: 10, borderRadius: 10, background: "#0f172a", color: "#fff" }}
+            style={{
+              padding: 10,
+              borderRadius: 10,
+              background: "#0f172a",
+              color: "#fff",
+            }}
           >
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
@@ -151,14 +164,12 @@ export default function AdminSiswaPage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              {/* Sub-page edit lengkap */}
               <button
                 type="button"
                 className="btn-action-light"
                 style={{ fontSize: 10 }}
-                onClick={() => {
-                  setIsNew(false);
-                  setEdit({ ...s });
-                }}
+                onClick={() => router.push("/admin/siswa/" + s.nisn)}
               >
                 Edit
               </button>
@@ -166,7 +177,11 @@ export default function AdminSiswaPage() {
                 type="button"
                 className="btn-action-light"
                 style={{ fontSize: 10, color: "#f43f5e" }}
-                onClick={() => router.push("/admin/siswa/" + s.nisn)}
+                onClick={() => {
+                  if (confirm("Hapus " + s.nama + "?")) {
+                    removeStudent(s.nisn);
+                  }
+                }}
               >
                 Hapus
               </button>
