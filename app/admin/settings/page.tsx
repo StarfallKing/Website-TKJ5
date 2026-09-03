@@ -17,7 +17,30 @@ const DEFAULT_USERS = [
 
 export default function AdminSettingsPage() {
   const { maintenanceMode, setMaintenanceMode } = useAppData();
+  const { activityLog } = useAppData(); // setelah pushLog ada di Context
 
+// di JSX:
+<div className="glass-card">
+  <div className="title-sub" style={{ marginBottom: 8 }}>LOG AKTIVITAS</div>
+  {(activityLog || []).length === 0 && (
+    <p style={{ fontSize: 11, color: "#64748b" }}>Belum ada aktivitas</p>
+  )}
+  {(activityLog || []).slice(0, 50).map((row) => (
+    <div
+      key={row.id}
+      style={{
+        fontSize: 10,
+        padding: "8px 0",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <div style={{ color: "#60a5fa", fontWeight: 700 }}>{row.user}</div>
+      <div style={{ color: "#f8fafc" }}>{row.action}</div>
+      <div style={{ color: "#64748b" }}>{row.at}</div>
+    </div>
+  ))}
+</div>
+  
   return (
     <>
       <div className="glass-card text-center">
