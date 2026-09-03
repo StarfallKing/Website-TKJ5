@@ -65,6 +65,10 @@ export default function SiswaDetailPage() {
 </a>
       
       {/* Biodata */}
+
+      <span className="student-subtext">
+  NISN: {siswa.nisn} · NIS: {siswa.nis}
+      </span>
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}
