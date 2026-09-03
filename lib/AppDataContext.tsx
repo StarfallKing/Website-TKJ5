@@ -73,7 +73,7 @@ type AppData = {
 };
 
 const Ctx = createContext<AppData | null>(null);
-const STORAGE_KEY = "portal-tkj5-data-v1";
+const STORAGE_KEY = "portal-tkj5-data-v2";
 
 function currentAdminUser() {
   if (typeof window === "undefined") return "system";
