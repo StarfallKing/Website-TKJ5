@@ -166,9 +166,7 @@ export default function AdminSiswaPage() {
                 type="button"
                 className="btn-action-light"
                 style={{ fontSize: 10, color: "#f43f5e" }}
-                onClick={() => {
-                  if (confirm("Hapus " + s.nama + "?")) removeStudent(s.nisn);
-                }}
+                onClick={() => router.push("/admin/siswa/" + s.nisn)}
               >
                 Hapus
               </button>
