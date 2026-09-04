@@ -1,7 +1,33 @@
+"use client";
+
+import { useAppData } from "@/lib/AppDataContext";
+
+function displayName(nama?: string) {
+  if (!nama) return "—";
+  // Title Case sederhana biar mirip tampilan bagan
+  return nama
+    .toLowerCase()
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export default function StrukturPage() {
+  const { students } = useAppData();
+  const officers = students.filter((s) => s.role);
+
+  const ketua = officers.find((s) => s.role === "Ketua Kelas");
+  const wakil = officers.find((s) => s.role === "Wakil Ketua");
+  const sek1 = officers.find((s) => s.role === "Sekretaris 1");
+  const sek2 = officers.find((s) => s.role === "Sekretaris 2");
+  const ben1 = officers.find((s) => s.role === "Bendahara 1");
+  const ben2 = officers.find((s) => s.role === "Bendahara 2");
+  const kes1 = officers.find((s) => s.role === "Kesehatan 1");
+  const kes2 = officers.find((s) => s.role === "Kesehatan 2");
+  const amn = officers.find((s) => s.role === "Keamanan");
+
   return (
     <>
-      {/* Judul */}
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: "4px" }}
@@ -19,7 +45,6 @@ export default function StrukturPage() {
         </p>
       </div>
 
-      {/* Widget periode */}
       <div className="flex-between" style={{ padding: "0 4px" }}>
         <div className="widget-side">
           <i className="fa-solid fa-calendar-check" style={{ color: "#60a5fa" }} />
@@ -27,16 +52,18 @@ export default function StrukturPage() {
         </div>
         <div className="widget-side">
           <i className="fa-solid fa-users-gear" style={{ color: "#60a5fa" }} />
-          <span>10 ANGGOTA INTI</span>
+          <span>{officers.length} ANGGOTA INTI</span>
         </div>
       </div>
 
-      {/* Tree struktur */}
       <div className="glass-card tree-wrapper">
-        {/* Wali Kelas */}
+        {/* Wali Kelas — tetap hardcode */}
         <div className="tree-node">
           <div className="avatar-box">
-            <i className="fa-solid fa-user-tie" style={{ fontSize: "28px", color: "#60a5fa" }} />
+            <i
+              className="fa-solid fa-user-tie"
+              style={{ fontSize: "28px", color: "#60a5fa" }}
+            />
           </div>
           <div className="role-card">
             <div className="person-name">Shendy Nuria Feriansyah, S.Pd</div>
@@ -60,10 +87,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(234,179,8,0.4)",
               }}
             >
-              <i className="fa-solid fa-crown" style={{ fontSize: "26px", color: "#eab308" }} />
+              <i
+                className="fa-solid fa-crown"
+                style={{ fontSize: "26px", color: "#eab308" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(234,179,8,0.3)" }}>
-              <div className="person-name">Irfan Dzaki Khoerulloh</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(234,179,8,0.3)" }}
+            >
+              <div className="person-name">{displayName(ketua?.nama)}</div>
               <div className="role-badge" style={{ color: "#eab308" }}>
                 Ketua Kelas
               </div>
@@ -77,10 +110,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(56,189,248,0.4)",
               }}
             >
-              <i className="fa-solid fa-user-shield" style={{ fontSize: "24px", color: "#38bdf8" }} />
+              <i
+                className="fa-solid fa-user-shield"
+                style={{ fontSize: "24px", color: "#38bdf8" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(56,189,248,0.3)" }}>
-              <div className="person-name">Affan Assakha</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(56,189,248,0.3)" }}
+            >
+              <div className="person-name">{displayName(wakil?.nama)}</div>
               <div className="role-badge" style={{ color: "#38bdf8" }}>
                 Wakil Ketua
               </div>
@@ -98,19 +137,25 @@ export default function StrukturPage() {
         <div className="tree-row">
           <div className="tree-node">
             <div className="avatar-box">
-              <i className="fa-solid fa-file-pen" style={{ fontSize: "24px", color: "#38bdf8" }} />
+              <i
+                className="fa-solid fa-file-pen"
+                style={{ fontSize: "24px", color: "#38bdf8" }}
+              />
             </div>
             <div className="role-card">
-              <div className="person-name">Regina Yuniar</div>
+              <div className="person-name">{displayName(sek1?.nama)}</div>
               <div className="role-badge">Sekretaris 1</div>
             </div>
           </div>
           <div className="tree-node">
             <div className="avatar-box">
-              <i className="fa-solid fa-file-pen" style={{ fontSize: "24px", color: "#38bdf8" }} />
+              <i
+                className="fa-solid fa-file-pen"
+                style={{ fontSize: "24px", color: "#38bdf8" }}
+              />
             </div>
             <div className="role-card">
-              <div className="person-name">Syavana Sabitul Azmi</div>
+              <div className="person-name">{displayName(sek2?.nama)}</div>
               <div className="role-badge">Sekretaris 2</div>
             </div>
           </div>
@@ -132,10 +177,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(74,222,128,0.4)",
               }}
             >
-              <i className="fa-solid fa-wallet" style={{ fontSize: "24px", color: "#4ade80" }} />
+              <i
+                className="fa-solid fa-wallet"
+                style={{ fontSize: "24px", color: "#4ade80" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(74,222,128,0.3)" }}>
-              <div className="person-name">Monicka Silvia</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(74,222,128,0.3)" }}
+            >
+              <div className="person-name">{displayName(ben1?.nama)}</div>
               <div className="role-badge" style={{ color: "#4ade80" }}>
                 Bendahara 1
               </div>
@@ -149,10 +200,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(74,222,128,0.4)",
               }}
             >
-              <i className="fa-solid fa-wallet" style={{ fontSize: "24px", color: "#4ade80" }} />
+              <i
+                className="fa-solid fa-wallet"
+                style={{ fontSize: "24px", color: "#4ade80" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(74,222,128,0.3)" }}>
-              <div className="person-name">Muhammad Ihza Fahrezi</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(74,222,128,0.3)" }}
+            >
+              <div className="person-name">{displayName(ben2?.nama)}</div>
               <div className="role-badge" style={{ color: "#4ade80" }}>
                 Bendahara 2
               </div>
@@ -176,10 +233,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(244,63,94,0.4)",
               }}
             >
-              <i className="fa-solid fa-heart-pulse" style={{ fontSize: "24px", color: "#f43f5e" }} />
+              <i
+                className="fa-solid fa-heart-pulse"
+                style={{ fontSize: "24px", color: "#f43f5e" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(244,63,94,0.3)" }}>
-              <div className="person-name">Fathan Wayfi Al Ayubi</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(244,63,94,0.3)" }}
+            >
+              <div className="person-name">{displayName(kes1?.nama)}</div>
               <div className="role-badge" style={{ color: "#f43f5e" }}>
                 Kesehatan 1
               </div>
@@ -193,10 +256,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(244,63,94,0.4)",
               }}
             >
-              <i className="fa-solid fa-heart-pulse" style={{ fontSize: "24px", color: "#f43f5e" }} />
+              <i
+                className="fa-solid fa-heart-pulse"
+                style={{ fontSize: "24px", color: "#f43f5e" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(244,63,94,0.3)" }}>
-              <div className="person-name">Azzahra Putri</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(244,63,94,0.3)" }}
+            >
+              <div className="person-name">{displayName(kes2?.nama)}</div>
               <div className="role-badge" style={{ color: "#f43f5e" }}>
                 Kesehatan 2
               </div>
@@ -220,10 +289,16 @@ export default function StrukturPage() {
                 boxShadow: "0 0 16px rgba(251,146,60,0.4)",
               }}
             >
-              <i className="fa-solid fa-shield-halved" style={{ fontSize: "24px", color: "#fb923c" }} />
+              <i
+                className="fa-solid fa-shield-halved"
+                style={{ fontSize: "24px", color: "#fb923c" }}
+              />
             </div>
-            <div className="role-card" style={{ borderColor: "rgba(251,146,60,0.3)" }}>
-              <div className="person-name">Muhammad Fauzan Assyakir Noto Pam</div>
+            <div
+              className="role-card"
+              style={{ borderColor: "rgba(251,146,60,0.3)" }}
+            >
+              <div className="person-name">{displayName(amn?.nama)}</div>
               <div className="role-badge" style={{ color: "#fb923c" }}>
                 Keamanan
               </div>
@@ -234,4 +309,4 @@ export default function StrukturPage() {
       </div>
     </>
   );
-}
+                }
