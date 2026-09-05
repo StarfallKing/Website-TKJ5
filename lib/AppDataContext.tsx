@@ -14,11 +14,13 @@ import {
   paymentHistoryLogs as seedPay,
   attendanceMap as seedAttendance,
   defaultSiteContent,
+  defaultSchedule,
   type Student,
   type KasTransaction,
   type PaymentHistory,
   type StatusHarian,
   type SiteContent,
+  type ScheduleData,
   NOMINAL_KAS,
 } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -39,9 +41,11 @@ type AppData = {
   maintenanceMode: boolean;
   activityLog: ActivityLogItem[];
   siteContent: SiteContent;
+  schedule: ScheduleData;
   loading: boolean;
   setSiteContent: (c: SiteContent) => Promise<void>;
   setMaintenanceMode: (value: boolean) => Promise<void>;
+  setSchedule: (s: ScheduleData) => Promise<void>;
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
   updateStudent: (nisn: string, patch: Partial<Student>) => Promise<void>;
@@ -115,6 +119,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [siteContent, setSiteContentState] =
     useState<SiteContent>(defaultSiteContent);
+  const [schedule, setScheduleState] =
+    useState<ScheduleData>(defaultSchedule);
   const [loading, setLoading] = useState(true);
 
   async function refreshFromDb() {
@@ -128,6 +134,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         siteRes,
         setRes,
         actRes,
+        schedRes,
       ] = await Promise.all([
         supabase.from("students").select("*").order("nama"),
         supabase.from("attendance").select("*"),
@@ -141,11 +148,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           .select("*")
           .order("id", { ascending: false })
           .limit(100),
+        supabase.from("schedule").select("*").eq("id", 1).maybeSingle(),
       ]);
-
-      if (stRes.error) console.error("students load", stRes.error);
-      if (paidRes.error) console.error("kas_paid load", paidRes.error);
-      if (attRes.error) console.error("attendance load", attRes.error);
 
       let ordered: Student[] = seedStudents;
       if (stRes.data?.length) {
@@ -166,8 +170,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         for (const row of attRes.data) {
           const idx = ordered.findIndex((s) => s.nisn === row.nisn);
           if (idx < 0) continue;
-          const key = idx + "-" + row.month_index + "-" + row.day;
-          map[key] = row.status as StatusHarian;
+          map[idx + "-" + row.month_index + "-" + row.day] =
+            row.status as StatusHarian;
         }
         setAttendanceMap(map);
       }
@@ -229,6 +233,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           }))
         );
       }
+
+      if (schedRes.data?.data) {
+        setScheduleState(schedRes.data.data as ScheduleData);
+      }
     } catch (e) {
       console.error("refreshFromDb", e);
     } finally {
@@ -237,7 +245,53 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refreshFromDb();
+    void refreshFromDb();
+  }, []);
+
+  // REALTIME
+  useEffect(() => {
+    const channel = supabase
+      .channel("portal-tkj5")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "students" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "kas_paid" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "attendance" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "kas_log" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "site_content" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "app_settings" },
+        () => void refreshFromDb()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "schedule" },
+        () => void refreshFromDb()
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   function pushLog(action: string) {
@@ -263,15 +317,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updated_at: new Date().toISOString(),
     });
     if (error) {
-      console.error("maintenance ERROR", error);
-      alert("Gagal simpan maintenance: " + error.message);
+      alert("Gagal maintenance: " + error.message);
       return;
     }
-    pushLog(
-      value
-        ? "Menyalakan mode Website Sedang Perbaikan"
-        : "Mematikan mode Website Sedang Perbaikan"
-    );
+    pushLog(value ? "Maintenance ON" : "Maintenance OFF");
   }
 
   async function setSiteContent(c: SiteContent) {
@@ -284,11 +333,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updated_at: new Date().toISOString(),
     });
     if (error) {
-      console.error("site_content ERROR", error);
-      alert("Gagal simpan homepage: " + error.message);
+      alert("Gagal homepage: " + error.message);
       return;
     }
     pushLog("Update konten homepage");
+  }
+
+  async function setSchedule(s: ScheduleData) {
+    setScheduleState(s);
+    const { error } = await supabase.from("schedule").upsert({
+      id: 1,
+      data: s,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      alert("Gagal jadwal: " + error.message);
+      return;
+    }
+    pushLog("Update jadwal pelajaran");
   }
 
   const value = useMemo<AppData>(
@@ -301,9 +363,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       maintenanceMode,
       activityLog,
       siteContent,
+      schedule,
       loading,
       setSiteContent,
       setMaintenanceMode,
+      setSchedule,
       pushLog,
       refreshFromDb,
       setStudents,
@@ -332,11 +396,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           })
           .eq("nisn", nisn);
         if (error) {
-          console.error("UPDATE STUDENT ERROR", error);
-          alert("Gagal simpan siswa: " + error.message);
+          alert("Gagal siswa: " + error.message);
           return;
         }
-        pushLog("Update siswa NISN " + nisn);
+        pushLog("Update siswa " + nisn);
       },
 
       addStudent: (s) => {
@@ -360,7 +423,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       removeStudent: (nisn) => {
         setStudents((prev) => prev.filter((s) => s.nisn !== nisn));
         void supabase.from("students").delete().eq("nisn", nisn);
-        pushLog("Hapus siswa NISN " + nisn);
+        pushLog("Hapus siswa " + nisn);
       },
 
       addKasTransaction: (desc, type, val) => {
@@ -392,39 +455,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         pushLog("Log kas " + type + ": " + desc);
       },
 
-      // TANPA seed palsu
-      isKasPaid: (nisn, _studentIndex, monthIndex) => {
-        const key = nisn + "-" + monthIndex;
-        return paymentOverrides[key] === true;
-      },
+      isKasPaid: (nisn, _si, monthIndex) =>
+        paymentOverrides[nisn + "-" + monthIndex] === true,
 
-      setKasPaid: async (nisn, _studentIndex, monthIndex, paid) => {
-        const key = nisn + "-" + monthIndex;
-        setPaymentOverrides((prev) => ({ ...prev, [key]: paid }));
+      setKasPaid: async (nisn, _si, monthIndex, paid) => {
+        setPaymentOverrides((prev) => ({
+          ...prev,
+          [nisn + "-" + monthIndex]: paid,
+        }));
         const { error } = await supabase.from("kas_paid").upsert(
           { nisn, month_index: monthIndex, paid },
           { onConflict: "nisn,month_index" }
         );
         if (error) {
-          console.error("kas_paid ERROR", error);
-          alert("Gagal simpan kas: " + error.message);
+          alert("Gagal kas: " + error.message);
           return;
         }
-        pushLog((paid ? "LUNAS " : "BELUM ") + nisn + " bulan#" + monthIndex);
+        pushLog((paid ? "LUNAS " : "BELUM ") + nisn + " m" + monthIndex);
       },
 
       markKasPaid: async (nama, nisn, monthIndex = 1) => {
-        const key = nisn + "-" + monthIndex;
-        setPaymentOverrides((prev) => ({ ...prev, [key]: true }));
+        setPaymentOverrides((prev) => ({
+          ...prev,
+          [nisn + "-" + monthIndex]: true,
+        }));
         const { error: e1 } = await supabase.from("kas_paid").upsert(
           { nisn, month_index: monthIndex, paid: true },
           { onConflict: "nisn,month_index" }
         );
         if (e1) {
-          alert("Gagal kas_paid: " + e1.message);
+          alert(e1.message);
           return;
         }
-
         setKasLog((prev) => {
           const last = prev[prev.length - 1]?.balance ?? 0;
           const row = {
@@ -449,16 +511,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           });
           return [...prev, row];
         });
-
         const now = new Date();
-        const hh = now.getHours().toString().padStart(2, "0");
-        const mm = now.getMinutes().toString().padStart(2, "0");
         const pay = {
           name: nama,
           date:
-            now.toLocaleDateString("id-ID") + " - " + hh + ":" + mm + " WIB",
-          code:
-            "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
+            now.toLocaleDateString("id-ID") +
+            " - " +
+            now.getHours().toString().padStart(2, "0") +
+            ":" +
+            now.getMinutes().toString().padStart(2, "0") +
+            " WIB",
+          code: "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
           status: "LUNAS",
           amount: NOMINAL_KAS,
         };
@@ -468,31 +531,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       setAttendanceCell: async (studentIndex, monthIndex, day, status) => {
-        const key = studentIndex + "-" + monthIndex + "-" + day;
-        setAttendanceMap((prev) => ({ ...prev, [key]: status }));
+        setAttendanceMap((prev) => ({
+          ...prev,
+          [studentIndex + "-" + monthIndex + "-" + day]: status,
+        }));
         const nisn = students[studentIndex]?.nisn;
-        if (!nisn) {
-          alert("NISN tidak ketemu index " + studentIndex);
-          return;
-        }
+        if (!nisn) return;
         const { error } = await supabase.from("attendance").upsert(
           { nisn, month_index: monthIndex, day, status },
           { onConflict: "nisn,month_index,day" }
         );
         if (error) {
-          console.error("attendance ERROR", error);
-          alert("Gagal simpan absensi: " + error.message);
+          alert("Gagal absensi: " + error.message);
           return;
         }
-        pushLog(
-          "Absensi " + nisn + " m" + monthIndex + " d" + day + " → " + status
-        );
+        pushLog("Absensi " + nisn + " → " + status);
       },
 
-      getAttendanceCell: (studentIndex, monthIndex, day) => {
-        const key = studentIndex + "-" + monthIndex + "-" + day;
-        return attendanceMap[key] ?? "-";
-      },
+      getAttendanceCell: (studentIndex, monthIndex, day) =>
+        attendanceMap[studentIndex + "-" + monthIndex + "-" + day] ?? "-",
     }),
     [
       students,
@@ -503,6 +560,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       maintenanceMode,
       activityLog,
       siteContent,
+      schedule,
       loading,
     ]
   );
@@ -514,4 +572,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-      }
+    }
