@@ -6,9 +6,18 @@ import type { ReactNode } from "react";
 
 export default function MaintenanceGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { maintenanceMode } = useAppData();
+  const { maintenanceMode, loading } = useAppData();
 
   const isAdmin = pathname?.startsWith("/admin");
+
+  // Jangan flash halaman perbaikan sebelum data DB masuk
+  if (loading && !isAdmin) {
+    return (
+      <div className="glass-card text-center" style={{ marginTop: 80, padding: 20 }}>
+        <p style={{ fontSize: 12, color: "#94a3b8" }}>Memuat...</p>
+      </div>
+    );
+  }
 
   if (maintenanceMode && !isAdmin) {
     return (
