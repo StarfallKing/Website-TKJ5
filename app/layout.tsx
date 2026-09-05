@@ -9,6 +9,22 @@ import MaintenanceGate from "@/components/MaintenanceGate";
 export const metadata: Metadata = {
   title: "Portal X TKJ-5 - SMK PGRI 2 Cibinong",
   description: "Sistem Terpadu Kelas X TKJ-5",
+  openGraph: {
+    title: "Portal X TKJ-5 - SMK PGRI 2 Cibinong",
+    description: "Sistem Terpadu Kelas X TKJ-5",
+    url: "https://website-tkj5.vercel.app",
+    siteName: "Portal X TKJ-5",
+    images: [
+      {
+        url: "/og.png",
+        width: 512,
+        height: 512,
+        alt: "Portal X TKJ-5",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
