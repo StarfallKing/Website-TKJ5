@@ -250,6 +250,14 @@ export const masterSchedule: {
     Minggu: [{ mapel: "LIBUR AKHIR PEKAN", start: "00:00", end: "23:59" }],
   },
 };
+export type ScheduleSlot = Lesson;
+export type ScheduleData = {
+  pagi: Record<string, ScheduleSlot[]>;
+  siang: Record<string, ScheduleSlot[]>;
+};
+
+/** Seed jadwal = masterSchedule */
+export const defaultSchedule: ScheduleData = masterSchedule;
 
 export const scheduleDays = [
   "Senin",
