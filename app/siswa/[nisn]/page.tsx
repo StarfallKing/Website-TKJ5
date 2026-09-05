@@ -1,93 +1,111 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { allStudents, formatRupiah, getInitials, NOMINAL_KAS } from "@/lib/data";
+import { useAppData } from "@/lib/AppDataContext";
+import { formatRupiah, getInitials, NOMINAL_KAS } from "@/lib/data";
 
 export default function SiswaDetailPage() {
   const params = useParams();
   const router = useRouter();
   const nisn = params.nisn as string;
 
-  const siswa = allStudents.find((s) => s.nisn === nisn);
-  const sIdx = allStudents.findIndex((s) => s.nisn === nisn);
+  const { students, isKasPaid } = useAppData();
+
+  const sIdx = students.findIndex((s) => s.nisn === nisn);
+  const siswa = sIdx >= 0 ? students[sIdx] : undefined;
 
   if (!siswa) {
     return (
       <div className="glass-card text-center">
         <p style={{ color: "#94a3b8" }}>Siswa tidak ditemukan</p>
-        <button className="btn-action-light" onClick={() => router.push("/direktori")}>
+        <button
+          type="button"
+          className="btn-action-light"
+          onClick={() => router.push("/direktori")}
+        >
           Kembali
         </button>
       </div>
     );
   }
 
-  const total = 28;
+  const total =
+    Math.max(siswa.hadir + siswa.izin + siswa.sakit + siswa.alpa, 1) || 28;
   const pctH = ((siswa.hadir / total) * 100).toFixed(1);
   const pctI = ((siswa.izin / total) * 100).toFixed(1);
   const pctS = ((siswa.sakit / total) * 100).toFixed(1);
   const pctA = ((siswa.alpa / total) * 100).toFixed(1);
 
-  // Dummy kas progress (mirip HTML)
-  let paid = 0;
+  let paidMonths = 0;
   for (let m = 0; m < 12; m++) {
-    if (((sIdx * 17 + m * 31) % 100) < 82) paid++;
+    if (isKasPaid(siswa.nisn, sIdx, m)) paidMonths++;
   }
-  const isPaidThisMonth = ((sIdx * 17 + 31) % 100) < 82;
+  const isPaidThisMonth = isKasPaid(siswa.nisn, sIdx, 1);
 
   return (
     <>
       <div className="glass-card flex-between">
-        <button className="btn-action-light" onClick={() => router.push("/direktori")}>
+        <button
+          type="button"
+          className="btn-action-light"
+          onClick={() => router.push("/direktori")}
+        >
           <i className="fa-solid fa-arrow-left" /> Kembali
         </button>
-        <span style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa" }}>
+        <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
           BIODATA SISWA
         </span>
       </div>
 
       <a
-  href="https://smkpgri2cbn.sch.id/glms/siswa/login.html"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="glass-card flex-between"
-  style={{ textDecoration: "none", marginTop: 12 }}
->
-  <div>
-    <div style={{ fontWeight: 800, fontSize: 12, color: "#f8fafc" }}>
-      GLMS Account
-    </div>
-    <div style={{ fontSize: 10, color: "#94a3b8" }}>
-      Gocir Learning Management System · Login siswa
-    </div>
-  </div>
-  <i className="fa-solid fa-arrow-up-right-from-square" style={{ color: "#60a5fa" }} />
-</a>
-      
-      {/* Biodata */}
+        href="https://smkpgri2cbn.sch.id/glms/siswa/login.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="glass-card flex-between"
+        style={{ textDecoration: "none" }}
+      >
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 12, color: "#f8fafc" }}>
+            GLMS Account
+          </div>
+          <div style={{ fontSize: 10, color: "#94a3b8" }}>
+            Gocir LMS · Login siswa sekolah
+          </div>
+        </div>
+        <i
+          className="fa-solid fa-arrow-up-right-from-square"
+          style={{ color: "#60a5fa" }}
+        />
+      </a>
 
-      <span className="student-subtext">
-  NISN: {siswa.nisn} · NIS: {siswa.nis}
-      </span>
       <div
         className="glass-card text-center"
-        style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          alignItems: "center",
+        }}
       >
         <div
-          className={`student-avatar ${siswa.gender === "P" ? "female" : ""}`}
-          style={{ width: "72px", height: "72px", fontSize: "24px" }}
+          className={
+            "student-avatar" + (siswa.gender === "P" ? " female" : "")
+          }
+          style={{ width: 72, height: 72, fontSize: 24 }}
         >
           {getInitials(siswa.nama)}
         </div>
         <div>
-          <div style={{ fontSize: "16px", fontWeight: 900 }}>{siswa.nama}</div>
-          <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>
+          <div style={{ fontSize: 16, fontWeight: 900 }}>{siswa.nama}</div>
+          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
             NISN: {siswa.nisn}
+            {siswa.nis ? ` · NIS: ${siswa.nis}` : ""}
           </div>
           {siswa.role && (
-            <div style={{ marginTop: "8px" }}>
-              <div className={`officer-badge ${siswa.roleClass}`}>
-                <i className={`fa-solid ${siswa.icon}`} /> {siswa.role}
+            <div style={{ marginTop: 8 }}>
+              <div className={"officer-badge " + (siswa.roleClass || "")}>
+                <i className={"fa-solid " + (siswa.icon || "fa-user")} />{" "}
+                {siswa.role}
               </div>
             </div>
           )}
@@ -107,40 +125,50 @@ export default function SiswaDetailPage() {
         </div>
       </div>
 
-      {/* Kehadiran */}
       <div className="glass-card">
-        <div className="title-sub" style={{ marginBottom: "12px" }}>
-          <i className="fa-solid fa-chart-pie" style={{ marginRight: "6px" }} />
+        <div className="title-sub" style={{ marginBottom: 12 }}>
+          <i className="fa-solid fa-chart-pie" style={{ marginRight: 6 }} />
           PERSENTASE KEHADIRAN
         </div>
-
-        <div className="grid-4" style={{ marginBottom: "10px" }}>
+        <div className="grid-4" style={{ marginBottom: 10 }}>
           <div className="text-center">
-            <div style={{ fontSize: "18px", fontWeight: 900, color: "#4ade80" }}>{siswa.hadir}</div>
-            <div style={{ fontSize: "9px", color: "#94a3b8" }}>HADIR</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#4ade80" }}>
+              {siswa.hadir}
+            </div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>HADIR</div>
           </div>
           <div className="text-center">
-            <div style={{ fontSize: "18px", fontWeight: 900, color: "#60a5fa" }}>{siswa.izin}</div>
-            <div style={{ fontSize: "9px", color: "#94a3b8" }}>IZIN</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#60a5fa" }}>
+              {siswa.izin}
+            </div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>IZIN</div>
           </div>
           <div className="text-center">
-            <div style={{ fontSize: "18px", fontWeight: 900, color: "#facc15" }}>{siswa.sakit}</div>
-            <div style={{ fontSize: "9px", color: "#94a3b8" }}>SAKIT</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#facc15" }}>
+              {siswa.sakit}
+            </div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>SAKIT</div>
           </div>
           <div className="text-center">
-            <div style={{ fontSize: "18px", fontWeight: 900, color: "#f43f5e" }}>{siswa.alpa}</div>
-            <div style={{ fontSize: "9px", color: "#94a3b8" }}>ALPA</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: "#f43f5e" }}>
+              {siswa.alpa}
+            </div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>ALPA</div>
           </div>
         </div>
-
-        <div className="progress-bar-container" style={{ width: "100%", height: "10px", marginBottom: "8px" }}>
-          <div className="progress-seg bg-hadir" style={{ width: `${pctH}%` }} />
-          <div className="progress-seg bg-izin" style={{ width: `${pctI}%` }} />
-          <div className="progress-seg bg-sakit" style={{ width: `${pctS}%` }} />
-          <div className="progress-seg bg-alpha" style={{ width: `${pctA}%` }} />
+        <div
+          className="progress-bar-container"
+          style={{ width: "100%", height: 10, marginBottom: 8 }}
+        >
+          <div className="progress-seg bg-hadir" style={{ width: pctH + "%" }} />
+          <div className="progress-seg bg-izin" style={{ width: pctI + "%" }} />
+          <div className="progress-seg bg-sakit" style={{ width: pctS + "%" }} />
+          <div className="progress-seg bg-alpha" style={{ width: pctA + "%" }} />
         </div>
-
-        <div className="pct-breakdown" style={{ justifyContent: "space-around", fontSize: "10px" }}>
+        <div
+          className="pct-breakdown"
+          style={{ justifyContent: "space-around", fontSize: 10 }}
+        >
           <span style={{ color: "#4ade80" }}>H:{pctH}%</span>
           <span style={{ color: "#60a5fa" }}>I:{pctI}%</span>
           <span style={{ color: "#facc15" }}>S:{pctS}%</span>
@@ -148,10 +176,9 @@ export default function SiswaDetailPage() {
         </div>
       </div>
 
-      {/* Kas */}
       <div className="glass-card">
-        <div className="title-sub" style={{ marginBottom: "12px" }}>
-          <i className="fa-solid fa-wallet" style={{ marginRight: "6px" }} />
+        <div className="title-sub" style={{ marginBottom: 12 }}>
+          <i className="fa-solid fa-wallet" style={{ marginRight: 6 }} />
           STATUS KAS
         </div>
         <div className="summary-grid">
@@ -167,21 +194,21 @@ export default function SiswaDetailPage() {
           <div className="summary-box">
             <div className="summary-label">TOTAL DIBAYAR</div>
             <div className="summary-val" style={{ color: "#4ade80" }}>
-              {formatRupiah(paid * NOMINAL_KAS)}
+              {formatRupiah(paidMonths * NOMINAL_KAS)}
             </div>
           </div>
           <div className="summary-box">
             <div className="summary-label">TUNGGAKAN</div>
             <div className="summary-val" style={{ color: "#f43f5e" }}>
-              {formatRupiah((12 - paid) * NOMINAL_KAS)}
+              {formatRupiah((12 - paidMonths) * NOMINAL_KAS)}
             </div>
           </div>
           <div className="summary-box">
             <div className="summary-label">PROGRESS LUNAS</div>
-            <div className="summary-val">{paid}/12 Bulan</div>
+            <div className="summary-val">{paidMonths}/12 Bulan</div>
           </div>
         </div>
       </div>
     </>
   );
-}
+        }
