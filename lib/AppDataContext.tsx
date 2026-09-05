@@ -20,7 +20,6 @@ import {
   type StatusHarian,
   type SiteContent,
   NOMINAL_KAS,
-  getKasPaid as seedGetKasPaid,
 } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -41,11 +40,11 @@ type AppData = {
   activityLog: ActivityLogItem[];
   siteContent: SiteContent;
   loading: boolean;
-  setSiteContent: (c: SiteContent) => void;
-  setMaintenanceMode: (value: boolean) => void;
+  setSiteContent: (c: SiteContent) => Promise<void>;
+  setMaintenanceMode: (value: boolean) => Promise<void>;
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
-  updateStudent: (nisn: string, patch: Partial<Student>) => void;
+  updateStudent: (nisn: string, patch: Partial<Student>) => Promise<void>;
   addStudent: (s: Student) => void;
   removeStudent: (nisn: string) => void;
   addKasTransaction: (
@@ -53,7 +52,7 @@ type AppData = {
     type: "masuk" | "keluar",
     val: number
   ) => void;
-  markKasPaid: (nama: string, nisn: string, monthIndex?: number) => void;
+  markKasPaid: (nama: string, nisn: string, monthIndex?: number) => Promise<void>;
   isKasPaid: (
     nisn: string,
     studentIndex: number,
@@ -64,13 +63,13 @@ type AppData = {
     studentIndex: number,
     monthIndex: number,
     paid: boolean
-  ) => void;
+  ) => Promise<void>;
   setAttendanceCell: (
     studentIndex: number,
     monthIndex: number,
     day: number,
     status: StatusHarian
-  ) => void;
+  ) => Promise<void>;
   getAttendanceCell: (
     studentIndex: number,
     monthIndex: number,
@@ -144,12 +143,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           .limit(100),
       ]);
 
+      if (stRes.error) console.error("students load", stRes.error);
+      if (paidRes.error) console.error("kas_paid load", paidRes.error);
+      if (attRes.error) console.error("attendance load", attRes.error);
+
+      let ordered: Student[] = seedStudents;
       if (stRes.data?.length) {
-        // urut seperti seed (nis) biar index absensi stabil
         const byNisn = new Map(
           stRes.data.map((r) => [String(r.nisn), rowToStudent(r)])
         );
-        const ordered: Student[] = [];
+        ordered = [];
         for (const s of seedStudents) {
           ordered.push(byNisn.get(s.nisn) ?? s);
           byNisn.delete(s.nisn);
@@ -160,12 +163,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       if (attRes.data) {
         const map: Record<string, StatusHarian> = {};
-        const list = stRes.data?.length
-          ? stRes.data.map(rowToStudent)
-          : seedStudents;
-        // bangun index dari urutan students final nanti — pakai nisn key dulu
         for (const row of attRes.data) {
-          const idx = list.findIndex((s) => s.nisn === row.nisn);
+          const idx = ordered.findIndex((s) => s.nisn === row.nisn);
           if (idx < 0) continue;
           const key = idx + "-" + row.month_index + "-" + row.day;
           map[key] = row.status as StatusHarian;
@@ -209,7 +208,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (siteRes.data) {
         setSiteContentState({
           tagline: siteRes.data.tagline || defaultSiteContent.tagline,
-          widgets: (siteRes.data.widgets as SiteContent["widgets"]) ||
+          widgets:
+            (siteRes.data.widgets as SiteContent["widgets"]) ||
             defaultSiteContent.widgets,
           news: (siteRes.data.news as SiteContent["news"]) || [],
         });
@@ -255,11 +255,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  function setMaintenanceMode(value: boolean) {
+  async function setMaintenanceMode(value: boolean) {
     setMaintenanceModeState(value);
-    void supabase
-      .from("app_settings")
-      .upsert({ id: 1, maintenance: value, updated_at: new Date().toISOString() });
+    const { error } = await supabase.from("app_settings").upsert({
+      id: 1,
+      maintenance: value,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.error("maintenance ERROR", error);
+      alert("Gagal simpan maintenance: " + error.message);
+      return;
+    }
     pushLog(
       value
         ? "Menyalakan mode Website Sedang Perbaikan"
@@ -267,15 +274,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  function setSiteContent(c: SiteContent) {
+  async function setSiteContent(c: SiteContent) {
     setSiteContentState(c);
-    void supabase.from("site_content").upsert({
+    const { error } = await supabase.from("site_content").upsert({
       id: 1,
       tagline: c.tagline,
       widgets: c.widgets,
       news: c.news,
       updated_at: new Date().toISOString(),
     });
+    if (error) {
+      console.error("site_content ERROR", error);
+      alert("Gagal simpan homepage: " + error.message);
+      return;
+    }
     pushLog("Update konten homepage");
   }
 
@@ -295,40 +307,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pushLog,
       refreshFromDb,
       setStudents,
+
       updateStudent: async (nisn, patch) => {
-  setStudents((prev) =>
-    prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
-  );
+        setStudents((prev) =>
+          prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
+        );
+        const p = patch;
+        const { error } = await supabase
+          .from("students")
+          .update({
+            ...(p.nama !== undefined ? { nama: p.nama } : {}),
+            ...(p.nis !== undefined ? { nis: p.nis } : {}),
+            ...(p.gender !== undefined ? { gender: p.gender } : {}),
+            ...(p.role !== undefined ? { role: p.role || null } : {}),
+            ...(p.roleClass !== undefined
+              ? { role_class: p.roleClass || null }
+              : {}),
+            ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
+            ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
+            ...(p.izin !== undefined ? { izin: p.izin } : {}),
+            ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
+            ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("nisn", nisn);
+        if (error) {
+          console.error("UPDATE STUDENT ERROR", error);
+          alert("Gagal simpan siswa: " + error.message);
+          return;
+        }
+        pushLog("Update siswa NISN " + nisn);
+      },
 
-  const p = patch;
-  const { data, error } = await supabase
-    .from("students")
-    .update({
-      ...(p.nama !== undefined ? { nama: p.nama } : {}),
-      ...(p.nis !== undefined ? { nis: p.nis } : {}),
-      ...(p.gender !== undefined ? { gender: p.gender } : {}),
-      ...(p.role !== undefined ? { role: p.role || null } : {}),
-      ...(p.roleClass !== undefined
-        ? { role_class: p.roleClass || null }
-        : {}),
-      ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
-      ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
-      ...(p.izin !== undefined ? { izin: p.izin } : {}),
-      ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
-      ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("nisn", nisn)
-    .select();
-
-  if (error) {
-    console.error("UPDATE STUDENT ERROR", error);
-    alert("Gagal simpan ke database: " + error.message);
-    return;
-  }
-  console.log("UPDATE STUDENT OK", data);
-  pushLog("Update siswa NISN " + nisn);
-},
       addStudent: (s) => {
         setStudents((prev) => [...prev, s]);
         void supabase.from("students").upsert({
@@ -346,11 +356,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         });
         pushLog("Tambah siswa " + s.nama);
       },
+
       removeStudent: (nisn) => {
         setStudents((prev) => prev.filter((s) => s.nisn !== nisn));
         void supabase.from("students").delete().eq("nisn", nisn);
         pushLog("Hapus siswa NISN " + nisn);
       },
+
       addKasTransaction: (desc, type, val) => {
         setKasLog((prev) => {
           const last = prev[prev.length - 1]?.balance ?? 0;
@@ -379,27 +391,39 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         });
         pushLog("Log kas " + type + ": " + desc);
       },
-      isKasPaid: (nisn, studentIndex, monthIndex) => {
+
+      // TANPA seed palsu
+      isKasPaid: (nisn, _studentIndex, monthIndex) => {
         const key = nisn + "-" + monthIndex;
-        if (paymentOverrides[key] !== undefined) return paymentOverrides[key];
-        return seedGetKasPaid(studentIndex, monthIndex);
+        return paymentOverrides[key] === true;
       },
-      setKasPaid: (nisn, _studentIndex, monthIndex, paid) => {
+
+      setKasPaid: async (nisn, _studentIndex, monthIndex, paid) => {
         const key = nisn + "-" + monthIndex;
         setPaymentOverrides((prev) => ({ ...prev, [key]: paid }));
-        void supabase.from("kas_paid").upsert(
+        const { error } = await supabase.from("kas_paid").upsert(
           { nisn, month_index: monthIndex, paid },
           { onConflict: "nisn,month_index" }
         );
+        if (error) {
+          console.error("kas_paid ERROR", error);
+          alert("Gagal simpan kas: " + error.message);
+          return;
+        }
         pushLog((paid ? "LUNAS " : "BELUM ") + nisn + " bulan#" + monthIndex);
       },
-      markKasPaid: (nama, nisn, monthIndex = 1) => {
+
+      markKasPaid: async (nama, nisn, monthIndex = 1) => {
         const key = nisn + "-" + monthIndex;
         setPaymentOverrides((prev) => ({ ...prev, [key]: true }));
-        void supabase.from("kas_paid").upsert(
+        const { error: e1 } = await supabase.from("kas_paid").upsert(
           { nisn, month_index: monthIndex, paid: true },
           { onConflict: "nisn,month_index" }
         );
+        if (e1) {
+          alert("Gagal kas_paid: " + e1.message);
+          return;
+        }
 
         setKasLog((prev) => {
           const last = prev[prev.length - 1]?.balance ?? 0;
@@ -431,8 +455,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const mm = now.getMinutes().toString().padStart(2, "0");
         const pay = {
           name: nama,
-          date: now.toLocaleDateString("id-ID") + " - " + hh + ":" + mm + " WIB",
-          code: "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
+          date:
+            now.toLocaleDateString("id-ID") + " - " + hh + ":" + mm + " WIB",
+          code:
+            "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
           status: "LUNAS",
           amount: NOMINAL_KAS,
         };
@@ -440,25 +466,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         void supabase.from("payments").insert(pay);
         pushLog("QRIS LUNAS " + nama);
       },
-      setAttendanceCell: (studentIndex, monthIndex, day, status) => {
+
+      setAttendanceCell: async (studentIndex, monthIndex, day, status) => {
         const key = studentIndex + "-" + monthIndex + "-" + day;
         setAttendanceMap((prev) => ({ ...prev, [key]: status }));
         const nisn = students[studentIndex]?.nisn;
-        if (nisn) {
-          void supabase.from("attendance").upsert(
-            {
-              nisn,
-              month_index: monthIndex,
-              day,
-              status,
-            },
-            { onConflict: "nisn,month_index,day" }
-          );
+        if (!nisn) {
+          alert("NISN tidak ketemu index " + studentIndex);
+          return;
+        }
+        const { error } = await supabase.from("attendance").upsert(
+          { nisn, month_index: monthIndex, day, status },
+          { onConflict: "nisn,month_index,day" }
+        );
+        if (error) {
+          console.error("attendance ERROR", error);
+          alert("Gagal simpan absensi: " + error.message);
+          return;
         }
         pushLog(
-          "Absensi #" + studentIndex + " m" + monthIndex + " d" + day + " → " + status
+          "Absensi " + nisn + " m" + monthIndex + " d" + day + " → " + status
         );
       },
+
       getAttendanceCell: (studentIndex, monthIndex, day) => {
         const key = studentIndex + "-" + monthIndex + "-" + day;
         return attendanceMap[key] ?? "-";
@@ -484,4 +514,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+      }
