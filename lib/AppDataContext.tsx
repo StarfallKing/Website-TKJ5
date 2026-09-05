@@ -295,31 +295,40 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pushLog,
       refreshFromDb,
       setStudents,
-      updateStudent: (nisn, patch) => {
-        setStudents((prev) =>
-          prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
-        );
-        const p = patch;
-        void supabase
-          .from("students")
-          .update({
-            ...(p.nama !== undefined ? { nama: p.nama } : {}),
-            ...(p.nis !== undefined ? { nis: p.nis } : {}),
-            ...(p.gender !== undefined ? { gender: p.gender } : {}),
-            ...(p.role !== undefined ? { role: p.role || null } : {}),
-            ...(p.roleClass !== undefined
-              ? { role_class: p.roleClass || null }
-              : {}),
-            ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
-            ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
-            ...(p.izin !== undefined ? { izin: p.izin } : {}),
-            ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
-            ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("nisn", nisn);
-        pushLog("Update siswa NISN " + nisn);
-      },
+      updateStudent: async (nisn, patch) => {
+  setStudents((prev) =>
+    prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
+  );
+
+  const p = patch;
+  const { data, error } = await supabase
+    .from("students")
+    .update({
+      ...(p.nama !== undefined ? { nama: p.nama } : {}),
+      ...(p.nis !== undefined ? { nis: p.nis } : {}),
+      ...(p.gender !== undefined ? { gender: p.gender } : {}),
+      ...(p.role !== undefined ? { role: p.role || null } : {}),
+      ...(p.roleClass !== undefined
+        ? { role_class: p.roleClass || null }
+        : {}),
+      ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
+      ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
+      ...(p.izin !== undefined ? { izin: p.izin } : {}),
+      ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
+      ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("nisn", nisn)
+    .select();
+
+  if (error) {
+    console.error("UPDATE STUDENT ERROR", error);
+    alert("Gagal simpan ke database: " + error.message);
+    return;
+  }
+  console.log("UPDATE STUDENT OK", data);
+  pushLog("Update siswa NISN " + nisn);
+},
       addStudent: (s) => {
         setStudents((prev) => [...prev, s]);
         void supabase.from("students").upsert({
