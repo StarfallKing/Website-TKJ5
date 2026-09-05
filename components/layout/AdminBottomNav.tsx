@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const LEFT = [
-  { href: "/admin/dashboard", icon: "fa-gauge" },
+  { href: "/admin/dashboard", icon: "fa-house" },
   { href: "/admin/struktur", icon: "fa-sitemap" },
 ];
 const MID = [
