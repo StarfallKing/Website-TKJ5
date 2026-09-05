@@ -53,10 +53,12 @@ function isLessonNow(start: string, end: string) {
 
 async function uploadIzinFile(file: File): Promise<string> {
   const safe = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
-  const path = `izin/\( {Date.now()}- \){safe}`;
+  
+  // Menggunakan ${} untuk interpolasi JavaScript
+  const path = `izin/${Date.now()}_${safe}`;
 
   const { error } = await supabase.storage
-    .from("izin-files")
+    .from("izin-files") // Pastikan nama bucket di Supabase Storage kamu sudah sesuai
     .upload(path, file, { cacheControl: "3600", upsert: false });
 
   if (error) throw error;
@@ -64,7 +66,6 @@ async function uploadIzinFile(file: File): Promise<string> {
   const { data } = supabase.storage.from("izin-files").getPublicUrl(path);
   return data.publicUrl;
 }
-
 export default function JadwalPage() {
   const { students, schedule } = useAppData();
   const sched: ScheduleData = schedule?.pagi ? schedule : masterSchedule;
