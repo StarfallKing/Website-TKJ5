@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  monthShort,
-  formatRupiah,
-  NOMINAL_KAS,
-} from "@/lib/data";
+import { monthShort, formatRupiah, NOMINAL_KAS } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 
 export default function AdminKasPage() {
@@ -15,7 +11,6 @@ export default function AdminKasPage() {
     setKasPaid,
     kasLog,
     addKasTransaction,
-    pushLog,
   } = useAppData();
 
   const [desc, setDesc] = useState("");
@@ -26,7 +21,6 @@ export default function AdminKasPage() {
     const n = Number(val);
     if (!desc.trim() || !n) return;
     addKasTransaction(desc.trim(), type, n);
-    pushLog("Log kas " + type + ": " + desc.trim() + " (" + n + ")");
     setDesc("");
     setVal("");
   }
@@ -40,7 +34,6 @@ export default function AdminKasPage() {
         </p>
       </div>
 
-      {/* Matriks 12 bulan */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="table-responsive">
           <table className="absensi-table">
@@ -56,9 +49,7 @@ export default function AdminKasPage() {
             <tbody>
               {students.map((s, si) => (
                 <tr key={s.nisn}>
-                  <td style={{ color: "#60a5fa", fontWeight: 700 }}>
-                    {si + 1}
-                  </td>
+                  <td style={{ color: "#60a5fa", fontWeight: 700 }}>{si + 1}</td>
                   <td
                     style={{
                       textAlign: "left",
@@ -91,15 +82,12 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      {/* Status bulan berjalan (Agustus = index 1) */}
       <div className="glass-card" style={{ padding: 10, marginTop: 12 }}>
         <div className="flex-between" style={{ marginBottom: 8 }}>
-          <span
-            style={{ fontWeight: 800, fontSize: 11, color: "#60a5fa" }}
-          >
+          <span style={{ fontWeight: 800, fontSize: 11, color: "#60a5fa" }}>
             Status Kas Bulan Berjalan
           </span>
-          <span style={{ fontSize: 10 }}>Agustus</span>
+          <span style={{ fontSize: 10 }}>Agustus (index 1)</span>
         </div>
         <div className="table-responsive">
           <table className="absensi-table">
@@ -122,9 +110,7 @@ export default function AdminKasPage() {
                     style={{ cursor: "pointer" }}
                   >
                     <td>{si + 1}</td>
-                    <td
-                      style={{ textAlign: "left", fontWeight: 700 }}
-                    >
+                    <td style={{ textAlign: "left", fontWeight: 700 }}>
                       {s.nama}
                     </td>
                     <td
@@ -149,7 +135,6 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      {/* Form log custom */}
       <div
         className="glass-card"
         style={{
@@ -169,9 +154,7 @@ export default function AdminKasPage() {
         />
         <select
           value={type}
-          onChange={(e) =>
-            setType(e.target.value as "masuk" | "keluar")
-          }
+          onChange={(e) => setType(e.target.value as "masuk" | "keluar")}
           style={{
             padding: 10,
             borderRadius: 10,
@@ -190,11 +173,7 @@ export default function AdminKasPage() {
           className="search-box expanded"
           style={{ width: "100%", padding: 10 }}
         />
-        <button
-          type="button"
-          className="btn-pay-qris"
-          onClick={submitLog}
-        >
+        <button type="button" className="btn-pay-qris" onClick={submitLog}>
           Simpan log
         </button>
 
@@ -220,4 +199,4 @@ export default function AdminKasPage() {
       </div>
     </>
   );
-          }
+}
