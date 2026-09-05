@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +11,16 @@ import {
 import { useAppData } from "@/lib/AppDataContext";
 
 const MAX_NEWS = 7;
+
+const inp: CSSProperties = {
+  width: "100%",
+  padding: 10,
+  borderRadius: 10,
+  background: "#0f172a",
+  color: "#f8fafc",
+  border: "1px solid rgba(255,255,255,0.12)",
+  fontSize: 12,
+};
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -24,6 +34,7 @@ export default function AdminDashboardPage() {
   } = useAppData();
 
   const [draft, setDraft] = useState<SiteContent>(siteContent);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (sessionStorage.getItem("admin-ok") !== "1") {
@@ -44,16 +55,18 @@ export default function AdminDashboardPage() {
   const countL = students.filter((s) => s.gender === "L").length;
   const countP = students.filter((s) => s.gender === "P").length;
 
-  function save() {
-    const news = draft.news.slice(0, MAX_NEWS);
-    setSiteContent({ ...draft, news });
-    alert("Homepage tersimpan");
+  async function save() {
+    setSaving(true);
+    try {
+      const news = draft.news.slice(0, MAX_NEWS);
+      await setSiteContent({ ...draft, news });
+      alert("Homepage tersimpan");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function updateWidget(
-    key: keyof SiteContent["widgets"],
-    value: string
-  ) {
+  function updateWidget(key: keyof SiteContent["widgets"], value: string) {
     setDraft((d) => ({
       ...d,
       widgets: { ...d.widgets, [key]: value },
@@ -98,7 +111,6 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      {/* ===== Preview mirip home publik + editable ===== */}
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 8 }}
@@ -127,7 +139,6 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
-      {/* Widgets 2x2 */}
       <div
         style={{
           display: "grid",
@@ -135,7 +146,6 @@ export default function AdminDashboardPage() {
           gap: 10,
         }}
       >
-        {/* MURID */}
         <div className="glass-card" style={{ padding: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
             <i className="fa-solid fa-users" style={{ color: "#60a5fa" }} />
@@ -157,7 +167,6 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* KAS — nominal tidak diedit */}
         <div className="glass-card" style={{ padding: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
             <i
@@ -187,7 +196,6 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* MAPEL */}
         <div className="glass-card" style={{ padding: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
             <i className="fa-solid fa-book" style={{ color: "#a78bfa" }} />
@@ -206,7 +214,6 @@ export default function AdminDashboardPage() {
           />
         </div>
 
-        {/* RUANG */}
         <div className="glass-card" style={{ padding: 12 }}>
           <div style={{ textAlign: "center", marginBottom: 8 }}>
             <i className="fa-solid fa-school" style={{ color: "#facc15" }} />
@@ -226,7 +233,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* BERITA */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div className="flex-between" style={{ marginBottom: 10 }}>
           <div className="title-sub">BERITA TERKINI</div>
@@ -258,7 +264,9 @@ export default function AdminDashboardPage() {
             }}
           >
             <div className="flex-between">
-              <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
+              <span
+                style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}
+              >
                 Berita #{i + 1}
               </span>
               <button
@@ -287,7 +295,7 @@ export default function AdminDashboardPage() {
             <input
               value={n.imageUrl}
               onChange={(e) => updateNews(i, { imageUrl: e.target.value })}
-              placeholder="URL gambar (opsional)"
+              placeholder="URL gambar (opsional) /public/..."
               style={inp}
             />
             {n.imageUrl ? (
@@ -319,11 +327,15 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      <button type="button" className="btn-pay-qris" onClick={save}>
-        Simpan ke homepage publik
+      <button
+        type="button"
+        className="btn-pay-qris"
+        onClick={() => void save()}
+        disabled={saving}
+      >
+        {saving ? "Menyimpan..." : "Simpan ke homepage publik"}
       </button>
 
-      {/* Maintenance */}
       <div
         className="glass-card"
         style={{
@@ -360,14 +372,13 @@ export default function AdminDashboardPage() {
                 : "rgba(244,63,94,0.25)",
               color: maintenanceMode ? "#4ade80" : "#fda4af",
             }}
-            onClick={() => setMaintenanceMode(!maintenanceMode)}
+            onClick={() => void setMaintenanceMode(!maintenanceMode)}
           >
             {maintenanceMode ? "Matikan" : "Website sedang perbaikan"}
           </button>
         </div>
       </div>
 
-      {/* Pintasan */}
       <div className="glass-card" style={{ marginTop: 12 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
           KELOLA DATA
@@ -375,7 +386,11 @@ export default function AdminDashboardPage() {
         {[
           { href: "/admin/siswa", title: "Siswa", icon: "fa-users" },
           { href: "/admin/kas", title: "Kas", icon: "fa-sack-dollar" },
-          { href: "/admin/absensi", title: "Absensi", icon: "fa-clipboard-user" },
+          {
+            href: "/admin/absensi",
+            title: "Absensi",
+            icon: "fa-clipboard-user",
+          },
           { href: "/admin/settings", title: "Settings", icon: "fa-gear" },
         ].map((item) => (
           <Link
@@ -396,20 +411,13 @@ export default function AdminDashboardPage() {
               />
               {item.title}
             </span>
-            <i className="fa-solid fa-chevron-right" style={{ color: "#64748b" }} />
+            <i
+              className="fa-solid fa-chevron-right"
+              style={{ color: "#64748b" }}
+            />
           </Link>
         ))}
       </div>
     </>
   );
-}
-
-const inp: React.CSSProperties = {
-  width: "100%",
-  padding: 10,
-  borderRadius: 10,
-  background: "#0f172a",
-  color: "#f8fafc",
-  border: "1px solid rgba(255,255,255,0.12)",
-  fontSize: 12,
-};
+                                          }
