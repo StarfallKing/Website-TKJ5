@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { allStudents, getInitials, type Student } from "@/lib/data";
+import { useAppData } from "@/lib/AppDataContext";
+const { students } = useAppData();
+
 import { useRouter } from "next/navigation";
 
 export default function DirektoriPage() {
