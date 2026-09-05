@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  allStudents,
-  masterSchedule,
   scheduleDays,
+  type ScheduleData,
+  masterSchedule,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import { supabase } from "@/lib/supabase";
+
+const NOMOR_GURU = "628561534411"; // Pak Shendy
 
 const templates = {
   Keperluan: [
@@ -31,16 +34,14 @@ const templates = {
 };
 
 function getRotatedSession(): "pagi" | "siang" {
-  const baseDate = new Date(2026, 6, 20); // 20 Juli 2026
+  const baseDate = new Date(2026, 6, 20);
   const now = new Date();
   const diffDays = Math.floor(
     Math.abs(now.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24)
   );
   const weekIndex = Math.floor(diffDays / 7);
-
-  // Minggu ini SIANG, minggu depan PAGI, dst.
   return weekIndex % 2 === 0 ? "siang" : "pagi";
-             }
+}
 
 function isLessonNow(start: string, end: string) {
   const now = new Date();
@@ -50,19 +51,28 @@ function isLessonNow(start: string, end: string) {
   return cur >= sh * 60 + sm && cur < eh * 60 + em;
 }
 
+async function uploadIzinFile(file: File): Promise<string> {
+  const safe = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
+  const path = `izin/\( {Date.now()}- \){safe}`;
+
+  const { error } = await supabase.storage
+    .from("izin-files")
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("izin-files").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export default function JadwalPage() {
-  let students = allStudents;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const data = useAppData();
-    if (data?.students?.length) students = data.students;
-  } catch {
-    // Context belum ada → pakai seed
-  }
+  const { students, schedule } = useAppData();
+  const sched: ScheduleData = schedule?.pagi ? schedule : masterSchedule;
 
   const [izinType, setIzinType] = useState<"Keperluan" | "Sakit">("Keperluan");
   const [nama, setNama] = useState("");
   const [alasan, setAlasan] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [query, setQuery] = useState("");
   const [showSug, setShowSug] = useState(false);
@@ -70,6 +80,7 @@ export default function JadwalPage() {
   const [islandOpen, setIslandOpen] = useState(false);
   const [session, setSession] = useState<"pagi" | "siang">("pagi");
   const [tick, setTick] = useState(0);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     setSession(getRotatedSession());
@@ -83,7 +94,7 @@ export default function JadwalPage() {
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const dayName = days[new Date().getDay()];
-  const todayLessons = masterSchedule[session][dayName] || [];
+  const todayLessons = sched[session][dayName] || [];
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -94,50 +105,65 @@ export default function JadwalPage() {
       .slice(0, 8);
   }, [query, students]);
 
-  function submitWA() {
-  if (!nama.trim()) {
-    alert("Pilih nama siswa dulu!");
-    return;
-  }
-  if (!alasan.trim()) {
-    alert("Alasan wajib diisi!");
-    return;
-  }
-  if (!fileName) {
-    alert("Wajib lampirkan foto/surat!");
-    return;
-  }
+  async function submitWA() {
+    if (!nama.trim()) {
+      alert("Pilih nama siswa dulu!");
+      return;
+    }
+    if (!alasan.trim()) {
+      alert("Alasan wajib diisi!");
+      return;
+    }
+    if (!file) {
+      alert("Wajib lampirkan foto/surat!");
+      return;
+    }
 
-  const phone = "628561534411";
+    setSending(true);
+    try {
+      // 1) Upload → Supabase Storage
+      const linkFile = await uploadIzinFile(file);
 
-  const message =
-    "*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n" +
-    "*Nama Siswa:* " +
-    nama +
-    "\n" +
-    "*Jenis Izin:* " +
-    izinType +
-    "\n" +
-    "*Tanggal:* " +
-    new Date().toLocaleDateString("id-ID") +
-    "\n\n" +
-    "*Keterangan / Alasan:*\n" +
-    alasan +
-    "\n\n" +
-    "*(Lampiran file disiapkan di chat)*\n\n" +
-    "_Digenerate via Portal X TKJ-5_";
+      // 2) Pesan WA = teks + link publik
+      const message =
+        "*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n" +
+        "*Nama Siswa:* " +
+        nama +
+        "\n" +
+        "*Jenis Izin:* " +
+        izinType +
+        "\n" +
+        "*Tanggal:* " +
+        new Date().toLocaleDateString("id-ID") +
+        "\n\n" +
+        "*Keterangan / Alasan:*\n" +
+        alasan +
+        "\n\n" +
+        "*Lampiran (buka / unduh):*\n" +
+        linkFile +
+        "\n\n" +
+        "_Digenerate via Portal X TKJ-5_";
 
-  const url =
-    "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
+      const url =
+        "https://wa.me/" +
+        NOMOR_GURU +
+        "?text=" +
+        encodeURIComponent(message);
 
-  window.open(url, "_blank");
+      window.open(url, "_blank");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      alert("Gagal upload ke Storage: " + msg);
+    } finally {
+      setSending(false);
+    }
   }
 
   function renderScheduleBlock(
     title: string,
     icon: string,
     color: string,
-    data: typeof masterSchedule.pagi
+    data: ScheduleData["pagi"]
   ) {
     return (
       <div className="glass-card">
@@ -150,7 +176,10 @@ export default function JadwalPage() {
           }}
         >
           <div className="title-sub">
-            <i className={`fa-solid ${icon}`} style={{ color, marginRight: "6px" }} />
+            <i
+              className={`fa-solid ${icon}`}
+              style={{ color, marginRight: "6px" }}
+            />
             {title}
           </div>
           <span style={{ fontSize: "9px", fontWeight: 800, color }}>
@@ -184,7 +213,6 @@ export default function JadwalPage() {
     );
   }
 
-  // tick dipakai biar highlight jam update tiap detik
   void tick;
 
   return (
@@ -199,7 +227,6 @@ export default function JadwalPage() {
         </p>
       </div>
 
-      {/* DYNAMIC ISLAND */}
       <div
         className={`dynamic-island-bar ${islandOpen ? "open" : ""}`}
         onClick={() => setIslandOpen((v) => !v)}
@@ -275,7 +302,6 @@ export default function JadwalPage() {
         </div>
       </div>
 
-      {/* FORM IZIN */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -287,7 +313,10 @@ export default function JadwalPage() {
           }}
         >
           <div className="title-sub">
-            <i className="fa-solid fa-file-signature" style={{ marginRight: "6px" }} />
+            <i
+              className="fa-solid fa-file-signature"
+              style={{ marginRight: "6px" }}
+            />
             DOKUMEN IZIN SISWA
           </div>
           <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "2px" }}>
@@ -338,7 +367,9 @@ export default function JadwalPage() {
           <label className="form-label">Jenis Izin</label>
           <div className="radio-group">
             <div
-              className={`radio-card ${izinType === "Keperluan" ? "active" : ""}`}
+              className={
+                "radio-card" + (izinType === "Keperluan" ? " active" : "")
+              }
               onClick={() => {
                 setIzinType("Keperluan");
                 setAlasan("");
@@ -348,7 +379,7 @@ export default function JadwalPage() {
               Keperluan
             </div>
             <div
-              className={`radio-card ${izinType === "Sakit" ? "active" : ""}`}
+              className={"radio-card" + (izinType === "Sakit" ? " active" : "")}
               onClick={() => {
                 setIzinType("Sakit");
                 setAlasan("");
@@ -400,19 +431,25 @@ export default function JadwalPage() {
               accept="image/*,application/pdf"
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (!f) return setFileName("");
-                if (f.size > 20 * 1024 * 1024) {
-                  alert("Maks 20MB!");
-                  e.target.value = "";
+                if (!f) {
+                  setFile(null);
                   setFileName("");
                   return;
                 }
+                if (f.size > 20 * 1024 * 1024) {
+                  alert("Maks 20MB!");
+                  e.target.value = "";
+                  setFile(null);
+                  setFileName("");
+                  return;
+                }
+                setFile(f);
                 setFileName(f.name);
               }}
             />
             <label
               htmlFor="izinFile"
-              className={`file-upload-btn ${fileName ? "has-file" : ""}`}
+              className={"file-upload-btn" + (fileName ? " has-file" : "")}
             >
               <i className="fa-solid fa-cloud-arrow-up" />
               <span>{fileName || "Pilih Foto / Surat Izin"}</span>
@@ -420,9 +457,18 @@ export default function JadwalPage() {
           </div>
         </div>
 
-        <button className="btn-whatsapp-submit" type="button" onClick={submitWA}>
+        <button
+          className="btn-whatsapp-submit"
+          type="button"
+          disabled={sending}
+          onClick={() => void submitWA()}
+        >
           <i className="fa-brands fa-whatsapp" style={{ fontSize: "18px" }} />
-          <span>Kirim Dokumen Izin ke Pak Shendy</span>
+          <span>
+            {sending
+              ? "Mengunggah lampiran..."
+              : "Kirim Dokumen Izin ke Pak Shendy"}
+          </span>
         </button>
       </div>
 
@@ -430,14 +476,14 @@ export default function JadwalPage() {
         "JADWAL SESI 1 (PAGI) - X TKJ 5",
         "fa-sun",
         "#facc15",
-        masterSchedule.pagi
+        sched.pagi
       )}
       {renderScheduleBlock(
         "JADWAL SESI 2 (SIANG) - X TKJ 5",
         "fa-moon",
         "#38bdf8",
-        masterSchedule.siang
+        sched.siang
       )}
     </>
   );
-}
+            }
