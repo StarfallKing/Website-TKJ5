@@ -13,51 +13,55 @@ export default function AdminAbsensiPage() {
 
   function cycle(si: number, day: number) {
     const cur = getAttendanceCell(si, monthIdx, day);
-    const next = CYCLE[(CYCLE.indexOf(cur) + 1) % CYCLE.length];
-    setAttendanceCell(si, monthIdx, day, next);
+    const i = CYCLE.indexOf(cur);
+    const next = CYCLE[(i < 0 ? 0 : i + 1) % CYCLE.length];
+    void setAttendanceCell(si, monthIdx, day, next);
   }
 
   return (
     <>
-
       <div className="glass-card" style={{ padding: 10, marginBottom: 12 }}>
-  <div className="title-sub" style={{ marginBottom: 8 }}>Rekap 1 Tahun (dari data siswa)</div>
-  <div className="table-responsive">
-    <table className="absensi-table">
-      <thead>
-        <tr>
-          <th>No</th>
-          <th style={{ textAlign: "left" }}>Nama</th>
-          <th style={{ color: "#4ade80" }}>H</th>
-          <th style={{ color: "#60a5fa" }}>I</th>
-          <th style={{ color: "#facc15" }}>S</th>
-          <th style={{ color: "#f43f5e" }}>A</th>
-        </tr>
-      </thead>
-      <tbody>
-        {students.map((s, i) => (
-          <tr key={s.nisn}>
-            <td>{i + 1}</td>
-            <td style={{ textAlign: "left", fontWeight: 700 }}>{s.nama}</td>
-            <td style={{ color: "#4ade80" }}>{s.hadir}</td>
-            <td style={{ color: "#60a5fa" }}>{s.izin}</td>
-            <td style={{ color: "#facc15" }}>{s.sakit}</td>
-            <td style={{ color: "#f43f5e" }}>{s.alpa}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
-      
+        <div className="title-sub" style={{ marginBottom: 8 }}>
+          Rekap 1 Tahun (dari data siswa)
+        </div>
+        <div className="table-responsive">
+          <table className="absensi-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th style={{ textAlign: "left" }}>Nama</th>
+                <th style={{ color: "#4ade80" }}>H</th>
+                <th style={{ color: "#60a5fa" }}>I</th>
+                <th style={{ color: "#facc15" }}>S</th>
+                <th style={{ color: "#f43f5e" }}>A</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s, i) => (
+                <tr key={s.nisn}>
+                  <td>{i + 1}</td>
+                  <td style={{ textAlign: "left", fontWeight: 700 }}>{s.nama}</td>
+                  <td style={{ color: "#4ade80" }}>{s.hadir}</td>
+                  <td style={{ color: "#60a5fa" }}>{s.izin}</td>
+                  <td style={{ color: "#facc15" }}>{s.sakit}</td>
+                  <td style={{ color: "#f43f5e" }}>{s.alpa}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="glass-card text-center">
         <div className="title-sub">EDIT ABSENSI</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Ketuk sel seperti Excel: H → I → S → A → -
+          Ketuk sel: H → I → S → A → -
         </p>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+      <div
+        style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}
+      >
         {monthConfigs.map((mc, i) => (
           <button
             key={mc.name}
@@ -86,7 +90,13 @@ export default function AdminAbsensiPage() {
               {students.map((s, si) => (
                 <tr key={s.nisn}>
                   <td style={{ color: "#60a5fa", fontWeight: 700 }}>{si + 1}</td>
-                  <td style={{ textAlign: "left", fontWeight: 700, fontSize: 10 }}>
+                  <td
+                    style={{
+                      textAlign: "left",
+                      fontWeight: 700,
+                      fontSize: 10,
+                    }}
+                  >
                     {s.nama}
                   </td>
                   {Array.from({ length: m.days }, (_, d) => {
