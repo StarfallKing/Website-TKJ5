@@ -1,84 +1,64 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
-import AdminBottomNav from "@/components/layout/AdminBottomNav";
+import type { ReactNode } from "react";
+
+const TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
+const KEY_OK = "admin-ok";
+const KEY_LAST = "admin-last";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const router = useRouter();
-  const isLogin = pathname === "/admin";
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (isLogin) return;
-    if (sessionStorage.getItem("admin-ok") !== "1") {
-      router.replace("/admin");
+    // login page sendiri
+    if (pathname === "/admin" || pathname === "/admin/") return;
+
+    function touch() {
+      sessionStorage.setItem(KEY_LAST, String(Date.now()));
     }
-  }, [isLogin, router, pathname]);
 
-  if (isLogin) {
-    return <>{children}</>;
-  }
+    function check() {
+      if (sessionStorage.getItem(KEY_OK) !== "1") {
+        router.replace("/admin");
+        return;
+      }
+      const last = Number(sessionStorage.getItem(KEY_LAST) || 0);
+      // hanya hitung timeout kalau user SUDAH pernah keluar area admin
+      // (last di-set saat visibility hidden / route non-admin)
+      if (last > 0 && Date.now() - last > TIMEOUT_MS) {
+        sessionStorage.removeItem(KEY_OK);
+        sessionStorage.removeItem(KEY_LAST);
+        sessionStorage.removeItem("admin-user");
+        alert("Sesi admin berakhir (10 menit di luar panel). Login lagi.");
+        router.replace("/admin");
+      }
+    }
 
-  return (
-    <div style={{ paddingBottom: 100 }}>
-      {/* Bar atas admin + gear settings kiri */}
-      <div className="glass-card flex-between" style={{ marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Link
-            href="/admin/settings"
-            title="Settings"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "rgba(96,165,250,0.15)",
-              color: "#60a5fa",
-              textDecoration: "none",
-            }}
-          >
-            <i className="fa-solid fa-gear" />
-          </Link>
-          <div>
-            <div
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                color: "#94a3b8",
-                letterSpacing: 0.4,
-              }}
-            >
-              WEBSITE RESMI KELAS
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#60a5fa" }}>
-              ADMIN PANEL X TKJ-5
-            </div>
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          <Link href="/" className="btn-action-light" style={{ fontSize: 10 }}>
-            Publik
-          </Link>
-          <button
-            type="button"
-            className="btn-action-light"
-            style={{ fontSize: 10 }}
-            onClick={() => {
-              sessionStorage.removeItem("admin-ok");
-              router.replace("/admin");
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+    // di dalam admin → anggap aktif, jangan timeout
+    touch();
+    check();
 
-      {children}
-      <AdminBottomNav />
-    </div>
-  );
+    function onVis() {
+      if (document.visibilityState === "hidden") {
+        // mulai hitung keluar
+        sessionStorage.setItem(KEY_LAST, String(Date.now()));
+      } else {
+        check();
+        touch();
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVis);
+    const iv = setInterval(check, 30_000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      clearInterval(iv);
+    };
+  }, [pathname, router]);
+
+  return <>{children}</>;
 }
