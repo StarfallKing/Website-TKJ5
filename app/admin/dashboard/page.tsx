@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 8 }}
@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: 10,
+          gap: 12,
         }}
       >
         <div className="glass-card" style={{ padding: 12 }}>
@@ -250,81 +250,82 @@ export default function AdminDashboardPage() {
           + Tambah berita
         </button>
 
-        {draft.news.map((n, i) => (
-          <div
-            key={n.id}
-            style={{
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 12,
-              padding: 12,
-              marginBottom: 12,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            <div className="flex-between">
-              <span
-                style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}
-              >
-                Berita #{i + 1}
-              </span>
-              <button
-                type="button"
-                className="btn-action-light"
-                style={{ fontSize: 10, color: "#f43f5e" }}
-                onClick={() => removeNews(i)}
-              >
-                Hapus
-              </button>
-            </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {draft.news.map((n, i) => (
+            <div
+              key={n.id}
+              style={{
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 12,
+                padding: 12,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div className="flex-between">
+                <span
+                  style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}
+                >
+                  Berita #{i + 1}
+                </span>
+                <button
+                  type="button"
+                  className="btn-action-light"
+                  style={{ fontSize: 10, color: "#f43f5e" }}
+                  onClick={() => removeNews(i)}
+                >
+                  Hapus
+                </button>
+              </div>
 
-            <input
-              value={n.title}
-              onChange={(e) => updateNews(i, { title: e.target.value })}
-              placeholder="Judul berita"
-              style={inp}
-            />
-            <textarea
-              value={n.body}
-              onChange={(e) => updateNews(i, { body: e.target.value })}
-              placeholder="Deskripsi / isi berita"
-              rows={3}
-              style={{ ...inp, resize: "vertical" }}
-            />
-            <input
-              value={n.imageUrl}
-              onChange={(e) => updateNews(i, { imageUrl: e.target.value })}
-              placeholder="URL gambar (opsional) /public/..."
-              style={inp}
-            />
-            {n.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={n.imageUrl}
-                alt=""
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  maxHeight: 140,
-                  objectFit: "cover",
-                }}
+              <input
+                value={n.title}
+                onChange={(e) => updateNews(i, { title: e.target.value })}
+                placeholder="Judul berita"
+                style={inp}
               />
-            ) : null}
-            <input
-              value={n.source}
-              onChange={(e) => updateNews(i, { source: e.target.value })}
-              placeholder="Teks sumber (opsional)"
-              style={inp}
-            />
-            <input
-              value={n.sourceUrl}
-              onChange={(e) => updateNews(i, { sourceUrl: e.target.value })}
-              placeholder="Link sumber (opsional)"
-              style={inp}
-            />
-          </div>
-        ))}
+              <textarea
+                value={n.body}
+                onChange={(e) => updateNews(i, { body: e.target.value })}
+                placeholder="Deskripsi / isi berita"
+                rows={3}
+                style={{ ...inp, resize: "vertical" }}
+              />
+              <input
+                value={n.imageUrl}
+                onChange={(e) => updateNews(i, { imageUrl: e.target.value })}
+                placeholder="URL gambar (opsional) /public/..."
+                style={inp}
+              />
+              {n.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={n.imageUrl}
+                  alt=""
+                  style={{
+                    width: "100%",
+                    borderRadius: 10,
+                    maxHeight: 140,
+                    objectFit: "cover",
+                  }}
+                />
+              ) : null}
+              <input
+                value={n.source}
+                onChange={(e) => updateNews(i, { source: e.target.value })}
+                placeholder="Teks sumber (opsional)"
+                style={inp}
+              />
+              <input
+                value={n.sourceUrl}
+                onChange={(e) => updateNews(i, { sourceUrl: e.target.value })}
+                placeholder="Link sumber (opsional)"
+                style={inp}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <button
@@ -339,7 +340,6 @@ export default function AdminDashboardPage() {
       <div
         className="glass-card"
         style={{
-          marginTop: 12,
           borderColor: maintenanceMode
             ? "rgba(244,63,94,0.45)"
             : undefined,
@@ -379,7 +379,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="glass-card" style={{ marginTop: 12 }}>
+      <div className="glass-card">
         <div className="title-sub" style={{ marginBottom: 8 }}>
           KELOLA DATA
         </div>
@@ -418,6 +418,6 @@ export default function AdminDashboardPage() {
           </Link>
         ))}
       </div>
-    </>
+    </div>
   );
-                                          }
+}
