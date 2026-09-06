@@ -16,6 +16,7 @@ export default function AdminKasPage() {
     setKasPaid,
     kasLog,
     addKasTransaction,
+    deleteKasTransactions, // pastikan fungsi ini ada di AppDataContext (atau sesuaikan dengan fungsi delete di context kamu)
   } = useAppData();
 
   const [monthIdx, setMonthIdx] = useState(1); // default Agustus
@@ -23,6 +24,10 @@ export default function AdminKasPage() {
   const [type, setType] = useState<"masuk" | "keluar">("masuk");
   const [val, setVal] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // State untuk melacak item log yang dipilih (berdasarkan ID atau kombinasi unik)
+  const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   const logs = useMemo(
     () => kasLog.filter((t) => t.desc?.trim() || t.val),
@@ -50,6 +55,42 @@ export default function AdminKasPage() {
       setVal("");
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Toggle checklist log
+  function toggleSelectLog(logKey: string) {
+    setSelectedLogs((prev) =>
+      prev.includes(logKey)
+        ? prev.filter((k) => k !== logKey)
+        : [...prev, logKey]
+    );
+  }
+
+  // Pilih Semua / Batal Pilih Semua
+  function toggleSelectAll() {
+    if (selectedLogs.length === logs.length) {
+      setSelectedLogs([]);
+    } else {
+      setSelectedLogs(logs.map((row) => row.id || `${row.no}-${row.date}-${row.desc}`));
+    }
+  }
+
+  // Eksekusi Hapus
+  async function handleDeleteSelected() {
+    if (selectedLogs.length === 0) return;
+    if (!confirm(`Yakin ingin menghapus ${selectedLogs.length} log terpilih?`)) return;
+
+    setDeleting(true);
+    try {
+      if (deleteKasTransactions) {
+        await deleteKasTransactions(selectedLogs);
+      } else {
+        alert("Fungsi deleteKasTransactions belum di-bind di AppDataContext");
+      }
+      setSelectedLogs([]);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -244,7 +285,7 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      {/* Tabel 3 — log */}
+      {/* Tabel 3 — log & Hapus multi-select */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 10 }}
@@ -288,48 +329,119 @@ export default function AdminKasPage() {
           {saving ? "Menyimpan..." : "Simpan log"}
         </button>
 
+        {/* Toolbar Aksi Hapus */}
+        {logs.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 10,
+              paddingTop: 8,
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              style={{
+                fontSize: 10,
+                background: "transparent",
+                border: "none",
+                color: "#60a5fa",
+                cursor: "pointer",
+                fontWeight: 700,
+              }}
+            >
+              {selectedLogs.length === logs.length ? "Batal Pilih Semua" : "Pilih Semua"}
+            </button>
+
+            {selectedLogs.length > 0 && (
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteSelected}
+                style={{
+                  fontSize: 10,
+                  background: "#f43f5e",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {deleting ? "Menghapus..." : `Hapus (${selectedLogs.length})`}
+              </button>
+            )}
+          </div>
+        )}
+
         <div style={{ maxHeight: 260, overflow: "auto", marginTop: 4 }}>
           {logs.length === 0 && (
             <p style={{ fontSize: 11, color: "#64748b", textAlign: "center" }}>
               Belum ada log
             </p>
           )}
-          {[...logs].reverse().map((row) => (
-            <div
-              key={row.no + "-" + row.date + "-" + row.desc}
-              style={{
-                fontSize: 10,
-                padding: "8px 0",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 8,
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700 }}>{row.desc || "—"}</div>
-                <div style={{ color: "#64748b" }}>
-                  #{row.no} · {row.date || "-"}
+          {[...logs].reverse().map((row) => {
+            const logKey = row.id || `${row.no}-${row.date}-${row.desc}`;
+            const isSelected = selectedLogs.includes(logKey);
+
+            return (
+              <div
+                key={logKey}
+                onClick={() => toggleSelectLog(logKey)}
+                style={{
+                  fontSize: 10,
+                  padding: "8px",
+                  borderRadius: 8,
+                  marginBottom: 4,
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                  cursor: "pointer",
+                  background: isSelected ? "rgba(244, 63, 94, 0.15)" : "transparent",
+                  border: isSelected ? "1px solid rgba(244, 63, 94, 0.4)" : "1px solid transparent",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => {}} // dikontrol oleh onClick parent div
+                    style={{ cursor: "pointer" }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{row.desc || "—"}</div>
+                    <div style={{ color: "#64748b" }}>
+                      #{row.no} · {row.date || "-"}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      color: row.type === "masuk" ? "#4ade80" : "#f43f5e",
+                    }}
+                  >
+                    {row.type === "masuk" ? "+" : "-"}
+                    {formatRupiah(row.val)}
+                  </div>
+                  <div style={{ color: "#94a3b8" }}>
+                    Saldo {formatRupiah(row.balance)}
+                  </div>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div
-                  style={{
-                    fontWeight: 800,
-                    color: row.type === "masuk" ? "#4ade80" : "#f43f5e",
-                  }}
-                >
-                  {row.type === "masuk" ? "+" : "-"}
-                  {formatRupiah(row.val)}
-                </div>
-                <div style={{ color: "#94a3b8" }}>
-                  Saldo {formatRupiah(row.balance)}
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
   );
-}
+      }
+      
