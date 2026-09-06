@@ -205,13 +205,12 @@ export default function AdminJadwalPage() {
       })}
 
       <button
-        type="button"
-        className="btn-pay-qris"
-        style={{ marginTop: 16, width: "100%", padding: 12, cursor: "pointer" }}
-        onClick={() => void setSchedule(draft)}
-      >
-        Simpan Jadwal ke Publik
-      </button>
+  type="button"
+  className="btn-pay-qris"
+  onClick={() => void setSchedule(draft)}
+>
+  Simpan jadwal ke database
+</button>
     </>
   );
 }
