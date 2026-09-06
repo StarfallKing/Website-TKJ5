@@ -4,7 +4,6 @@ import { useAppData } from "@/lib/AppDataContext";
 
 function displayName(nama?: string) {
   if (!nama) return "—";
-  // Title Case sederhana biar mirip tampilan bagan
   return nama
     .toLowerCase()
     .split(" ")
@@ -12,19 +11,23 @@ function displayName(nama?: string) {
     .join(" ");
 }
 
+function matchRole(role: string | undefined, target: string) {
+  return (role || "").trim() === target;
+}
+
 export default function StrukturPage() {
   const { students } = useAppData();
   const officers = students.filter((s) => s.role);
 
-  const ketua = officers.find((s) => s.role === "Ketua Kelas");
-  const wakil = officers.find((s) => s.role === "Wakil Ketua");
-  const sek1 = officers.find((s) => s.role === "Sekretaris 1");
-  const sek2 = officers.find((s) => s.role === "Sekretaris 2");
-  const ben1 = officers.find((s) => s.role === "Bendahara 1");
-  const ben2 = officers.find((s) => s.role === "Bendahara 2");
-  const kes1 = officers.find((s) => s.role === "Kesehatan 1");
-  const kes2 = officers.find((s) => s.role === "Kesehatan 2");
-  const amn = officers.find((s) => s.role === "Keamanan");
+  const ketua = officers.find((s) => matchRole(s.role, "Ketua Kelas"));
+  const wakil = officers.find((s) => matchRole(s.role, "Wakil Ketua"));
+  const sek1 = officers.find((s) => matchRole(s.role, "Sekretaris 1"));
+  const sek2 = officers.find((s) => matchRole(s.role, "Sekretaris 2"));
+  const ben1 = officers.find((s) => matchRole(s.role, "Bendahara 1"));
+  const ben2 = officers.find((s) => matchRole(s.role, "Bendahara 2"));
+  const kes1 = officers.find((s) => matchRole(s.role, "Kesehatan 1"));
+  const kes2 = officers.find((s) => matchRole(s.role, "Kesehatan 2"));
+  const amn = officers.find((s) => matchRole(s.role, "Keamanan"));
 
   return (
     <>
@@ -57,7 +60,7 @@ export default function StrukturPage() {
       </div>
 
       <div className="glass-card tree-wrapper">
-        {/* Wali Kelas — tetap hardcode */}
+        {/* Wali Kelas */}
         <div className="tree-node">
           <div className="avatar-box">
             <i
@@ -309,4 +312,4 @@ export default function StrukturPage() {
       </div>
     </>
   );
-                }
+    }
