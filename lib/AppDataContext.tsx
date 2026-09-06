@@ -123,7 +123,6 @@ function normalizeKasRows(
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>(seedStudents);
-  // JANGAN pakai seed 30 baris kosong
   const [kasLog, setKasLog] = useState<KasTransaction[]>([]);
   const [payments, setPayments] = useState<PaymentHistory[]>(seedPay);
   const [paymentOverrides, setPaymentOverrides] = useState<
@@ -198,12 +197,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
-          ov[String(row.nisn) + "-" + row.month_index] = !!row.paid;
+          // Pakai String() paksa agar key selalu konsisten
+          ov[`${row.nisn}-${Number(row.month_index)}`] = Boolean(row.paid);
         }
         setPaymentOverrides(ov);
       }
 
-      // LOG KAS: filter kosong
       if (logRes.data) {
         setKasLog(normalizeKasRows(logRes.data as Record<string, unknown>[]));
       } else {
@@ -351,6 +350,311 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updated_at: new Date().toISOString(),
     });
     if (error) {
+      alert("Gagal maintenance: " + error.message);
+      return;
+    }
+    pushLog(value ? "Maintenance ON" : "Maintenance OFF");
+  }
+
+  async function setSiteContent(c: SiteContent) {
+    setSiteContentState(c);
+    const { error } = await supabase.from("site_content").upsert({
+      id: 1,
+      tagline: c.tagline,
+      widgets: c.widgets,
+      news: c.news,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      alert("Gagal homepage: " + error.message);
+      return;
+    }
+    pushLog("Update konten homepage");
+  }
+
+  async function setSchedule(s: ScheduleData) {
+    setScheduleState(s);
+    const { error } = await supabase.from("schedule").upsert({
+      id: 1,
+      data: s,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      alert("Gagal jadwal: " + error.message);
+      return;
+    }
+    pushLog("Update jadwal pelajaran");
+  }
+
+  async function addKasTransaction(
+    desc: string,
+    type: "masuk" | "keluar",
+    val: number
+  ) {
+    const clean = desc.trim();
+    const amount = Number(val);
+    if (!clean || !amount || amount <= 0) {
+      alert("Isi keterangan dan nominal > 0");
+      return;
+    }
+
+    const lastBalance =
+      kasLog.length > 0 ? kasLog[kasLog.length - 1].balance : 0;
+    const balance =
+      type === "masuk" ? lastBalance + amount : lastBalance - amount;
+    const no = kasLog.length + 1;
+    const date = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
+    const row: KasTransaction = {
+      no,
+      date,
+      desc: clean,
+      type,
+      val: amount,
+      balance,
+    };
+
+    setKasLog((prev) => [...prev, row]);
+
+    const { error } = await supabase.from("kas_log").insert({
+      no: row.no,
+      date: row.date,
+      desc: row.desc,
+      type: row.type,
+      val: row.val,
+      balance: row.balance,
+    });
+
+    if (error) {
+      console.error("kas_log insert", error);
+      alert("Gagal simpan log kas: " + error.message);
+      setKasLog((prev) => prev.filter((r) => r !== row));
+      void refreshFromDb();
+      return;
+    }
+
+    pushLog("Log kas " + type + ": " + clean + " (" + amount + ")");
+    void refreshFromDb();
+  }
+
+  async function deleteKasTransactions(keys: string[]) {
+    if (!keys.length) return;
+
+    const nosToDelete = keys
+      .map((k) => Number(k.split("-")[0]))
+      .filter((n) => !isNaN(n));
+
+    if (!nosToDelete.length) return;
+
+    setKasLog((prev) => prev.filter((row) => !nosToDelete.includes(row.no)));
+
+    const { error } = await supabase
+      .from("kas_log")
+      .delete()
+      .in("no", nosToDelete);
+
+    if (error) {
+      console.error("kas_log delete", error);
+      alert("Gagal menghapus log kas: " + error.message);
+      void refreshFromDb();
+      return;
+    }
+
+    pushLog("Hapus log kas sebanyak " + nosToDelete.length + " item");
+    void refreshFromDb();
+  }
+
+  const value = useMemo<AppData>(
+    () => ({
+      students,
+      kasLog,
+      payments,
+      paymentOverrides,
+      attendanceMap,
+      maintenanceMode,
+      activityLog,
+      siteContent,
+      schedule,
+      loading,
+      setSiteContent,
+      setMaintenanceMode,
+      setSchedule,
+      pushLog,
+      refreshFromDb,
+      setStudents,
+      addKasTransaction,
+      deleteKasTransactions,
+
+      updateStudent: async (nisn, patch) => {
+        setStudents((prev) =>
+          prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
+        );
+        const p = patch;
+        const { error } = await supabase
+          .from("students")
+          .update({
+            ...(p.nama !== undefined ? { nama: p.nama } : {}),
+            ...(p.nis !== undefined ? { nis: p.nis } : {}),
+            ...(p.gender !== undefined ? { gender: p.gender } : {}),
+            ...(p.role !== undefined ? { role: p.role || null } : {}),
+            ...(p.roleClass !== undefined
+              ? { role_class: p.roleClass || null }
+              : {}),
+            ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
+            ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
+            ...(p.izin !== undefined ? { izin: p.izin } : {}),
+            ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
+            ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("nisn", nisn);
+        if (error) {
+          alert("Gagal siswa: " + error.message);
+          return;
+        }
+        pushLog("Update siswa " + nisn);
+      },
+
+      addStudent: (s) => {
+        setStudents((prev) => [...prev, s]);
+        void supabase.from("students").upsert({
+          nisn: s.nisn,
+          nis: s.nis || "",
+          nama: s.nama,
+          gender: s.gender,
+          role: s.role || null,
+          role_class: s.roleClass || null,
+          icon: s.icon || null,
+          hadir: s.hadir,
+          izin: s.izin,
+          sakit: s.sakit,
+          alpa: s.alpa,
+        });
+        pushLog("Tambah siswa " + s.nama);
+      },
+
+      removeStudent: (nisn) => {
+        setStudents((prev) => prev.filter((s) => s.nisn !== nisn));
+        void supabase.from("students").delete().eq("nisn", nisn);
+        pushLog("Hapus siswa " + nisn);
+      },
+
+      // FIX ISKASPAID: Memastikan key pasti bertipe string & membandingkan boolean dengan aman
+      isKasPaid: (nisn, _si, monthIndex) => {
+        const key = `${String(nisn)}-${Number(monthIndex)}`;
+        return paymentOverrides[key] === true;
+      },
+
+      // FIX SETKASPAID: Menyimpan dengan key dan tipe number yang seragam
+      setKasPaid: async (nisn, _si, monthIndex, paid) => {
+        const mIdx = Number(monthIndex);
+        const key = `${String(nisn)}-${mIdx}`;
+
+        setPaymentOverrides((prev) => ({
+          ...prev,
+          [key]: paid,
+        }));
+
+        const { error } = await supabase.from("kas_paid").upsert(
+          { nisn: String(nisn), month_index: mIdx, paid },
+          { onConflict: "nisn,month_index" }
+        );
+
+        if (error) {
+          alert("Gagal simpan kas ke DB: " + error.message);
+          void refreshFromDb();
+          return;
+        }
+        pushLog((paid ? "LUNAS " : "BELUM ") + nisn + " m" + mIdx);
+      },
+
+      markKasPaid: async (nama, nisn, monthIndex = 1) => {
+        const mIdx = Number(monthIndex);
+        const key = `${String(nisn)}-${mIdx}`;
+
+        setPaymentOverrides((prev) => ({
+          ...prev,
+          [key]: true,
+        }));
+
+        const { error: e1 } = await supabase.from("kas_paid").upsert(
+          { nisn: String(nisn), month_index: mIdx, paid: true },
+          { onConflict: "nisn,month_index" }
+        );
+
+        if (e1) {
+          alert(e1.message);
+          return;
+        }
+
+        const now = new Date();
+        const pay = {
+          name: nama,
+          date:
+            now.toLocaleDateString("id-ID") +
+            " - " +
+            now.getHours().toString().padStart(2, "0") +
+            ":" +
+            now.getMinutes().toString().padStart(2, "0") +
+            " WIB",
+          code:
+            "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
+          status: "LUNAS",
+          amount: NOMINAL_KAS,
+        };
+        setPayments((prev) => [pay, ...prev]);
+        void supabase.from("payments").insert(pay);
+        pushLog("QRIS LUNAS " + nama);
+      },
+
+      setAttendanceCell: async (studentIndex, monthIndex, day, status) => {
+        setAttendanceMap((prev) => ({
+          ...prev,
+          [studentIndex + "-" + monthIndex + "-" + day]: status,
+        }));
+        const nisn = students[studentIndex]?.nisn;
+        if (!nisn) return;
+        const { error } = await supabase.from("attendance").upsert(
+          { nisn, month_index: monthIndex, day, status },
+          { onConflict: "nisn,month_index,day" }
+        );
+        if (error) {
+          alert("Gagal absensi: " + error.message);
+          return;
+        }
+        pushLog("Absensi " + nisn + " → " + status);
+      },
+
+      getAttendanceCell: (studentIndex, monthIndex, day) =>
+        attendanceMap[studentIndex + "-" + monthIndex + "-" + day] ?? "-",
+    }),
+    [
+      students,
+      kasLog,
+      payments,
+      paymentOverrides,
+      attendanceMap,
+      maintenanceMode,
+      activityLog,
+      siteContent,
+      schedule,
+      loading,
+    ]
+  );
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export function useAppData() {
+  const ctx = useContext(Ctx);
+  if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
+  return ctx;
+}
+error) {
       alert("Gagal maintenance: " + error.message);
       return;
     }
