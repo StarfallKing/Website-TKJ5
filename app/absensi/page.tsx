@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { allStudents, monthConfigs } from "@/lib/data";
-import { useAppData } from "@/lib/appdatacontext";
+import { useAppData } from "@/lib/AppDataContext";
 
 export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
