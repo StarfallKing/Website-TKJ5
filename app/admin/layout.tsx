@@ -58,7 +58,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {!isLogin && <Header />}
       <div style={{ paddingBottom: isLogin ? 0 : 100 }}>{children}</div>
       <AdminBottomNav />
     </>
