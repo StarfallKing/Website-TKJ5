@@ -139,7 +139,7 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 */}
+      {/* Tabel 1 — Filter Bulan Grid 4-Kolom (Gambar 2) */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="flex-between" style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
@@ -148,23 +148,43 @@ export default function KasPage() {
         </div>
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6,
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 8,
             marginBottom: 10,
           }}
         >
-          {monthConfigs.map((m, i) => (
-            <button
-              key={m.name}
-              type="button"
-              className={"filter-btn" + (monthIdx === i ? " active" : "")}
-              onClick={() => setMonthIdx(i)}
-              style={{ fontSize: 9 }}
-            >
-              {m.name}
-            </button>
-          ))}
+          {monthConfigs.map((m, i) => {
+            const parts = m.name.split(" ");
+            return (
+              <button
+                key={m.name}
+                type="button"
+                className={"filter-btn" + (monthIdx === i ? " active" : "")}
+                onClick={() => setMonthIdx(i)}
+                style={{
+                  width: "100%",
+                  padding: "8px 4px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  textAlign: "center",
+                  borderRadius: 12,
+                }}
+              >
+                <span>{parts[0]}</span>
+                {parts[1] && (
+                  <span style={{ fontSize: 10, opacity: 0.8, fontWeight: 500 }}>
+                    {parts[1]}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <div className="table-responsive">
           <table className="absensi-table">
@@ -350,4 +370,4 @@ export default function KasPage() {
       </button>
     </>
   );
-              }
+}
