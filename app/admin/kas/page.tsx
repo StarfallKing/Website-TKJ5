@@ -99,27 +99,47 @@ export default function AdminKasPage() {
       {/* Tabel 1 — status per bulan (pilih bulan) */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
-          Tabel 1: Status Kas Bulan
+          TABEL 1: STATUS KAS BULAN
         </div>
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 6,
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 8,
             marginBottom: 10,
           }}
         >
-          {monthConfigs.map((m, i) => (
-            <button
-              key={m.name}
-              type="button"
-              className={"filter-btn" + (monthIdx === i ? " active" : "")}
-              onClick={() => setMonthIdx(i)}
-              style={{ fontSize: 9 }}
-            >
-              {m.name}
-            </button>
-          ))}
+          {monthConfigs.map((m, i) => {
+            const parts = m.name.split(" ");
+            return (
+              <button
+                key={m.name}
+                type="button"
+                className={"filter-btn" + (monthIdx === i ? " active" : "")}
+                onClick={() => setMonthIdx(i)}
+                style={{
+                  width: "100%",
+                  padding: "8px 4px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  textAlign: "center",
+                  borderRadius: 12,
+                }}
+              >
+                <span>{parts[0]}</span>
+                {parts[1] && (
+                  <span style={{ fontSize: 10, opacity: 0.8, fontWeight: 500 }}>
+                    {parts[1]}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <div className="table-responsive">
           <table className="absensi-table">
