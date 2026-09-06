@@ -26,13 +26,39 @@ export default function KasPage() {
     [kasLog]
   );
 
-  const lastBalance = logs.length ? logs[logs.length - 1].balance : 0;
-  const totalMasuk = logs
-    .filter((t) => t.type === "masuk")
-    .reduce((a, t) => a + t.val, 0);
-  const totalKeluar = logs
-    .filter((t) => t.type === "keluar")
-    .reduce((a, t) => a + t.val, 0);
+  // 1. Hitung total uang kas yang masuk dari centangan status LUNAS siswa (12 bulan)
+  const totalKasSiswa = useMemo(() => {
+    let total = 0;
+    list.forEach((s, idx) => {
+      monthConfigs.forEach((_, mi) => {
+        if (isKasPaid(s.nisn, idx, mi)) {
+          total += NOMINAL_KAS; // Rp 2.000 per anak per bulan
+        }
+      });
+    });
+    return total;
+  }, [list, monthConfigs, isKasPaid]);
+
+  // 2. Hitung pengeluaran dan pemasukan tambahan dari log manual
+  const totalMasukLog = useMemo(
+    () =>
+      logs
+        .filter((t) => t.type === "masuk")
+        .reduce((a, t) => a + t.val, 0),
+    [logs]
+  );
+
+  const totalKeluar = useMemo(
+    () =>
+      logs
+        .filter((t) => t.type === "keluar")
+        .reduce((a, t) => a + t.val, 0),
+    [logs]
+  );
+
+  // 3. Gabungkan total pemasukan & saldo kas riil
+  const totalMasuk = totalKasSiswa + totalMasukLog;
+  const lastBalance = totalMasuk - totalKeluar;
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -139,7 +165,7 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 — Filter Bulan Grid 4-Kolom (Gambar 2) */}
+      {/* Tabel 1 — Filter Bulan Grid 4-Kolom */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="flex-between" style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
