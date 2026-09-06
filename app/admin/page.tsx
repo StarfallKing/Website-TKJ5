@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [kode, setKode] = useState("");
@@ -28,25 +26,32 @@ export default function AdminLoginPage() {
       if (error) throw error;
       if (!data) {
         setErr("Username / password / kode salah");
+        setLoading(false);
         return;
       }
 
+      // Simpan session
       sessionStorage.setItem("admin-ok", "1");
-sessionStorage.setItem("admin-user", username);
-sessionStorage.setItem("admin-last", String(Date.now()));
-      router.replace("/admin/dashboard");
+      sessionStorage.setItem("admin-user", username);
+      sessionStorage.setItem("admin-last", String(Date.now()));
+
+      // Pakai window.location.href agar browser reload bersih & tidak butuh reload manual
+      window.location.href = "/admin/dashboard";
     } catch {
       setErr("Gagal terhubung ke server");
-    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <form
+      onSubmit={onSubmit}
+      className="glass-card"
+      style={{ display: "flex", flexDirection: "column", gap: 12 }}
+    >
       <div className="title-sub text-center">LOGIN ADMIN</div>
       <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-       Harap Masukkan Username, Password, Dan Kode Unik Dengan Benar.
+        Harap Masukkan Username, Password, Dan Kode Unik Dengan Benar.
       </p>
 
       <input
@@ -76,17 +81,18 @@ sessionStorage.setItem("admin-last", String(Date.now()));
       />
 
       {err ? (
-        <p style={{ color: "#f43f5e", fontSize: 12, textAlign: "center" }}>{err}</p>
+        <p style={{ color: "#f43f5e", fontSize: 12, textAlign: "center" }}>
+          {err}
+        </p>
       ) : null}
 
       <button
-        type="button"
+        type="submit"
         className="btn-pay-qris"
         disabled={loading}
-        onClick={onSubmit}
       >
         {loading ? "Memeriksa..." : "Masuk"}
       </button>
-    </div>
+    </form>
   );
 }
