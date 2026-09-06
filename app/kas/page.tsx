@@ -7,6 +7,7 @@ import {
   formatRupiah,
   NOMINAL_KAS,
   monthShort,
+  monthConfigs,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 
@@ -18,15 +19,18 @@ export default function KasPage() {
   const [query, setQuery] = useState("");
   const [showSug, setShowSug] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+  const [monthIdx, setMonthIdx] = useState(1); // default Agustus
 
-  // Agustus 2026 = index 1 (ikut monthShort: Jul=0, Agu=1, ...)
-  const CURRENT_MONTH = 1;
+  const logs = useMemo(
+    () => kasLog.filter((t) => t.desc?.trim() || t.val),
+    [kasLog]
+  );
 
-  const lastBalance = kasLog[kasLog.length - 1]?.balance ?? 0;
-  const totalMasuk = kasLog
+  const lastBalance = logs.length ? logs[logs.length - 1].balance : 0;
+  const totalMasuk = logs
     .filter((t) => t.type === "masuk")
     .reduce((a, t) => a + t.val, 0);
-  const totalKeluar = kasLog
+  const totalKeluar = logs
     .filter((t) => t.type === "keluar")
     .reduce((a, t) => a + t.val, 0);
 
@@ -97,7 +101,6 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="search-wrapper">
         <div
           className={"search-box" + (query ? " expanded" : "")}
@@ -136,25 +139,32 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 — status bulan berjalan (Context isKasPaid) */}
+      {/* Tabel 1 */}
       <div className="glass-card" style={{ padding: 10 }}>
-        <div className="flex-between" style={{ marginBottom: 10 }}>
+        <div className="flex-between" style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
-            Tabel 1: Status Kas Bulan Berjalan
+            Tabel 1: Status Kas Bulan
           </span>
-          <span
-            style={{
-              fontSize: 8.5,
-              background: "rgba(34,197,94,0.15)",
-              color: "#4ade80",
-              border: "1px solid rgba(74,222,128,0.3)",
-              padding: "2px 6px",
-              borderRadius: 6,
-              fontWeight: 700,
-            }}
-          >
-            Agustus 2026
-          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+            marginBottom: 10,
+          }}
+        >
+          {monthConfigs.map((m, i) => (
+            <button
+              key={m.name}
+              type="button"
+              className={"filter-btn" + (monthIdx === i ? " active" : "")}
+              onClick={() => setMonthIdx(i)}
+              style={{ fontSize: 9 }}
+            >
+              {m.name}
+            </button>
+          ))}
         </div>
         <div className="table-responsive">
           <table className="absensi-table">
@@ -169,7 +179,7 @@ export default function KasPage() {
             </thead>
             <tbody>
               {list.map((s, idx) => {
-                const paid = isKasPaid(s.nisn, idx, CURRENT_MONTH);
+                const paid = isKasPaid(s.nisn, idx, monthIdx);
                 return (
                   <tr
                     key={s.nisn}
@@ -233,7 +243,7 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 — matriks 12 bulan */}
+      {/* Tabel 2 */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
           Tabel 2: Matriks Kas 12 Bulan
@@ -285,20 +295,20 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Log transaksi */}
+      {/* Tabel 3 */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
           Tabel 3: Log Pemasukan & Pengeluaran
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {kasLog.length === 0 && (
+          {logs.length === 0 && (
             <p style={{ fontSize: 11, color: "#64748b", textAlign: "center" }}>
               Belum ada transaksi
             </p>
           )}
-          {kasLog.map((row) => (
+          {logs.map((row) => (
             <div
-              key={row.no}
+              key={row.no + "-" + row.desc + "-" + row.date}
               className="flex-between"
               style={{
                 fontSize: 10,
@@ -340,4 +350,4 @@ export default function KasPage() {
       </button>
     </>
   );
-                            }
+              }
