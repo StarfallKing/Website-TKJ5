@@ -282,6 +282,13 @@ export const monthConfigs = [
   { name: "Juni 2027", days: 30 },
 ];
 
+/** Jumlah hari tahun ajaran: 1 Jul startYear s/d 30 Jun startYear+1 */
+export function schoolYearDays(startYear = 2026): number {
+  const a = new Date(startYear, 6, 1).getTime();
+  const b = new Date(startYear + 1, 5, 30).getTime();
+  return Math.round((b - a) / 86400000) + 1; // \~365 atau 366
+}
+
 export type PaymentHistory = {
   name: string;
   date: string;
