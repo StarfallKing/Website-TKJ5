@@ -5,11 +5,23 @@ import { useEffect, useState } from "react";
 import { useAppData } from "@/lib/AppDataContext";
 import type { Student } from "@/lib/data";
 
+const ROLE_OPTIONS = [
+  "",
+  "Ketua Kelas",
+  "Wakil Ketua",
+  "Sekretaris 1",
+  "Sekretaris 2",
+  "Bendahara 1",
+  "Bendahara 2",
+  "Keamanan",
+  "Kesehatan 1",
+  "Kesehatan 2",
+];
+
 export default function AdminEditSiswaPage() {
   const { nisn } = useParams<{ nisn: string }>();
   const router = useRouter();
   const { students, updateStudent, removeStudent, pushLog } = useAppData();
-
   const found = students.find((s) => s.nisn === nisn);
   const [form, setForm] = useState<Student | null>(null);
 
@@ -19,20 +31,35 @@ export default function AdminEditSiswaPage() {
 
   if (!form) {
     return (
-      <div className="glass-card text-center" style={{ marginTop: 20 }}>
-        Siswa tidak ditemukan
-      </div>
+      <div className="glass-card text-center">Siswa tidak ditemukan</div>
     );
   }
 
-  function save() {
+  async function save() {
     if (!form) return;
-    if (!form.nama.trim()) {
-      alert("Nama wajib diisi");
-      return;
+    const role = (form.role || "").trim();
+
+    // Role unik: boleh kosong, tapi tidak boleh sama dengan siswa lain
+    if (role) {
+      const dup = students.find(
+        (s) => s.nisn !== form.nisn && (s.role || "").trim() === role
+      );
+      if (dup) {
+        alert(
+          'Role "' + role + '" sudah dipakai oleh ' + dup.nama + ". Pilih role lain."
+        );
+        return;
+      }
     }
-    updateStudent(form.nisn, form);
-    pushLog("Edit siswa " + form.nama);
+
+    await updateStudent(form.nisn, {
+      ...form,
+      role: role || undefined,
+      roleClass: role
+        ? role.toLowerCase().replace(/\s+/g, "-")
+        : undefined,
+    });
+    pushLog("Edit siswa " + form.nama + (role ? " → " + role : ""));
     router.push("/admin/siswa");
   }
 
@@ -42,7 +69,6 @@ export default function AdminEditSiswaPage() {
         type="button"
         className="btn-action-light"
         onClick={() => router.back()}
-        style={{ marginBottom: 10 }}
       >
         ← Kembali
       </button>
@@ -52,46 +78,32 @@ export default function AdminEditSiswaPage() {
         style={{ display: "flex", flexDirection: "column", gap: 10 }}
       >
         <div className="title-sub">EDIT SISWA</div>
-        <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Ubah biodata · NISN / NIS · absensi rekap · role
-        </p>
 
-        <label style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>
-          NAMA
-        </label>
+        <label style={{ fontSize: 10, color: "#94a3b8" }}>Nama</label>
         <input
           className="search-box expanded"
           style={{ width: "100%", padding: 12 }}
           value={form.nama}
-          placeholder="Nama lengkap"
           onChange={(e) => setForm({ ...form, nama: e.target.value })}
         />
 
-        <label style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>
-          NISN
-        </label>
+        <label style={{ fontSize: 10, color: "#94a3b8" }}>NISN</label>
         <input
           className="search-box expanded"
           style={{ width: "100%", padding: 12 }}
           value={form.nisn}
-          placeholder="NISN"
-          onChange={(e) => setForm({ ...form, nisn: e.target.value })}
+          disabled
         />
 
-        <label style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>
-          NIS (Nomor Induk)
-        </label>
+        <label style={{ fontSize: 10, color: "#94a3b8" }}>NIS</label>
         <input
           className="search-box expanded"
           style={{ width: "100%", padding: 12 }}
           value={form.nis || ""}
-          placeholder="Contoh: 26100171"
           onChange={(e) => setForm({ ...form, nis: e.target.value })}
         />
 
-        <label style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>
-          GENDER
-        </label>
+        <label style={{ fontSize: 10, color: "#94a3b8" }}>Gender</label>
         <select
           value={form.gender}
           onChange={(e) =>
@@ -102,50 +114,45 @@ export default function AdminEditSiswaPage() {
             borderRadius: 10,
             background: "#0f172a",
             color: "#fff",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
           <option value="L">Laki-laki</option>
           <option value="P">Perempuan</option>
         </select>
 
-        <label style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8" }}>
-          ROLE / JABATAN (opsional)
+        <label style={{ fontSize: 10, color: "#94a3b8" }}>
+          Role (unik — 1 role = 1 orang)
         </label>
-        <input
-          className="search-box expanded"
-          style={{ width: "100%", padding: 12 }}
+        <select
           value={form.role || ""}
-          placeholder="Contoh: Bendahara 1, Wakil Ketua"
           onChange={(e) => setForm({ ...form, role: e.target.value })}
-        />
-
-        <div className="title-sub" style={{ marginTop: 6 }}>
-          REKAP ABSENSI (1 tahun)
-        </div>
-        <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 8,
+            padding: 12,
+            borderRadius: 10,
+            background: "#0f172a",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
-          {(
-            [
-              ["hadir", "#4ade80"],
-              ["izin", "#60a5fa"],
-              ["sakit", "#facc15"],
-              ["alpa", "#f43f5e"],
-            ] as const
-          ).map(([k, color]) => (
-            <label key={k} style={{ fontSize: 10, color }}>
-              {k.toUpperCase()}
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r || "none"} value={r}>
+              {r || "— Tanpa role —"}
+            </option>
+          ))}
+        </select>
+
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}
+        >
+          {(["hadir", "izin", "sakit", "alpa"] as const).map((k) => (
+            <label key={k} style={{ fontSize: 10 }}>
+              {k}
               <input
                 type="number"
-                min={0}
                 value={form[k]}
                 onChange={(e) =>
-                  setForm({ ...form, [k]: Number(e.target.value) || 0 })
+                  setForm({ ...form, [k]: Number(e.target.value) })
                 }
                 style={{
                   width: "100%",
@@ -161,18 +168,16 @@ export default function AdminEditSiswaPage() {
           ))}
         </div>
 
-        <button type="button" className="btn-pay-qris" onClick={save}>
-          Simpan perubahan
+        <button type="button" className="btn-pay-qris" onClick={() => void save()}>
+          Simpan
         </button>
-
         <button
           type="button"
           className="btn-action-light"
           style={{ color: "#f43f5e" }}
           onClick={() => {
-            if (confirm("Hapus " + form.nama + " dari data kelas?")) {
+            if (confirm("Hapus siswa?")) {
               removeStudent(form.nisn);
-              pushLog("Hapus siswa " + form.nama);
               router.push("/admin/siswa");
             }
           }}
@@ -180,28 +185,6 @@ export default function AdminEditSiswaPage() {
           Hapus siswa
         </button>
       </div>
-
-      {/* Shortcut GLMS */}
-      <a
-        href="https://smkpgri2cbn.sch.id/glms/siswa/login.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="glass-card flex-between"
-        style={{ textDecoration: "none", marginTop: 12 }}
-      >
-        <div>
-          <div style={{ fontWeight: 800, fontSize: 12, color: "#f8fafc" }}>
-            GLMS Account
-          </div>
-          <div style={{ fontSize: 10, color: "#94a3b8" }}>
-            Gocir LMS · Login siswa sekolah
-          </div>
-        </div>
-        <i
-          className="fa-solid fa-arrow-up-right-from-square"
-          style={{ color: "#60a5fa" }}
-        />
-      </a>
     </>
   );
-        }
+}
