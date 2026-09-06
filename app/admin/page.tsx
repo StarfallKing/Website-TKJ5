@@ -32,8 +32,8 @@ export default function AdminLoginPage() {
       }
 
       sessionStorage.setItem("admin-ok", "1");
-      sessionStorage.setItem("admin-user", data.username);
-      sessionStorage.setItem("admin-role", data.role || "");
+sessionStorage.setItem("admin-user", username);
+sessionStorage.setItem("admin-last", String(Date.now()));
       router.replace("/admin/dashboard");
     } catch {
       setErr("Gagal terhubung ke server");
