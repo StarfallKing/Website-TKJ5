@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
     <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div className="title-sub text-center">LOGIN ADMIN</div>
       <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-        Username + password + kode unik
+        Username + Password + Kode Unik
       </p>
 
       <input
@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
       <input
         className="search-box expanded"
         style={{ width: "100%", padding: 12 }}
-        placeholder="Kode unik (contoh TKJ5-ADMIN)"
+        placeholder="Kode Unik"
         value={kode}
         onChange={(e) => setKode(e.target.value)}
         autoComplete="off"
@@ -87,10 +87,6 @@ export default function AdminLoginPage() {
       >
         {loading ? "Memeriksa..." : "Masuk"}
       </button>
-
-      <p style={{ fontSize: 9, color: "#64748b", textAlign: "center" }}>
-        Default: admin / tkj5admin / TKJ5-ADMIN
-      </p>
     </div>
   );
 }
