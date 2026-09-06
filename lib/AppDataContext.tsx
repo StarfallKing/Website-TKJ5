@@ -10,7 +10,6 @@ import {
 } from "react";
 import {
   allStudents as seedStudents,
-  kasTransactionsLog as seedKas,
   paymentHistoryLogs as seedPay,
   attendanceMap as seedAttendance,
   defaultSiteContent,
@@ -55,7 +54,7 @@ type AppData = {
     desc: string,
     type: "masuk" | "keluar",
     val: number
-  ) => void;
+  ) => Promise<void>;
   markKasPaid: (nama: string, nisn: string, monthIndex?: number) => Promise<void>;
   isKasPaid: (
     nisn: string,
@@ -105,9 +104,26 @@ function rowToStudent(r: Record<string, unknown>): Student {
   };
 }
 
+/** Hanya baris log yang punya isi */
+function normalizeKasRows(
+  data: Record<string, unknown>[]
+): KasTransaction[] {
+  return data
+    .map((r, i) => ({
+      no: Number(r.no ?? i + 1),
+      date: String(r.date ?? ""),
+      desc: String(r.desc ?? "").trim(),
+      type: (r.type === "keluar" ? "keluar" : "masuk") as "masuk" | "keluar",
+      val: Number(r.val ?? 0),
+      balance: Number(r.balance ?? 0),
+    }))
+    .filter((r) => r.desc !== "" || r.val !== 0);
+}
+
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>(seedStudents);
-  const [kasLog, setKasLog] = useState<KasTransaction[]>(seedKas);
+  // JANGAN pakai seed 30 baris kosong
+  const [kasLog, setKasLog] = useState<KasTransaction[]>([]);
   const [payments, setPayments] = useState<PaymentHistory[]>(seedPay);
   const [paymentOverrides, setPaymentOverrides] = useState<
     Record<string, boolean>
@@ -139,7 +155,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         supabase.from("students").select("*").order("nama"),
         supabase.from("attendance").select("*"),
         supabase.from("kas_paid").select("*"),
-        supabase.from("kas_log").select("*").order("id"),
+        supabase.from("kas_log").select("*").order("id", { ascending: true }),
         supabase.from("payments").select("*").order("id", { ascending: false }),
         supabase.from("site_content").select("*").eq("id", 1).maybeSingle(),
         supabase.from("app_settings").select("*").eq("id", 1).maybeSingle(),
@@ -150,6 +166,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           .limit(100),
         supabase.from("schedule").select("*").eq("id", 1).maybeSingle(),
       ]);
+
+      if (logRes.error) console.error("kas_log load", logRes.error);
 
       let ordered: Student[] = seedStudents;
       if (stRes.data?.length) {
@@ -184,20 +202,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setPaymentOverrides(ov);
       }
 
-      if (logRes.data?.length) {
-  const rows = logRes.data
-    .map((r, i) => ({
-      no: r.no ?? i + 1,
-      date: r.date ?? "",
-      desc: String(r.desc ?? "").trim(),
-      type: (r.type === "keluar" ? "keluar" : "masuk") as "masuk" | "keluar",
-      val: Number(r.val ?? 0),
-      balance: Number(r.balance ?? 0),
-    }))
-    .filter((r) => r.desc !== "" || r.val !== 0);
-
-  setKasLog(rows.length ? rows : []);
-}
+      // LOG KAS: filter kosong
+      if (logRes.data) {
+        setKasLog(normalizeKasRows(logRes.data as Record<string, unknown>[]));
+      } else {
+        setKasLog([]);
+      }
 
       if (payRes.data?.length) {
         setPayments(
@@ -246,22 +256,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // FALLBACK TIMEOUT KHUSUS IOS SAFARI WEBKIT
   useEffect(() => {
     let isMounted = true;
-
-    // Paksa matikan loading jika fetch/realtime hang lebih dari 1.5 detik
     const forceStopLoading = setTimeout(() => {
-      if (isMounted) {
-        setLoading(false);
-      }
+      if (isMounted) setLoading(false);
     }, 1500);
 
     async function loadData() {
       try {
         await refreshFromDb();
       } catch (err) {
-        console.error("Gagal load dari DB, fallback aktif:", err);
+        console.error("Gagal load dari DB:", err);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -271,14 +276,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
 
     void loadData();
-
     return () => {
       isMounted = false;
       clearTimeout(forceStopLoading);
     };
   }, []);
 
-  // REALTIME
   useEffect(() => {
     const channel = supabase
       .channel("portal-tkj5")
@@ -383,6 +386,65 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     pushLog("Update jadwal pelajaran");
   }
 
+  /** Simpan 1 baris log kas ke DB + state */
+  async function addKasTransaction(
+    desc: string,
+    type: "masuk" | "keluar",
+    val: number
+  ) {
+    const clean = desc.trim();
+    const amount = Number(val);
+    if (!clean || !amount || amount <= 0) {
+      alert("Isi keterangan dan nominal > 0");
+      return;
+    }
+
+    const lastBalance =
+      kasLog.length > 0 ? kasLog[kasLog.length - 1].balance : 0;
+    const balance =
+      type === "masuk" ? lastBalance + amount : lastBalance - amount;
+    const no = kasLog.length + 1;
+    const date = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
+    const row: KasTransaction = {
+      no,
+      date,
+      desc: clean,
+      type,
+      val: amount,
+      balance,
+    };
+
+    // Optimistic UI
+    setKasLog((prev) => [...prev, row]);
+
+    const { error } = await supabase.from("kas_log").insert({
+      no: row.no,
+      date: row.date,
+      desc: row.desc,
+      type: row.type,
+      val: row.val,
+      balance: row.balance,
+    });
+
+    if (error) {
+      console.error("kas_log insert", error);
+      alert("Gagal simpan log kas: " + error.message);
+      // rollback
+      setKasLog((prev) => prev.filter((r) => r !== row));
+      void refreshFromDb();
+      return;
+    }
+
+    pushLog("Log kas " + type + ": " + clean + " (" + amount + ")");
+    // pastikan urutan/balance dari DB
+    void refreshFromDb();
+  }
+
   const value = useMemo<AppData>(
     () => ({
       students,
@@ -401,6 +463,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pushLog,
       refreshFromDb,
       setStudents,
+      addKasTransaction,
 
       updateStudent: async (nisn, patch) => {
         setStudents((prev) =>
@@ -456,35 +519,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         pushLog("Hapus siswa " + nisn);
       },
 
-      addKasTransaction: (desc, type, val) => {
-        setKasLog((prev) => {
-          const last = prev[prev.length - 1]?.balance ?? 0;
-          const balance = type === "masuk" ? last + val : last - val;
-          const row = {
-            no: prev.length + 1,
-            date: new Date().toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            }),
-            desc,
-            type,
-            val,
-            balance,
-          };
-          void supabase.from("kas_log").insert({
-            no: row.no,
-            date: row.date,
-            desc: row.desc,
-            type: row.type,
-            val: row.val,
-            balance: row.balance,
-          });
-          return [...prev, row];
-        });
-        pushLog("Log kas " + type + ": " + desc);
-      },
-
       isKasPaid: (nisn, _si, monthIndex) =>
         paymentOverrides[nisn + "-" + monthIndex] === true,
 
@@ -517,30 +551,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           alert(e1.message);
           return;
         }
-        setKasLog((prev) => {
-          const last = prev[prev.length - 1]?.balance ?? 0;
-          const row = {
-            no: prev.length + 1,
-            date: new Date().toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            }),
-            desc: "Setoran Kas Online QRIS - " + nama,
-            type: "masuk" as const,
-            val: NOMINAL_KAS,
-            balance: last + NOMINAL_KAS,
-          };
-          void supabase.from("kas_log").insert({
-            no: row.no,
-            date: row.date,
-            desc: row.desc,
-            type: row.type,
-            val: row.val,
-            balance: row.balance,
-          });
-          return [...prev, row];
-        });
+        await addKasTransaction(
+          "Setoran Kas Online QRIS - " + nama,
+          "masuk",
+          NOMINAL_KAS
+        );
         const now = new Date();
         const pay = {
           name: nama,
@@ -551,7 +566,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ":" +
             now.getMinutes().toString().padStart(2, "0") +
             " WIB",
-          code: "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
+          code:
+            "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
           status: "LUNAS",
           amount: NOMINAL_KAS,
         };
