@@ -3,18 +3,20 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import AdminHeader from "@/components/layout/AdminHeader";
+import AdminBottomNav from "@/components/layout/AdminBottomNav";
 
-const TIMEOUT_MS = 10 * 60 * 1000; // 10 menit
+const TIMEOUT_MS = 10 * 60 * 1000;
 const KEY_OK = "admin-ok";
 const KEY_LAST = "admin-last";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const isLogin = pathname === "/admin" || pathname === "/admin/";
 
   useEffect(() => {
-    // login page sendiri
-    if (pathname === "/admin" || pathname === "/admin/") return;
+    if (isLogin) return;
 
     function touch() {
       sessionStorage.setItem(KEY_LAST, String(Date.now()));
@@ -26,24 +28,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         return;
       }
       const last = Number(sessionStorage.getItem(KEY_LAST) || 0);
-      // hanya hitung timeout kalau user SUDAH pernah keluar area admin
-      // (last di-set saat visibility hidden / route non-admin)
       if (last > 0 && Date.now() - last > TIMEOUT_MS) {
         sessionStorage.removeItem(KEY_OK);
         sessionStorage.removeItem(KEY_LAST);
         sessionStorage.removeItem("admin-user");
-        alert("Sesi admin berakhir (10 menit di luar panel). Login lagi.");
+        alert("Sesi berakhir (10 menit di luar panel). Login lagi.");
         router.replace("/admin");
       }
     }
 
-    // di dalam admin → anggap aktif, jangan timeout
     touch();
     check();
 
     function onVis() {
       if (document.visibilityState === "hidden") {
-        // mulai hitung keluar
         sessionStorage.setItem(KEY_LAST, String(Date.now()));
       } else {
         check();
@@ -53,12 +51,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     document.addEventListener("visibilitychange", onVis);
     const iv = setInterval(check, 30_000);
-
     return () => {
       document.removeEventListener("visibilitychange", onVis);
       clearInterval(iv);
     };
-  }, [pathname, router]);
+  }, [pathname, router, isLogin]);
 
-  return <>{children}</>;
-}
+  return (
+    <>
+      {!isLogin && <AdminHeader />}
+      <div style={{ paddingBottom: isLogin ? 0 : 100 }}>{children}</div>
+      <AdminBottomNav />
+    </>
+  );
+                          }
