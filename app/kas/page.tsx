@@ -13,11 +13,8 @@ import { useAppData } from "@/lib/AppDataContext";
 
 export default function KasPage() {
   const router = useRouter();
-  const appData = useAppData();
-  const { students, kasLog, isKasPaid } = appData;
-  // Typecast opsional jika kasPaid ada di state Context tapi belum ada di Tipe TypeScript Context
-  const kasPaid = (appData as Record<string, unknown>).kasPaid;
-
+  // Ambil paymentOverrides agar re-render ter-trigger saat state Supabase/Context berubah
+  const { students, kasLog, isKasPaid, paymentOverrides } = useAppData();
   const list = students.length ? students : allStudents;
 
   const [query, setQuery] = useState("");
@@ -30,7 +27,7 @@ export default function KasPage() {
     [kasLog]
   );
 
-  // Hitung ulang total pembayaran LUNAS dari seluruh siswa di 12 bulan secara otomatis
+  // 1. Hitung ulang total pembayaran LUNAS dari seluruh siswa di 12 bulan secara otomatis
   const totalKasSiswa = useMemo(() => {
     let total = 0;
     list.forEach((s, idx) => {
@@ -41,9 +38,9 @@ export default function KasPage() {
       });
     });
     return total;
-  }, [list, isKasPaid, kasPaid]);
+  }, [list, isKasPaid, paymentOverrides]); // paymentOverrides dimasukkan agar real-time saat DB berubah
 
-  // Hitung pengeluaran & pemasukan tambahan dari log manual
+  // 2. Hitung pengeluaran & pemasukan tambahan dari log manual
   const totalMasukLog = useMemo(
     () =>
       logs
@@ -60,7 +57,7 @@ export default function KasPage() {
     [logs]
   );
 
-  // Akumulasi real-time
+  // 3. Akumulasi real-time
   const totalMasuk = totalKasSiswa + totalMasukLog;
   const lastBalance = totalMasuk - totalKeluar;
 
