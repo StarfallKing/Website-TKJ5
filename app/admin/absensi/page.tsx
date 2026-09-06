@@ -1,15 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { monthConfigs, type StatusHarian } from "@/lib/data";
+import { useMemo, useState } from "react";
+import {
+  monthConfigs,
+  schoolYearDays,
+  type StatusHarian,
+} from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 
 const CYCLE: StatusHarian[] = ["H", "I", "S", "A", "-"];
+const DAYS = schoolYearDays(2026);
 
 export default function AdminAbsensiPage() {
   const { students, getAttendanceCell, setAttendanceCell } = useAppData();
   const [monthIdx, setMonthIdx] = useState(0);
   const m = monthConfigs[monthIdx];
+
+  const avg = useMemo(() => {
+    const n = students.length || 1;
+    const sumH = students.reduce((a, s) => a + s.hadir, 0);
+    const sumI = students.reduce((a, s) => a + s.izin, 0);
+    const sumS = students.reduce((a, s) => a + s.sakit, 0);
+    const sumA = students.reduce((a, s) => a + s.alpa, 0);
+    return {
+      h: (sumH / n / DAYS) * 100,
+      i: (sumI / n / DAYS) * 100,
+      s: (sumS / n / DAYS) * 100,
+      a: (sumA / n / DAYS) * 100,
+    };
+  }, [students]);
 
   function cycle(si: number, day: number) {
     const cur = getAttendanceCell(si, monthIdx, day);
@@ -20,9 +39,51 @@ export default function AdminAbsensiPage() {
 
   return (
     <>
+      {/* Rata-rata kelas */}
+      <div className="glass-card text-center" style={{ marginBottom: 12 }}>
+        <div className="title-sub">RATA-RATA KEHADIRAN 1 TAHUN</div>
+        <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
+          Pembagi: {DAYS} hari (1 Jul 2026 – 30 Jun 2027)
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            gap: 8,
+            marginTop: 12,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>HADIR</div>
+            <div style={{ fontWeight: 900, color: "#4ade80", fontSize: 16 }}>
+              {avg.h.toFixed(1)}%
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>IZIN</div>
+            <div style={{ fontWeight: 900, color: "#60a5fa", fontSize: 16 }}>
+              {avg.i.toFixed(1)}%
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>SAKIT</div>
+            <div style={{ fontWeight: 900, color: "#facc15", fontSize: 16 }}>
+              {avg.s.toFixed(1)}%
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>ALPA</div>
+            <div style={{ fontWeight: 900, color: "#f43f5e", fontSize: 16 }}>
+              {avg.a.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Rekap angka + % per siswa */}
       <div className="glass-card" style={{ padding: 10, marginBottom: 12 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
-          Rekap 1 Tahun (dari data siswa)
+          Rekap 1 Tahun (angka + % dari {DAYS} hari)
         </div>
         <div className="table-responsive">
           <table className="absensi-table">
@@ -34,17 +95,23 @@ export default function AdminAbsensiPage() {
                 <th style={{ color: "#60a5fa" }}>I</th>
                 <th style={{ color: "#facc15" }}>S</th>
                 <th style={{ color: "#f43f5e" }}>A</th>
+                <th style={{ color: "#4ade80" }}>%H</th>
               </tr>
             </thead>
             <tbody>
               {students.map((s, i) => (
                 <tr key={s.nisn}>
                   <td>{i + 1}</td>
-                  <td style={{ textAlign: "left", fontWeight: 700 }}>{s.nama}</td>
+                  <td style={{ textAlign: "left", fontWeight: 700, fontSize: 10 }}>
+                    {s.nama}
+                  </td>
                   <td style={{ color: "#4ade80" }}>{s.hadir}</td>
                   <td style={{ color: "#60a5fa" }}>{s.izin}</td>
                   <td style={{ color: "#facc15" }}>{s.sakit}</td>
                   <td style={{ color: "#f43f5e" }}>{s.alpa}</td>
+                  <td style={{ color: "#4ade80", fontWeight: 800, fontSize: 10 }}>
+                    {((s.hadir / DAYS) * 100).toFixed(1)}%
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -53,13 +120,12 @@ export default function AdminAbsensiPage() {
       </div>
 
       <div className="glass-card text-center" style={{ marginBottom: 12 }}>
-        <div className="title-sub">EDIT ABSENSI</div>
+        <div className="title-sub">EDIT ABSENSI HARIAN</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
           Ketuk sel: H → I → S → A → -
         </p>
       </div>
 
-      {/* GRID 4 KESAMPING x 3 KEBAWAH TOMBOL BULAN */}
       <div
         style={{
           display: "grid",
@@ -82,7 +148,6 @@ export default function AdminAbsensiPage() {
                 fontWeight: 700,
                 cursor: "pointer",
                 textAlign: "center",
-                transition: "all 0.2s ease",
                 border: isActive
                   ? "1px solid rgba(96,165,250,0.8)"
                   : "1px solid rgba(255,255,255,0.08)",
@@ -159,4 +224,4 @@ export default function AdminAbsensiPage() {
       </div>
     </>
   );
-}
+          }
