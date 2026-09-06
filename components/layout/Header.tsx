@@ -8,7 +8,7 @@ function useDragToggle(initialSecond = true) {
   const dragging = useRef(false);
   const startX = useRef(0);
   const baseLeft = useRef(initialSecond ? 49 : 3);
-  const isMoved = useRef(false); // Penanda apakah user benar-benar menggeser
+  const isMoved = useRef(false);
 
   function setTo(second: boolean) {
     setIsSecond(second);
@@ -26,7 +26,6 @@ function useDragToggle(initialSecond = true) {
     if (!dragging.current) return;
     const diff = e.touches[0].clientX - startX.current;
     
-    // Jika geser lebih dari 5px, tandai sebagai gesture menggeser
     if (Math.abs(diff) > 5) {
       isMoved.current = true;
     }
@@ -39,7 +38,6 @@ function useDragToggle(initialSecond = true) {
     if (!dragging.current) return;
     dragging.current = false;
     
-    // Hanya hitung posisi lepas jika benar-benar digeser
     if (isMoved.current) {
       setTo(left > 26);
     }
@@ -58,8 +56,8 @@ function useDragToggle(initialSecond = true) {
 }
 
 export default function Header() {
-  const lang = useDragToggle(true); // ID default
-  const theme = useDragToggle(true); // moon default
+  const lang = useDragToggle(true);
+  const theme = useDragToggle(true);
 
   useEffect(() => {
     document.documentElement.setAttribute(
@@ -75,11 +73,6 @@ export default function Header() {
   return (
     <>
       <div className="flex-between">
-        {/*
-          PERBAIKAN: Gunakan `touchAction: "pan-y"` (Bukan "none").
-          Ini memberitahu Safari iOS bahwa scroll vertikal layar tetap boleh,
-          sehingga gesture touch tidak membekukan seluruh halaman.
-        */}
         <div
           className="top-pill-container"
           style={{ touchAction: "pan-y", position: "relative" }}
