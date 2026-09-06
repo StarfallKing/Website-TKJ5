@@ -2,22 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAppData } from "@/lib/AppDataContext";
 
 type AdminUser = {
-  id?: number;
+  id: number;
   username: string;
   password: string;
   kode: string;
   role: string;
 };
 
+const roleColor: Record<string, string> = {
+  superadmin: "#f8fafc",
+  Superadmin: "#f8fafc",
+  "Ketua Kelas": "#facc15",
+  "Wakil Ketua": "#60a5fa",
+  "Sekretaris 1": "#38bdf8",
+  "Sekretaris 2": "#22d3ee",
+  "Bendahara 1": "#4ade80",
+  "Bendahara 2": "#34d399",
+  Keamanan: "#fb923c",
+  "Kesehatan 1": "#f43f5e",
+  "Kesehatan 2": "#fb7185",
+  pengurus: "#94a3b8",
+};
+
+function colorOf(role: string) {
+  return roleColor[role] || "#94a3b8";
+}
+
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { activityLog, pushLog } = useAppData();
+  const { activityLog } = useAppData();
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [edit, setEdit] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,164 +58,71 @@ export default function AdminSettingsPage() {
     setLoading(false);
   }
 
-  async function saveUser() {
-    if (!edit || !edit.username.trim()) return;
-    const row = {
-      username: edit.username.trim(),
-      password: edit.password,
-      kode: edit.kode.trim().toUpperCase(),
-      role: edit.role || "pengurus",
-    };
-    const q = edit.id
-      ? supabase.from("admin_users").update(row).eq("id", edit.id)
-      : supabase.from("admin_users").insert(row);
-    const { error } = await q;
-    if (error) {
-      alert(error.message);
-      return;
-    }
-    pushLog("Update admin user " + row.username);
-    setEdit(null);
-    void loadUsers();
-  }
-
-  async function resetPassword(u: AdminUser) {
-    const neu = prompt("Password baru untuk " + u.username, "tkj5admin");
-    if (!neu) return;
-    const { error } = await supabase
-      .from("admin_users")
-      .update({ password: neu })
-      .eq("id", u.id!);
-    if (error) alert(error.message);
-    else {
-      pushLog("Reset password " + u.username);
-      void loadUsers();
-    }
-  }
-
-  async function resetKode(u: AdminUser) {
-    const neu = prompt("Kode unik baru", "TKJ5-" + u.username.toUpperCase());
-    if (!neu) return;
-    const { error } = await supabase
-      .from("admin_users")
-      .update({ kode: neu.trim().toUpperCase() })
-      .eq("id", u.id!);
-    if (error) alert(error.message);
-    else {
-      pushLog("Reset kode " + u.username);
-      void loadUsers();
-    }
-  }
-
   return (
     <>
       <div className="glass-card text-center">
         <div className="title-sub">SETTINGS ADMIN</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Ganti / reset username · password · kode unik
+          Pilih kartu → ganti username / password / kode unik
         </p>
       </div>
 
-      <button
-        type="button"
-        className="btn-pay-qris"
-        style={{ marginBottom: 12 }}
-        onClick={() =>
-          setEdit({
-            username: "",
-            password: "",
-            kode: "",
-            role: "pengurus",
-          })
-        }
-      >
-        + Tambah akun admin
-      </button>
-
       {loading && (
-        <p style={{ textAlign: "center", color: "#94a3b8" }}>Memuat...</p>
+        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
+          Memuat akun...
+        </p>
       )}
 
-      {users.map((u) => (
-        <div key={u.id} className="glass-card" style={{ marginBottom: 8 }}>
-          <div style={{ fontWeight: 800 }}>{u.username}</div>
-          <div style={{ fontSize: 10, color: "#94a3b8" }}>
-            Role: {u.role} · Kode: {u.kode}
-          </div>
-          <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              className="btn-action-light"
-              style={{ fontSize: 10 }}
-              onClick={() => setEdit({ ...u })}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {users.map((u) => {
+          const c = colorOf(u.role);
+          return (
+            <Link
+              key={u.id}
+              href={"/admin/settings/" + u.id}
+              className="glass-card"
+              style={{
+                textDecoration: "none",
+                borderColor: c + "55",
+                boxShadow: "0 0 12px " + c + "22",
+                padding: 14,
+              }}
             >
-              Edit
-            </button>
-            <button
-              type="button"
-              className="btn-action-light"
-              style={{ fontSize: 10 }}
-              onClick={() => void resetPassword(u)}
-            >
-              Reset password
-            </button>
-            <button
-              type="button"
-              className="btn-action-light"
-              style={{ fontSize: 10 }}
-              onClick={() => void resetKode(u)}
-            >
-              Reset kode
-            </button>
-          </div>
-        </div>
-      ))}
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 14,
+                  color: c,
+                  marginBottom: 4,
+                }}
+              >
+                {u.username}
+              </div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                Role:{" "}
+                <span style={{ color: c, fontWeight: 800 }}>{u.role}</span>
+                {" · "}
+                Kode: {u.kode}
+              </div>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 10,
+                  color: "#60a5fa",
+                  fontWeight: 700,
+                }}
+              >
+                Edit akun →
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
-      {edit && (
-        <div
-          className="glass-card"
-          style={{ display: "flex", flexDirection: "column", gap: 8 }}
-        >
-          <div className="title-sub">{edit.id ? "EDIT AKUN" : "AKUN BARU"}</div>
-          <input
-            className="search-box expanded"
-            style={{ width: "100%", padding: 10 }}
-            placeholder="Username"
-            value={edit.username}
-            onChange={(e) => setEdit({ ...edit, username: e.target.value })}
-          />
-          <input
-            className="search-box expanded"
-            style={{ width: "100%", padding: 10 }}
-            placeholder="Password"
-            value={edit.password}
-            onChange={(e) => setEdit({ ...edit, password: e.target.value })}
-          />
-          <input
-            className="search-box expanded"
-            style={{ width: "100%", padding: 10 }}
-            placeholder="Kode unik"
-            value={edit.kode}
-            onChange={(e) => setEdit({ ...edit, kode: e.target.value })}
-          />
-          <input
-            className="search-box expanded"
-            style={{ width: "100%", padding: 10 }}
-            placeholder="Role"
-            value={edit.role}
-            onChange={(e) => setEdit({ ...edit, role: e.target.value })}
-          />
-          <button type="button" className="btn-pay-qris" onClick={() => void saveUser()}>
-            Simpan
-          </button>
-          <button
-            type="button"
-            className="btn-action-light"
-            onClick={() => setEdit(null)}
-          >
-            Batal
-          </button>
-        </div>
+      {!loading && users.length === 0 && (
+        <p style={{ textAlign: "center", color: "#64748b", fontSize: 12 }}>
+          Belum ada akun di tabel admin_users
+        </p>
       )}
 
       <div className="glass-card" style={{ marginTop: 12 }}>
@@ -216,7 +142,7 @@ export default function AdminSettingsPage() {
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              <div style={{ fontWeight: 700 }}>{l.action}</div>
+              <div style={{ fontWeight: 700, color: "#f8fafc" }}>{l.action}</div>
               <div style={{ color: "#64748b" }}>
                 {l.user} · {l.at}
               </div>
@@ -226,4 +152,4 @@ export default function AdminSettingsPage() {
       </div>
     </>
   );
-      }
+                }
