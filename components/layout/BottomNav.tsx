@@ -18,6 +18,10 @@ export default function BottomNav() {
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [pillLeft, setPillLeft] = useState(0);
   const [dragging, setDragging] = useState(false);
+  
+  // Ref penunjang penanganan gesture iOS
+  const touchStartX = useRef(0);
+  const isSwiping = useRef(false);
 
   const activeIndex = Math.max(
     0,
@@ -42,23 +46,40 @@ export default function BottomNav() {
   }, [activeIndex, pathname]);
 
   if (
-  pathname?.startsWith("/siswa") ||
-  pathname?.startsWith("/qris") ||
-  pathname?.startsWith("/admin")
-) {
-  return null;
-}
+    pathname?.startsWith("/siswa") ||
+    pathname?.startsWith("/qris") ||
+    pathname?.startsWith("/admin")
+  ) {
+    return null;
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    isSwiping.current = false;
+  }
 
   function onTouchMove(e: React.TouchEvent) {
-    if (!dragging) return;
-    setPillLeft(e.touches[0].clientX - 22);
+    const currentX = e.touches[0].clientX;
+    const diff = Math.abs(currentX - touchStartX.current);
+
+    // Aktifkan dragging HANYA jika pergeseran > 10px
+    if (diff > 10) {
+      if (!dragging) setDragging(true);
+      isSwiping.current = true;
+      setPillLeft(currentX - 22);
+    }
   }
 
   function onTouchEnd(e: React.TouchEvent) {
     setDragging(false);
+
+    // Jika TIDAK digeser (cuma di-tap), biarkan event onClick yang bekerja
+    if (!isSwiping.current) return;
+
     const touchX = e.changedTouches[0].clientX;
     let closest = activeIndex;
     let min = Infinity;
+
     buttonsRef.current.forEach((btn, i) => {
       if (!btn) return;
       const rect = btn.getBoundingClientRect();
@@ -68,6 +89,7 @@ export default function BottomNav() {
         closest = i;
       }
     });
+
     router.push(navItems[closest].path);
     updatePill(closest);
   }
@@ -76,12 +98,16 @@ export default function BottomNav() {
     <>
       <div
         className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
-        style={{ left: `${pillLeft}px` }}
+        style={{
+          left: `${pillLeft}px`,
+          transition: dragging ? "none" : "left 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
       />
 
       <div
         className="nav-dual-container"
-        onTouchStart={() => setDragging(true)}
+        style={{ touchAction: "pan-y" }} // Penting untuk iOS agar tidak freeze
+        onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
@@ -92,8 +118,12 @@ export default function BottomNav() {
               ref={(el) => {
                 buttonsRef.current[i] = el;
               }}
+              type="button"
               className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => router.push(item.path)}
+              onClick={() => {
+                updatePill(i);
+                router.push(item.path);
+              }}
             >
               <i className={`fa-solid ${item.icon}`} />
             </button>
@@ -107,8 +137,12 @@ export default function BottomNav() {
               ref={(el) => {
                 buttonsRef.current[i + 3] = el;
               }}
+              type="button"
               className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => router.push(item.path)}
+              onClick={() => {
+                updatePill(i + 3);
+                router.push(item.path);
+              }}
             >
               <i className={`fa-solid ${item.icon}`} />
             </button>
