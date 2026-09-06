@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import AdminHeader from "@/components/layout/AdminHeader";
+import Header from "@/components/layout/Header";
 import AdminBottomNav from "@/components/layout/AdminBottomNav";
 
 const TIMEOUT_MS = 10 * 60 * 1000;
@@ -59,9 +59,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {!isLogin && <AdminHeader />}
+      {!isLogin && <Header />}
       <div style={{ paddingBottom: isLogin ? 0 : 100 }}>{children}</div>
       <AdminBottomNav />
     </>
   );
-                          }
+}
