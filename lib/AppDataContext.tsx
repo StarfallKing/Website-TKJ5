@@ -185,17 +185,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
 
       if (logRes.data?.length) {
-        setKasLog(
-          logRes.data.map((r, i) => ({
-            no: r.no ?? i + 1,
-            date: r.date ?? "",
-            desc: r.desc ?? "",
-            type: r.type as "masuk" | "keluar",
-            val: Number(r.val ?? 0),
-            balance: Number(r.balance ?? 0),
-          }))
-        );
-      }
+  const rows = logRes.data
+    .map((r, i) => ({
+      no: r.no ?? i + 1,
+      date: r.date ?? "",
+      desc: String(r.desc ?? "").trim(),
+      type: (r.type === "keluar" ? "keluar" : "masuk") as "masuk" | "keluar",
+      val: Number(r.val ?? 0),
+      balance: Number(r.balance ?? 0),
+    }))
+    .filter((r) => r.desc !== "" || r.val !== 0);
+
+  setKasLog(rows.length ? rows : []);
+}
 
       if (payRes.data?.length) {
         setPayments(
