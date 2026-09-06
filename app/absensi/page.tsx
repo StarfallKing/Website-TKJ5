@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { allStudents, monthConfigs } from "@/lib/data";
-import { useAppData } from "@/lib/AppDataContext";
+import { useAppData } from "@/lib/appdatacontext";
 
 export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
   const list = students.length ? students : allStudents;
   const total = 28;
+
+  // State bulan aktif (Default: bulan pertama / Juli -> index 0)
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
 
   const [query, setQuery] = useState("");
   const [showSug, setShowSug] = useState(false);
@@ -52,6 +55,8 @@ export default function AbsensiPage() {
     setHighlightIdx(null);
     setQuery("");
   }
+
+  const activeMConfig = monthConfigs[selectedMonth] || monthConfigs[0];
 
   return (
     <>
@@ -295,139 +300,168 @@ export default function AbsensiPage() {
             className="fa-solid fa-calendar-days"
             style={{ marginRight: 5 }}
           />
-          Rekap Harian Per Bulan (Juli 2026 – Juni 2027)
+          Rekap Harian Per Bulan
         </div>
       </div>
 
-      {/* 12 bulan — data dari Context getAttendanceCell */}
-      {monthConfigs.map((mConfig, mIdx) => (
-        <div
-          key={mConfig.name}
-          className="glass-card"
-          style={{ padding: 10 }}
-        >
-          <div
-            className="flex-between"
-            style={{
-              marginBottom: 10,
-              paddingBottom: 6,
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
-            <span
-              style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}
-            >
-              Presensi {mConfig.name}
-            </span>
-            <span
+      {/* GRID 4 KASAMPING x 3 KEBAWAH TOMBOL PILIHAN BULAN */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 8,
+          marginBottom: 16,
+        }}
+      >
+        {monthConfigs.map((mConfig, mIdx) => {
+          const isActive = selectedMonth === mIdx;
+          return (
+            <button
+              key={mConfig.name}
+              onClick={() => setSelectedMonth(mIdx)}
               style={{
-                fontSize: 8.5,
-                background: "rgba(96,165,250,0.15)",
-                color: "#60a5fa",
-                border: "1px solid rgba(96,165,250,0.3)",
-                padding: "2px 6px",
-                borderRadius: 6,
+                padding: "8px 4px",
+                borderRadius: 10,
+                fontSize: 11,
                 fontWeight: 700,
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.2s ease",
+                border: isActive
+                  ? "1px solid rgba(96,165,250,0.8)"
+                  : "1px solid rgba(255,255,255,0.08)",
+                background: isActive
+                  ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
+                  : "rgba(15, 23, 42, 0.4)",
+                color: isActive ? "#fff" : "#94a3b8",
+                boxShadow: isActive ? "0 0 12px rgba(37,99,235,0.4)" : "none",
               }}
             >
-              {mConfig.days} Hari
-            </span>
-          </div>
+              {mConfig.name}
+            </button>
+          );
+        })}
+      </div>
 
-          <div className="table-responsive">
-            <table className="absensi-table monthly-table">
-              <thead>
-                <tr>
-                  <th>No</th>
-                  <th style={{ textAlign: "left", paddingLeft: 10 }}>
-                    Nama
-                  </th>
-                  {Array.from({ length: mConfig.days }, (_, d) => (
-                    <th key={d}>{d + 1}</th>
-                  ))}
-                  <th style={{ color: "#4ade80" }}>H</th>
-                  <th style={{ color: "#60a5fa" }}>I</th>
-                  <th style={{ color: "#facc15" }}>S</th>
-                  <th style={{ color: "#f43f5e" }}>A</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((siswa, sIdx) => {
-                  let mH = 0;
-                  let mI = 0;
-                  let mS = 0;
-                  let mA = 0;
-                  const cells = [];
-
-                  for (let d = 1; d <= mConfig.days; d++) {
-                    const st = getAttendanceCell(sIdx, mIdx, d);
-                    if (st === "H") mH++;
-                    else if (st === "I") mI++;
-                    else if (st === "S") mS++;
-                    else if (st === "A") mA++;
-
-                    cells.push(
-                      <td
-                        key={d}
-                        style={{
-                          color:
-                            st === "H"
-                              ? "#4ade80"
-                              : st === "I"
-                              ? "#60a5fa"
-                              : st === "S"
-                              ? "#facc15"
-                              : st === "A"
-                              ? "#f43f5e"
-                              : "#64748b",
-                          fontWeight: 700,
-                          fontSize: 9,
-                        }}
-                      >
-                        {st}
-                      </td>
-                    );
-                  }
-
-                  return (
-                    <tr
-                      key={String(siswa.nisn) + "-" + mIdx + "-" + sIdx}
-                      id={"m-row-" + mIdx + "-" + sIdx}
-                      className={highlightIdx === sIdx ? "glowing-row" : ""}
-                    >
-                      <td style={{ fontWeight: 700, color: "#60a5fa" }}>
-                        {sIdx + 1}
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "left",
-                          fontWeight: 700,
-                          paddingLeft: 10,
-                        }}
-                      >
-                        {siswa.nama}
-                      </td>
-                      {cells}
-                      <td style={{ color: "#4ade80", fontWeight: 800 }}>
-                        {mH}
-                      </td>
-                      <td style={{ color: "#60a5fa", fontWeight: 800 }}>
-                        {mI}
-                      </td>
-                      <td style={{ color: "#facc15", fontWeight: 800 }}>
-                        {mS}
-                      </td>
-                      <td style={{ color: "#f43f5e", fontWeight: 800 }}>
-                        {mA}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      {/* RENDER HANYA 1 BULAN YANG DIPILIH */}
+      <div className="glass-card" style={{ padding: 10 }}>
+        <div
+          className="flex-between"
+          style={{
+            marginBottom: 10,
+            paddingBottom: 6,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa" }}>
+            Presensi {activeMConfig.name}
+          </span>
+          <span
+            style={{
+              fontSize: 8.5,
+              background: "rgba(96,165,250,0.15)",
+              color: "#60a5fa",
+              border: "1px solid rgba(96,165,250,0.3)",
+              padding: "2px 6px",
+              borderRadius: 6,
+              fontWeight: 700,
+            }}
+          >
+            {activeMConfig.days} Hari
+          </span>
         </div>
-      ))}
+
+        <div className="table-responsive">
+          <table className="absensi-table monthly-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th style={{ textAlign: "left", paddingLeft: 10 }}>Nama</th>
+                {Array.from({ length: activeMConfig.days }, (_, d) => (
+                  <th key={d}>{d + 1}</th>
+                ))}
+                <th style={{ color: "#4ade80" }}>H</th>
+                <th style={{ color: "#60a5fa" }}>I</th>
+                <th style={{ color: "#facc15" }}>S</th>
+                <th style={{ color: "#f43f5e" }}>A</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((siswa, sIdx) => {
+                let mH = 0;
+                let mI = 0;
+                let mS = 0;
+                let mA = 0;
+                const cells = [];
+
+                for (let d = 1; d <= activeMConfig.days; d++) {
+                  const st = getAttendanceCell(sIdx, selectedMonth, d);
+                  if (st === "H") mH++;
+                  else if (st === "I") mI++;
+                  else if (st === "S") mS++;
+                  else if (st === "A") mA++;
+
+                  cells.push(
+                    <td
+                      key={d}
+                      style={{
+                        color:
+                          st === "H"
+                            ? "#4ade80"
+                            : st === "I"
+                            ? "#60a5fa"
+                            : st === "S"
+                            ? "#facc15"
+                            : st === "A"
+                            ? "#f43f5e"
+                            : "#64748b",
+                        fontWeight: 700,
+                        fontSize: 9,
+                      }}
+                    >
+                      {st}
+                    </td>
+                  );
+                }
+
+                return (
+                  <tr
+                    key={String(siswa.nisn) + "-" + selectedMonth + "-" + sIdx}
+                    id={"m-row-" + selectedMonth + "-" + sIdx}
+                    className={highlightIdx === sIdx ? "glowing-row" : ""}
+                  >
+                    <td style={{ fontWeight: 700, color: "#60a5fa" }}>
+                      {sIdx + 1}
+                    </td>
+                    <td
+                      style={{
+                        textAlign: "left",
+                        fontWeight: 700,
+                        paddingLeft: 10,
+                      }}
+                    >
+                      {siswa.nama}
+                    </td>
+                    {cells}
+                    <td style={{ color: "#4ade80", fontWeight: 800 }}>
+                      {mH}
+                    </td>
+                    <td style={{ color: "#60a5fa", fontWeight: 800 }}>
+                      {mI}
+                    </td>
+                    <td style={{ color: "#facc15", fontWeight: 800 }}>
+                      {mS}
+                    </td>
+                    <td style={{ color: "#f43f5e", fontWeight: 800 }}>
+                      {mA}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
   );
-        }
+}
