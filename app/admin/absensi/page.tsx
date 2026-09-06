@@ -52,26 +52,51 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      <div className="glass-card text-center">
+      <div className="glass-card text-center" style={{ marginBottom: 12 }}>
         <div className="title-sub">EDIT ABSENSI</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
           Ketuk sel: H → I → S → A → -
         </p>
       </div>
 
+      {/* GRID 4 KESAMPING x 3 KEBAWAH TOMBOL BULAN */}
       <div
-        style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 8,
+          marginBottom: 16,
+        }}
       >
-        {monthConfigs.map((mc, i) => (
-          <button
-            key={mc.name}
-            type="button"
-            className={"filter-btn" + (monthIdx === i ? " active" : "")}
-            onClick={() => setMonthIdx(i)}
-          >
-            {mc.name.replace(" 2026", "").replace(" 2027", "")}
-          </button>
-        ))}
+        {monthConfigs.map((mc, i) => {
+          const isActive = monthIdx === i;
+          return (
+            <button
+              key={mc.name}
+              type="button"
+              onClick={() => setMonthIdx(i)}
+              style={{
+                padding: "10px 4px",
+                borderRadius: 10,
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.2s ease",
+                border: isActive
+                  ? "1px solid rgba(96,165,250,0.8)"
+                  : "1px solid rgba(255,255,255,0.08)",
+                background: isActive
+                  ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
+                  : "rgba(15, 23, 42, 0.4)",
+                color: isActive ? "#fff" : "#94a3b8",
+                boxShadow: isActive ? "0 0 12px rgba(37,99,235,0.4)" : "none",
+              }}
+            >
+              {mc.name}
+            </button>
+          );
+        })}
       </div>
 
       <div className="glass-card" style={{ padding: 10 }}>
