@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
     <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div className="title-sub text-center">LOGIN ADMIN</div>
       <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-       Harap Masukkan Username, Password, Dan Kode Unik Dengan Benar. Jika Ada Kesalahan, Harap Periksa Kembali Kata Yang Anda Masukkan
+       Harap Masukkan Username, Password, Dan Kode Unik Dengan Benar.
       </p>
 
       <input
