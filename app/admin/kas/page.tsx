@@ -26,7 +26,7 @@ export default function AdminKasPage() {
   }
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div className="glass-card text-center">
         <div className="title-sub">EDIT KAS</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
@@ -82,7 +82,7 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      <div className="glass-card" style={{ padding: 10, marginTop: 12 }}>
+      <div className="glass-card" style={{ padding: 10 }}>
         <div className="flex-between" style={{ marginBottom: 8 }}>
           <span style={{ fontWeight: 800, fontSize: 11, color: "#60a5fa" }}>
             Status Kas Bulan Berjalan
@@ -138,10 +138,9 @@ export default function AdminKasPage() {
       <div
         className="glass-card"
         style={{
-          marginTop: 12,
           display: "flex",
           flexDirection: "column",
-          gap: 8,
+          gap: 10,
         }}
       >
         <div className="title-sub">TAMBAH LOG KAS</div>
@@ -160,6 +159,7 @@ export default function AdminKasPage() {
             borderRadius: 10,
             background: "#0f172a",
             color: "#fff",
+            border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
           <option value="masuk">Pemasukan</option>
@@ -177,7 +177,7 @@ export default function AdminKasPage() {
           Simpan log
         </button>
 
-        <div style={{ maxHeight: 220, overflow: "auto" }}>
+        <div style={{ maxHeight: 220, overflow: "auto", marginTop: 4 }}>
           {kasLog
             .slice()
             .reverse()
@@ -197,6 +197,6 @@ export default function AdminKasPage() {
             ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
