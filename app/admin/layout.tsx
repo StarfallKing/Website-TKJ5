@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import Header from "@/components/layout/Header";
 import AdminBottomNav from "@/components/layout/AdminBottomNav";
 
 const TIMEOUT_MS = 10 * 60 * 1000;
