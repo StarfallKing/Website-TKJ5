@@ -12,10 +12,10 @@ export default function AdminStrukturPage() {
   );
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div className="glass-card text-center">
         <div className="title-sub">STRUKTUR KEPENGURUSAN</div>
-        <p style={{ fontSize: 12, fontWeight: 700 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginTop: 4 }}>
           Edit lewat Data Siswa (role / badge)
         </p>
       </div>
@@ -27,7 +27,7 @@ export default function AdminStrukturPage() {
         <div style={{ fontWeight: 800 }}>Shendy Nuria Feriansyah, S.Pd</div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {officers.map((s) => (
           <div key={s.nisn} className="glass-card flex-between">
             <div>
@@ -38,11 +38,7 @@ export default function AdminStrukturPage() {
           </div>
         ))}
       </div>
-
-      <p style={{ fontSize: 10, color: "#64748b", textAlign: "center" }}>
-        Ubah nama/jabatan di menu Siswa → Edit role
-      </p>
-    </>
+    </div>
   );
 }
 
@@ -52,4 +48,4 @@ function LinkOrHint() {
       Edit
     </a>
   );
-        }
+}
