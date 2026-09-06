@@ -13,7 +13,8 @@ import { useAppData } from "@/lib/AppDataContext";
 
 export default function KasPage() {
   const router = useRouter();
-  const { students, kasLog, isKasPaid } = useAppData();
+  // Ambil kasPaid langsung agar re-render ter-trigger saat state di context berubah
+  const { students, kasLog, isKasPaid, kasPaid } = useAppData();
   const list = students.length ? students : allStudents;
 
   const [query, setQuery] = useState("");
@@ -26,20 +27,20 @@ export default function KasPage() {
     [kasLog]
   );
 
-  // 1. Hitung total uang kas yang masuk dari centangan status LUNAS siswa (12 bulan)
+  // 1. Hitung ulang total pembayaran LUNAS dari seluruh siswa di 12 bulan secara otomatis
   const totalKasSiswa = useMemo(() => {
     let total = 0;
     list.forEach((s, idx) => {
       monthConfigs.forEach((_, mi) => {
         if (isKasPaid(s.nisn, idx, mi)) {
-          total += NOMINAL_KAS; // Rp 2.000 per anak per bulan
+          total += NOMINAL_KAS; // Rp 2.000 per anak/bulan
         }
       });
     });
     return total;
-  }, [list, monthConfigs, isKasPaid]);
+  }, [list, isKasPaid, kasPaid]); // kasPaid dimasukkan ke dependensi agar real-time
 
-  // 2. Hitung pengeluaran dan pemasukan tambahan dari log manual
+  // 2. Hitung pengeluaran & pemasukan tambahan dari log manual
   const totalMasukLog = useMemo(
     () =>
       logs
@@ -56,7 +57,7 @@ export default function KasPage() {
     [logs]
   );
 
-  // 3. Gabungkan total pemasukan & saldo kas riil
+  // 3. Akumulasi real-time
   const totalMasuk = totalKasSiswa + totalMasukLog;
   const lastBalance = totalMasuk - totalKeluar;
 
