@@ -8,14 +8,16 @@ function useDragToggle(initialSecond = true) {
   const dragging = useRef(false);
   const startX = useRef(0);
   const baseLeft = useRef(initialSecond ? 49 : 3);
+  const isMoved = useRef(false); // Penanda apakah user benar-benar menggeser
 
-  function setTo(second: boolean, smooth = true) {
+  function setTo(second: boolean) {
     setIsSecond(second);
     setLeft(second ? 49 : 3);
   }
 
   function onTouchStart(e: React.TouchEvent) {
     dragging.current = true;
+    isMoved.current = false;
     startX.current = e.touches[0].clientX;
     baseLeft.current = isSecond ? 49 : 3;
   }
@@ -23,6 +25,12 @@ function useDragToggle(initialSecond = true) {
   function onTouchMove(e: React.TouchEvent) {
     if (!dragging.current) return;
     const diff = e.touches[0].clientX - startX.current;
+    
+    // Jika geser lebih dari 5px, tandai sebagai gesture menggeser
+    if (Math.abs(diff) > 5) {
+      isMoved.current = true;
+    }
+
     const next = Math.min(Math.max(baseLeft.current + diff, 3), 49);
     setLeft(next);
   }
@@ -30,7 +38,11 @@ function useDragToggle(initialSecond = true) {
   function onTouchEnd() {
     if (!dragging.current) return;
     dragging.current = false;
-    setTo(left > 26);
+    
+    // Hanya hitung posisi lepas jika benar-benar digeser
+    if (isMoved.current) {
+      setTo(left > 26);
+    }
   }
 
   return {
@@ -63,12 +75,23 @@ export default function Header() {
   return (
     <>
       <div className="flex-between">
+        {/*
+          PERBAIKAN: Gunakan `touchAction: "pan-y"` (Bukan "none").
+          Ini memberitahu Safari iOS bahwa scroll vertikal layar tetap boleh,
+          sehingga gesture touch tidak membekukan seluruh halaman.
+        */}
         <div
           className="top-pill-container"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "pan-y", position: "relative" }}
           {...lang.handlers}
         >
-          <div className="capsule-bg-green" style={{ left: `${lang.left}px` }} />
+          <div
+            className="capsule-bg-green"
+            style={{
+              left: `${lang.left}px`,
+              transition: lang.handlers ? "none" : "left 0.2s ease",
+            }}
+          />
           <button
             className={`top-btn ${!lang.isSecond ? "active" : ""}`}
             type="button"
@@ -87,12 +110,15 @@ export default function Header() {
 
         <div
           className="top-pill-container"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "pan-y", position: "relative" }}
           {...theme.handlers}
         >
           <div
             className="capsule-bg-yellow"
-            style={{ left: `${theme.left}px` }}
+            style={{
+              left: `${theme.left}px`,
+              transition: theme.handlers ? "none" : "left 0.2s ease",
+            }}
           />
           <button
             className={`top-btn ${!theme.isSecond ? "active" : ""}`}
