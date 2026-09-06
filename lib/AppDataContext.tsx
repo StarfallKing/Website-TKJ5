@@ -55,6 +55,7 @@ type AppData = {
     type: "masuk" | "keluar",
     val: number
   ) => Promise<void>;
+  deleteKasTransactions: (keys: string[]) => Promise<void>;
   markKasPaid: (nama: string, nisn: string, monthIndex?: number) => Promise<void>;
   isKasPaid: (
     nisn: string,
@@ -445,6 +446,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     void refreshFromDb();
   }
 
+  /** Hapus beberapa log kas berdasarkan no / id */
+  async function deleteKasTransactions(keys: string[]) {
+    if (!keys.length) return;
+
+    const nosToDelete = keys
+      .map((k) => Number(k.split("-")[0]))
+      .filter((n) => !isNaN(n));
+
+    if (!nosToDelete.length) return;
+
+    // Optimistic UI update
+    setKasLog((prev) => prev.filter((row) => !nosToDelete.includes(row.no)));
+
+    const { error } = await supabase
+      .from("kas_log")
+      .delete()
+      .in("no", nosToDelete);
+
+    if (error) {
+      console.error("kas_log delete", error);
+      alert("Gagal menghapus log kas: " + error.message);
+      void refreshFromDb();
+      return;
+    }
+
+    pushLog("Hapus log kas sebanyak " + nosToDelete.length + " item");
+    void refreshFromDb();
+  }
+
   const value = useMemo<AppData>(
     () => ({
       students,
@@ -464,6 +494,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       refreshFromDb,
       setStudents,
       addKasTransaction,
+      deleteKasTransactions,
 
       updateStudent: async (nisn, patch) => {
         setStudents((prev) =>
@@ -618,4 +649,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+  }
+  
