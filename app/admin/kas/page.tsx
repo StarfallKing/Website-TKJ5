@@ -16,7 +16,7 @@ export default function AdminKasPage() {
     setKasPaid,
     kasLog,
     addKasTransaction,
-    deleteKasTransactions, // pastikan fungsi ini ada di AppDataContext (atau sesuaikan dengan fungsi delete di context kamu)
+    deleteKasTransactions,
   } = useAppData();
 
   const [monthIdx, setMonthIdx] = useState(1); // default Agustus
@@ -25,7 +25,7 @@ export default function AdminKasPage() {
   const [val, setVal] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // State untuk melacak item log yang dipilih (berdasarkan ID atau kombinasi unik)
+  // State melacak item log terpilih berdasarkan key unik `${row.no}-${row.date}`
   const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -72,7 +72,7 @@ export default function AdminKasPage() {
     if (selectedLogs.length === logs.length) {
       setSelectedLogs([]);
     } else {
-      setSelectedLogs(logs.map((row) => row.id || `${row.no}-${row.date}-${row.desc}`));
+      setSelectedLogs(logs.map((row) => `${row.no}-${row.date}`));
     }
   }
 
@@ -385,7 +385,7 @@ export default function AdminKasPage() {
             </p>
           )}
           {[...logs].reverse().map((row) => {
-            const logKey = row.id || `${row.no}-${row.date}-${row.desc}`;
+            const logKey = `${row.no}-${row.date}`;
             const isSelected = selectedLogs.includes(logKey);
 
             return (
@@ -411,7 +411,7 @@ export default function AdminKasPage() {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => {}} // dikontrol oleh onClick parent div
+                    onChange={() => {}} // dikontrol parent div
                     style={{ cursor: "pointer" }}
                   />
                   <div>
@@ -443,5 +443,4 @@ export default function AdminKasPage() {
       </div>
     </div>
   );
-      }
-      
+}
