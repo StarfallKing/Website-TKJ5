@@ -107,7 +107,7 @@ export function sumMonthAttendance(
   return { hadir, izin, sakit, alpa };
 }
 
-export const NOMINAL_KAS = 5000;
+export const NOMINAL_KAS = 2000;
 
 export function getInitials(name: string) {
   const parts = name.trim().split(" ");
