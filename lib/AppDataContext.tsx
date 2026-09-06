@@ -244,8 +244,36 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // FALLBACK TIMEOUT KHUSUS IOS SAFARI WEBKIT
   useEffect(() => {
-    void refreshFromDb();
+    let isMounted = true;
+
+    // Paksa matikan loading jika fetch/realtime hang lebih dari 1.5 detik
+    const forceStopLoading = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 1500);
+
+    async function loadData() {
+      try {
+        await refreshFromDb();
+      } catch (err) {
+        console.error("Gagal load dari DB, fallback aktif:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          clearTimeout(forceStopLoading);
+        }
+      }
+    }
+
+    void loadData();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(forceStopLoading);
+    };
   }, []);
 
   // REALTIME
@@ -572,4 +600,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-    }
+}
