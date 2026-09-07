@@ -399,9 +399,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updated_at: new Date().toISOString(),
     });
     if (error) {
-      alert("Gagal jadwal: " + error.message);
+      alert("Gagal simpan jadwal: " + error.message);
       return;
     }
+    alert("Jadwal berhasil diperbarui ke database!");
     pushLog("Update jadwal pelajaran");
   }
 
@@ -687,5 +688,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-  }
-  
+}
