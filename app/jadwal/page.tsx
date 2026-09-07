@@ -53,12 +53,10 @@ function isLessonNow(start: string, end: string) {
 
 async function uploadIzinFile(file: File): Promise<string> {
   const safe = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
-  
-  // Menggunakan ${} untuk interpolasi JavaScript
   const path = `izin/${Date.now()}_${safe}`;
 
   const { error } = await supabase.storage
-    .from("izin-files") // Pastikan nama bucket di Supabase Storage kamu sudah sesuai
+    .from("izin-files")
     .upload(path, file, { cacheControl: "3600", upsert: false });
 
   if (error) throw error;
@@ -66,6 +64,7 @@ async function uploadIzinFile(file: File): Promise<string> {
   const { data } = supabase.storage.from("izin-files").getPublicUrl(path);
   return data.publicUrl;
 }
+
 export default function JadwalPage() {
   const { students, schedule } = useAppData();
   const sched: ScheduleData = schedule?.pagi ? schedule : masterSchedule;
@@ -95,7 +94,7 @@ export default function JadwalPage() {
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const dayName = days[new Date().getDay()];
-  const todayLessons = sched[session][dayName] || [];
+  const todayLessons = sched[session]?.[dayName] || [];
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -122,10 +121,8 @@ export default function JadwalPage() {
 
     setSending(true);
     try {
-      // 1) Upload → Supabase Storage
       const linkFile = await uploadIzinFile(file);
 
-      // 2) Pesan WA = teks + link publik
       const message =
         "*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n" +
         "*Nama Siswa:* " +
@@ -191,7 +188,7 @@ export default function JadwalPage() {
         {scheduleDays.map((day) => (
           <div key={day} className="schedule-day-box">
             <div className="schedule-day-title">{day.toUpperCase()}</div>
-            {(data[day] || []).map((item, i) => {
+            {(data?.[day] || []).map((item, i) => {
               const isBreak = item.mapel.includes("ISTIRAHAT");
               const isLibur = item.mapel.includes("LIBUR");
               return (
@@ -487,4 +484,4 @@ export default function JadwalPage() {
       )}
     </>
   );
-            }
+}
