@@ -197,7 +197,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
-          ov[`${row.nisn}-${Number(row.month_index)}`] = Boolean(row.paid);
+          ov[`${String(row.nisn).trim()}-${Number(row.month_index)}`] = Boolean(row.paid);
         }
         setPaymentOverrides(ov);
       }
@@ -432,12 +432,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       console.error("kas_log insert", error);
       alert("Gagal simpan log kas: " + error.message);
       setKasLog((prev) => prev.filter((r) => r !== row));
-      void refreshFromDb();
       return;
     }
 
     pushLog("Log kas " + type + ": " + clean + " (" + amount + ")");
-    void refreshFromDb();
   }
 
   async function deleteKasTransactions(keys: string[]) {
@@ -464,7 +462,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
 
     pushLog("Hapus log kas sebanyak " + nosToDelete.length + " item");
-    void refreshFromDb();
   }
 
   const value = useMemo<AppData>(
@@ -543,37 +540,46 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       isKasPaid: (nisn, _si, monthIndex) => {
-        const key = `${String(nisn)}-${Number(monthIndex)}`;
+        const cleanNisn = String(nisn ?? "").trim();
+        const key = `${cleanNisn}-${Number(monthIndex)}`;
         return paymentOverrides[key] === true;
       },
 
       setKasPaid: async (nisn, _si, monthIndex, paid) => {
+        const cleanNisn = String(nisn ?? "").trim();
         const mIdx = Number(monthIndex);
-        const key = `${String(nisn)}-${mIdx}`;
+        const key = `${cleanNisn}-${mIdx}`;
         const wasPaid = paymentOverrides[key] === true;
 
         if (paid === wasPaid) return;
 
+        // 1. Optimistic update (Ubah UI secara instan)
         setPaymentOverrides((prev) => ({
           ...prev,
           [key]: paid,
         }));
 
+        // 2. Simpan ke database Supabase
         const { error } = await supabase.from("kas_paid").upsert(
-          { nisn: String(nisn), month_index: mIdx, paid },
+          { nisn: cleanNisn, month_index: mIdx, paid },
           { onConflict: "nisn,month_index" }
         );
 
+        // 3. Rollback jika gagal
         if (error) {
           alert("Gagal simpan kas ke DB: " + error.message);
-          void refreshFromDb();
+          setPaymentOverrides((prev) => ({
+            ...prev,
+            [key]: wasPaid,
+          }));
           return;
         }
 
-        const siswa = students.find((s) => s.nisn === nisn);
-        const nama = siswa?.nama || nisn;
+        const siswa = students.find((s) => String(s.nisn).trim() === cleanNisn);
+        const nama = siswa?.nama || cleanNisn;
         const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
 
+        // 4. Catat transaksi tanpa mentrigger refresh DB otomatis
         if (paid && !wasPaid) {
           await addKasTransaction(
             "Setoran kas " + nama + " · " + bulan,
@@ -592,8 +598,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       markKasPaid: async (nama, nisn, monthIndex = 1) => {
+        const cleanNisn = String(nisn ?? "").trim();
         const mIdx = Number(monthIndex);
-        const key = `${String(nisn)}-${mIdx}`;
+        const key = `${cleanNisn}-${mIdx}`;
         const wasPaid = paymentOverrides[key] === true;
 
         setPaymentOverrides((prev) => ({
@@ -602,12 +609,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }));
 
         const { error: e1 } = await supabase.from("kas_paid").upsert(
-          { nisn: String(nisn), month_index: mIdx, paid: true },
+          { nisn: cleanNisn, month_index: mIdx, paid: true },
           { onConflict: "nisn,month_index" }
         );
 
         if (e1) {
           alert(e1.message);
+          setPaymentOverrides((prev) => ({
+            ...prev,
+            [key]: wasPaid,
+          }));
           return;
         }
 
@@ -630,7 +641,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             now.getMinutes().toString().padStart(2, "0") +
             " WIB",
           code:
-            "Kas-TKJ5-" + nisn.substring(0, 5) + "-" + String(Date.now()),
+            "Kas-TKJ5-" + cleanNisn.substring(0, 5) + "-" + String(Date.now()),
           status: "LUNAS",
           amount: NOMINAL_KAS,
         };
