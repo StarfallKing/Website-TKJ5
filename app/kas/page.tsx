@@ -27,7 +27,7 @@ export default function KasPage() {
     [kasLog]
   );
 
-  // 1. Hitung ulang total pembayaran LUNAS dari seluruh siswa di 12 bulan secara otomatis
+  // 1. Hitung total pembayaran LUNAS dari tabel kas_paid seluruh siswa di 12 bulan
   const totalKasSiswa = useMemo(() => {
     let total = 0;
     list.forEach((s, idx) => {
@@ -38,17 +38,23 @@ export default function KasPage() {
       });
     });
     return total;
-  }, [list, isKasPaid, paymentOverrides]); // paymentOverrides dimasukkan agar real-time saat DB berubah
+  }, [list, isKasPaid, paymentOverrides]);
 
-  // 2. Hitung pengeluaran & pemasukan tambahan dari log manual
+  // 2. Hitung pemasukan MURNI non-kas dari log manual
+  // PENTING: Mengecualikan log yang mengandung kata 'kas' atau 'qris' agar tidak terhitung 2 kali
   const totalMasukLog = useMemo(
     () =>
       logs
-        .filter((t) => t.type === "masuk")
+        .filter((t) => {
+          if (t.type !== "masuk") return false;
+          const desc = t.desc.toLowerCase();
+          return !desc.includes("kas") && !desc.includes("qris");
+        })
         .reduce((a, t) => a + t.val, 0),
     [logs]
   );
 
+  // 3. Hitung total pengeluaran dari log manual
   const totalKeluar = useMemo(
     () =>
       logs
@@ -57,7 +63,7 @@ export default function KasPage() {
     [logs]
   );
 
-  // 3. Akumulasi real-time
+  // 4. Akumulasi real-time (Pemasukan Kas + Pemasukan Murni Non-Kas - Pengeluaran)
   const totalMasuk = totalKasSiswa + totalMasukLog;
   const lastBalance = totalMasuk - totalKeluar;
 
