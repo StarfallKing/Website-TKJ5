@@ -553,19 +553,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
         if (paid === wasPaid) return;
 
-        // 1. Optimistic update (Ubah UI secara instan)
+        // 1. Optimistic update UI
         setPaymentOverrides((prev) => ({
           ...prev,
           [key]: paid,
         }));
 
-        // 2. Simpan ke database Supabase
+        // 2. Simpan status hanya ke tabel kas_paid
         const { error } = await supabase.from("kas_paid").upsert(
           { nisn: cleanNisn, month_index: mIdx, paid },
           { onConflict: "nisn,month_index" }
         );
 
-        // 3. Rollback jika gagal
+        // 3. Rollback jika DB gagal
         if (error) {
           alert("Gagal simpan kas ke DB: " + error.message);
           setPaymentOverrides((prev) => ({
@@ -578,21 +578,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const siswa = students.find((s) => String(s.nisn).trim() === cleanNisn);
         const nama = siswa?.nama || cleanNisn;
         const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
-
-        // 4. Catat transaksi tanpa mentrigger refresh DB otomatis
-        if (paid && !wasPaid) {
-          await addKasTransaction(
-            "Setoran kas " + nama + " · " + bulan,
-            "masuk",
-            NOMINAL_KAS
-          );
-        } else if (!paid && wasPaid) {
-          await addKasTransaction(
-            "Batal setoran kas " + nama + " · " + bulan,
-            "keluar",
-            NOMINAL_KAS
-          );
-        }
 
         pushLog((paid ? "LUNAS " : "BELUM ") + nama + " · " + bulan);
       },
@@ -620,14 +605,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             [key]: wasPaid,
           }));
           return;
-        }
-
-        if (!wasPaid) {
-          await addKasTransaction(
-            "Setoran Kas Online QRIS - " + nama,
-            "masuk",
-            NOMINAL_KAS
-          );
         }
 
         const now = new Date();
@@ -692,4 +669,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+                       }
+                                             
