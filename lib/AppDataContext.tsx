@@ -576,10 +576,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const nama = siswa?.nama || cleanNisn;
         const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
 
-        // Otomatis masukkan log transaksi kas agar totalan admin ikut berubah
-        const descLog = `${paid ? "Uang Kas" : "Pembatalan Kas"} - ${nama} (${bulan})`;
-        await addKasTransaction(descLog, paid ? "masuk" : "keluar", NOMINAL_KAS);
-
         pushLog((paid ? "LUNAS " : "BELUM ") + nama + " · " + bulan);
       },
 
@@ -625,10 +621,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         };
         setPayments((prev) => [pay, ...prev]);
         void supabase.from("payments").insert(pay);
-
-        // Catat transaksi ke kas_log agar totalan di tabel rekapan admin ikut bertambah
-        const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
-        await addKasTransaction(`QRIS - ${nama} (${bulan})`, "masuk", NOMINAL_KAS);
 
         pushLog("QRIS LUNAS " + nama);
       },
