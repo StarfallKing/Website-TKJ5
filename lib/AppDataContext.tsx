@@ -194,6 +194,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setAttendanceMap(map);
       }
 
+      // KEY BENAR: `\( {nisn}- \){month_index}`
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
@@ -681,4 +682,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-    }
+  }
