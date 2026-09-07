@@ -194,11 +194,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setAttendanceMap(map);
       }
 
-      // KEY BENAR: `\( {nisn}- \){month_index}`
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
-          ov[`\( {row.nisn}- \){Number(row.month_index)}`] = Boolean(row.paid);
+          ov[`${row.nisn}-${Number(row.month_index)}`] = Boolean(row.paid);
         }
         setPaymentOverrides(ov);
       }
@@ -544,13 +543,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       isKasPaid: (nisn, _si, monthIndex) => {
-        const key = `\( {String(nisn)}- \){Number(monthIndex)}`;
+        const key = `${String(nisn)}-${Number(monthIndex)}`;
         return paymentOverrides[key] === true;
       },
 
       setKasPaid: async (nisn, _si, monthIndex, paid) => {
         const mIdx = Number(monthIndex);
-        const key = `\( {String(nisn)}- \){mIdx}`;
+        const key = `${String(nisn)}-${mIdx}`;
         const wasPaid = paymentOverrides[key] === true;
 
         if (paid === wasPaid) return;
@@ -594,7 +593,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       markKasPaid: async (nama, nisn, monthIndex = 1) => {
         const mIdx = Number(monthIndex);
-        const key = `\( {String(nisn)}- \){mIdx}`;
+        const key = `${String(nisn)}-${mIdx}`;
         const wasPaid = paymentOverrides[key] === true;
 
         setPaymentOverrides((prev) => ({
@@ -682,4 +681,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-  }
+}
