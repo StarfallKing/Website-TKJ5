@@ -8,21 +8,18 @@ import { scheduleDays, masterSchedule } from "@/lib/data";
 export default function AdminJadwalPage() {
   const { schedule, setSchedule } = useAppData();
   
-  // 1. Inisialisasi awal selalu beri fallback masterSchedule agar tidak pernah undefined
   const [draft, setDraft] = useState<ScheduleData>(schedule || masterSchedule);
   const [shift, setShift] = useState<"pagi" | "siang">("siang");
+  const [saving, setSaving] = useState(false);
 
-  // 2. Update draft jika data schedule dari context/Supabase baru saja dimuat
   useEffect(() => {
     if (schedule && (schedule.pagi || schedule.siang)) {
       setDraft(schedule);
     }
   }, [schedule]);
 
-  // 3. Ambil data shift dengan fallback aman
   const currentShiftData = draft?.[shift] || masterSchedule[shift] || {};
 
-  // 4. Update slot dengan imutabilitas yang aman
   function updateSlot(
     day: string,
     index: number,
@@ -51,7 +48,6 @@ export default function AdminJadwalPage() {
     });
   }
 
-  // 5. Tambah slot baru dengan aman
   function addSlot(day: string) {
     setDraft((prev) => {
       const base = prev || masterSchedule;
@@ -70,7 +66,6 @@ export default function AdminJadwalPage() {
     });
   }
 
-  // 6. Hapus slot
   function removeSlot(day: string, index: number) {
     setDraft((prev) => {
       const base = prev || masterSchedule;
@@ -85,6 +80,15 @@ export default function AdminJadwalPage() {
         },
       };
     });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await setSchedule(draft);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -205,12 +209,13 @@ export default function AdminJadwalPage() {
       })}
 
       <button
-  type="button"
-  className="btn-pay-qris"
-  onClick={() => void setSchedule(draft)}
->
-  Simpan jadwal ke database
-</button>
+        type="button"
+        className="btn-pay-qris"
+        disabled={saving}
+        onClick={() => void handleSave()}
+      >
+        {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
+      </button>
     </>
   );
 }
