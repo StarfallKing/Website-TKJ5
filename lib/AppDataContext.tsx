@@ -553,19 +553,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
         if (paid === wasPaid) return;
 
-        // 1. Optimistic update UI
         setPaymentOverrides((prev) => ({
           ...prev,
           [key]: paid,
         }));
 
-        // 2. Simpan status hanya ke tabel kas_paid
         const { error } = await supabase.from("kas_paid").upsert(
           { nisn: cleanNisn, month_index: mIdx, paid },
           { onConflict: "nisn,month_index" }
         );
 
-        // 3. Rollback jika DB gagal
         if (error) {
           alert("Gagal simpan kas ke DB: " + error.message);
           setPaymentOverrides((prev) => ({
@@ -578,6 +575,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const siswa = students.find((s) => String(s.nisn).trim() === cleanNisn);
         const nama = siswa?.nama || cleanNisn;
         const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
+
+        // Otomatis masukkan log transaksi kas agar totalan admin ikut berubah
+        const descLog = `${paid ? "Uang Kas" : "Pembatalan Kas"} - ${nama} (${bulan})`;
+        await addKasTransaction(descLog, paid ? "masuk" : "keluar", NOMINAL_KAS);
 
         pushLog((paid ? "LUNAS " : "BELUM ") + nama + " · " + bulan);
       },
@@ -624,6 +625,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         };
         setPayments((prev) => [pay, ...prev]);
         void supabase.from("payments").insert(pay);
+
+        // Catat transaksi ke kas_log agar totalan di tabel rekapan admin ikut bertambah
+        const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
+        await addKasTransaction(`QRIS - ${nama} (${bulan})`, "masuk", NOMINAL_KAS);
+
         pushLog("QRIS LUNAS " + nama);
       },
 
@@ -669,5 +675,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-                       }
-                                             
+}
