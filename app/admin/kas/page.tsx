@@ -17,6 +17,7 @@ export default function AdminKasPage() {
     kasLog,
     addKasTransaction,
     deleteKasTransactions,
+    paymentOverrides,
   } = useAppData();
 
   const [monthIdx, setMonthIdx] = useState(1); // default Agustus
@@ -34,13 +35,45 @@ export default function AdminKasPage() {
     [kasLog]
   );
 
-  const totalMasuk = logs
-    .filter((t) => t.type === "masuk")
-    .reduce((a, t) => a + t.val, 0);
-  const totalKeluar = logs
-    .filter((t) => t.type === "keluar")
-    .reduce((a, t) => a + t.val, 0);
-  const totalKas = logs.length ? logs[logs.length - 1].balance : 0;
+  // 1. Hitung total pemasukan LUNAS dari matriks kas siswa di 12 bulan
+  const totalKasSiswa = useMemo(() => {
+    let total = 0;
+    students.forEach((s, idx) => {
+      monthConfigs.forEach((_, mi) => {
+        if (isKasPaid(s.nisn, idx, mi)) {
+          total += NOMINAL_KAS; // Rp 2.000 per siswa/bulan
+        }
+      });
+    });
+    return total;
+  }, [students, isKasPaid, paymentOverrides]);
+
+  // 2. Hitung pemasukan MURNI non-kas dari log manual
+  // PENTING: Mengecualikan log yang mengandung kata 'kas' atau 'qris' agar tidak terhitung 2 kali
+  const totalMasukLog = useMemo(
+    () =>
+      logs
+        .filter((t) => {
+          if (t.type !== "masuk") return false;
+          const description = t.desc.toLowerCase();
+          return !description.includes("kas") && !description.includes("qris");
+        })
+        .reduce((a, t) => a + t.val, 0),
+    [logs]
+  );
+
+  // 3. Hitung total pengeluaran dari log manual
+  const totalKeluar = useMemo(
+    () =>
+      logs
+        .filter((t) => t.type === "keluar")
+        .reduce((a, t) => a + t.val, 0),
+    [logs]
+  );
+
+  // 4. Akumulasi total pemasukan & sisa saldo kas
+  const totalMasuk = totalKasSiswa + totalMasukLog;
+  const totalKas = totalMasuk - totalKeluar;
 
   async function submitLog() {
     const n = Number(val);
