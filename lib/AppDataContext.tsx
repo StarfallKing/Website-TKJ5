@@ -547,11 +547,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return paymentOverrides[key] === true;
       },
 
-      /** Centang LUNAS → kas_paid + otomatis log Rp NOMINAL_KAS (sekali) */
       setKasPaid: async (nisn, _si, monthIndex, paid) => {
         const mIdx = Number(monthIndex);
         const key = `\( {String(nisn)}- \){mIdx}`;
         const wasPaid = paymentOverrides[key] === true;
+
+        if (paid === wasPaid) return;
 
         setPaymentOverrides((prev) => ({
           ...prev,
@@ -573,11 +574,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const nama = siswa?.nama || nisn;
         const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
 
-        // Baru LUNAS → catat pemasukan (hindari double)
         if (paid && !wasPaid) {
           await addKasTransaction(
             "Setoran kas " + nama + " · " + bulan,
             "masuk",
+            NOMINAL_KAS
+          );
+        } else if (!paid && wasPaid) {
+          await addKasTransaction(
+            "Batal setoran kas " + nama + " · " + bulan,
+            "keluar",
             NOMINAL_KAS
           );
         }
@@ -675,4 +681,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-                                      }
+    }
