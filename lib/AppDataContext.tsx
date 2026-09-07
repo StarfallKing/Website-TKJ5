@@ -14,6 +14,7 @@ import {
   attendanceMap as seedAttendance,
   defaultSiteContent,
   defaultSchedule,
+  monthConfigs,
   type Student,
   type KasTransaction,
   type PaymentHistory,
@@ -105,7 +106,6 @@ function rowToStudent(r: Record<string, unknown>): Student {
   };
 }
 
-/** Hanya baris log yang punya isi */
 function normalizeKasRows(
   data: Record<string, unknown>[]
 ): KasTransaction[] {
@@ -197,7 +197,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
-          ov[`${row.nisn}-${Number(row.month_index)}`] = Boolean(row.paid);
+          ov[`\( {row.nisn}- \){Number(row.month_index)}`] = Boolean(row.paid);
         }
         setPaymentOverrides(ov);
       }
@@ -385,7 +385,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     pushLog("Update jadwal pelajaran");
   }
 
-  /** Simpan 1 baris log kas ke DB + state */
   async function addKasTransaction(
     desc: string,
     type: "masuk" | "keluar",
@@ -441,7 +440,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     void refreshFromDb();
   }
 
-  /** Hapus beberapa log kas berdasarkan no / id */
   async function deleteKasTransactions(keys: string[]) {
     if (!keys.length) return;
 
@@ -545,13 +543,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       isKasPaid: (nisn, _si, monthIndex) => {
-        const key = `${String(nisn)}-${Number(monthIndex)}`;
+        const key = `\( {String(nisn)}- \){Number(monthIndex)}`;
         return paymentOverrides[key] === true;
       },
 
+      /** Centang LUNAS → kas_paid + otomatis log Rp NOMINAL_KAS (sekali) */
       setKasPaid: async (nisn, _si, monthIndex, paid) => {
         const mIdx = Number(monthIndex);
-        const key = `${String(nisn)}-${mIdx}`;
+        const key = `\( {String(nisn)}- \){mIdx}`;
+        const wasPaid = paymentOverrides[key] === true;
 
         setPaymentOverrides((prev) => ({
           ...prev,
@@ -568,12 +568,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           void refreshFromDb();
           return;
         }
-        pushLog((paid ? "LUNAS " : "BELUM ") + nisn + " m" + mIdx);
+
+        const siswa = students.find((s) => s.nisn === nisn);
+        const nama = siswa?.nama || nisn;
+        const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
+
+        // Baru LUNAS → catat pemasukan (hindari double)
+        if (paid && !wasPaid) {
+          await addKasTransaction(
+            "Setoran kas " + nama + " · " + bulan,
+            "masuk",
+            NOMINAL_KAS
+          );
+        }
+
+        pushLog((paid ? "LUNAS " : "BELUM ") + nama + " · " + bulan);
       },
 
       markKasPaid: async (nama, nisn, monthIndex = 1) => {
         const mIdx = Number(monthIndex);
-        const key = `${String(nisn)}-${mIdx}`;
+        const key = `\( {String(nisn)}- \){mIdx}`;
+        const wasPaid = paymentOverrides[key] === true;
 
         setPaymentOverrides((prev) => ({
           ...prev,
@@ -590,11 +605,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        await addKasTransaction(
-          "Setoran Kas Online QRIS - " + nama,
-          "masuk",
-          NOMINAL_KAS
-        );
+        if (!wasPaid) {
+          await addKasTransaction(
+            "Setoran Kas Online QRIS - " + nama,
+            "masuk",
+            NOMINAL_KAS
+          );
+        }
 
         const now = new Date();
         const pay = {
@@ -658,4 +675,4 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+                                      }
