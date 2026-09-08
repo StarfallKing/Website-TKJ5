@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminLoginPage() {
@@ -9,6 +9,16 @@ export default function AdminLoginPage() {
   const [kode, setKode] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    // Jika sudah login, langsung lempar ke dashboard admin
+    if (sessionStorage.getItem("admin-ok") === "1") {
+      window.location.href = "/admin/dashboard";
+    } else {
+      setCheckingAuth(false);
+    }
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,12 +45,20 @@ export default function AdminLoginPage() {
       sessionStorage.setItem("admin-user", username);
       sessionStorage.setItem("admin-last", String(Date.now()));
 
-      // Pakai window.location.href agar browser reload bersih & tidak butuh reload manual
+      // Redirect bersih ke dashboard admin
       window.location.href = "/admin/dashboard";
     } catch {
       setErr("Gagal terhubung ke server");
       setLoading(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div style={{ textAlign: "center", padding: 20, color: "#94a3b8", fontSize: 12 }}>
+        Memeriksa sesi...
+      </div>
+    );
   }
 
   return (
