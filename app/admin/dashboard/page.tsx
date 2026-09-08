@@ -9,6 +9,13 @@ import {
   type SiteContent,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import { createClient } from "@supabase/supabase-js";
+
+// Inisialisasi Supabase Client (Pastikan ENV di .env.local sudah sesuai)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
 
 const MAX_NEWS = 7;
 
@@ -21,6 +28,117 @@ const inp: CSSProperties = {
   border: "1px solid rgba(255,255,255,0.12)",
   fontSize: 12,
 };
+
+// --- KOMPONEN KHUSUS UPLOAD / PASTE URL GAMBAR ---
+function NewsImageInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [mode, setMode] = useState<"url" | "upload">("url");
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setErr("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Batas 2MB (2 * 1024 * 1024 bytes)
+    if (file.size > 2 * 1024 * 1024) {
+      setErr("Ukuran gambar terlalu besar! Maksimal 2MB.");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const ext = file.name.split(".").pop();
+      const fileName = `berita-${Date.now()}.${ext}`;
+
+      // Upload ke bucket berita-images
+      const { error: uploadError } = await supabase.storage
+        .from("berita-images")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Ambil Public URL
+      const { data } = supabase.storage
+        .from("berita-images")
+        .getPublicUrl(fileName);
+
+      onChange(data.publicUrl);
+    } catch (error: any) {
+      setErr(error.message || "Gagal mengunggah gambar ke Supabase");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => setMode("url")}
+          style={{
+            padding: "4px 8px",
+            fontSize: 10,
+            borderRadius: 6,
+            border: "none",
+            background: mode === "url" ? "#2563eb" : "#334155",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          Paste URL Link
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("upload")}
+          style={{
+            padding: "4px 8px",
+            fontSize: 10,
+            borderRadius: 6,
+            border: "none",
+            background: mode === "upload" ? "#2563eb" : "#334155",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          Upload File (Maks 2MB)
+        </button>
+      </div>
+
+      {mode === "url" ? (
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://... atau /public/..."
+          style={inp}
+        />
+      ) : (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          disabled={uploading}
+          style={{ ...inp, padding: 6 }}
+        />
+      )}
+
+      {uploading && (
+        <span style={{ fontSize: 10, color: "#60a5fa" }}>
+          Mengunggah gambar...
+        </span>
+      )}
+      {err && <span style={{ fontSize: 10, color: "#f43f5e" }}>⚠️ {err}</span>}
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -60,7 +178,7 @@ export default function AdminDashboardPage() {
     try {
       const news = draft.news.slice(0, MAX_NEWS);
       await setSiteContent({ ...draft, news });
-      alert("Homepage tersimpan");
+      alert("Homepage tersimpan!");
     } finally {
       setSaving(false);
     }
@@ -292,12 +410,13 @@ export default function AdminDashboardPage() {
                 rows={3}
                 style={{ ...inp, resize: "vertical" }}
               />
-              <input
+
+              {/* DUA PILIHAN: PASTE URL / UPLOAD GAMBAR MAKS 2MB */}
+              <NewsImageInput
                 value={n.imageUrl}
-                onChange={(e) => updateNews(i, { imageUrl: e.target.value })}
-                placeholder="URL gambar (opsional) /public/..."
-                style={inp}
+                onChange={(url) => updateNews(i, { imageUrl: url })}
               />
+
               {n.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -311,6 +430,7 @@ export default function AdminDashboardPage() {
                   }}
                 />
               ) : null}
+
               <input
                 value={n.source}
                 onChange={(e) => updateNews(i, { source: e.target.value })}
