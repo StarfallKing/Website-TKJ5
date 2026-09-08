@@ -69,7 +69,7 @@ export default function SiswaDetailPage() {
             GLMS Account
           </div>
           <div style={{ fontSize: 10, color: "#94a3b8" }}>
-            Gocir LMS · Login siswa sekolah
+            GLMS · Akun login siswa sekolah
           </div>
         </div>
         <i
