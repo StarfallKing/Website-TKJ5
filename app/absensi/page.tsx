@@ -8,6 +8,9 @@ export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
   const list = students.length ? students : allStudents;
 
+  // Set total pembagi ke 365 hari
+  const TOTAL_HARI_TAHUNAN = 365;
+
   // State bulan aktif (Default: bulan pertama / Juli -> index 0)
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
 
@@ -25,8 +28,8 @@ export default function AbsensiPage() {
     { hadir: 0, izin: 0, sakit: 0, alpa: 0 }
   );
 
-  // Total akumulasi seluruh entri kehadiran semua siswa
-  const totalEntriSiswa = sum.hadir + sum.izin + sum.sakit + sum.alpa || 1;
+  // Total kapasitas entri kelas dalam 1 tahun (jumlah siswa * 365 hari)
+  const totalEntriKelasTahunan = (list.length || 1) * TOTAL_HARI_TAHUNAN;
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -90,7 +93,7 @@ export default function AbsensiPage() {
               className="card-val"
               style={{ color: item.color, fontSize: 13 }}
             >
-              {((item.val / totalEntriSiswa) * 100).toFixed(1)}%
+              {((item.val / totalEntriKelasTahunan) * 100).toFixed(1)}%
             </div>
           </div>
         ))}
@@ -227,13 +230,11 @@ export default function AbsensiPage() {
             </thead>
             <tbody>
               {list.map((s, idx) => {
-                // Hitung total hari yang sudah tercatat khusus untuk siswa ini
-                const totalHariSiswa = s.hadir + s.izin + s.sakit + s.alpa || 1;
-
-                const pctH = ((s.hadir / totalHariSiswa) * 100).toFixed(1);
-                const pctI = ((s.izin / totalHariSiswa) * 100).toFixed(1);
-                const pctS = ((s.sakit / totalHariSiswa) * 100).toFixed(1);
-                const pctA = ((s.alpa / totalHariSiswa) * 100).toFixed(1);
+                // Hitung persentase terhadap 365 hari
+                const pctH = ((s.hadir / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
+                const pctI = ((s.izin / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
+                const pctS = ((s.sakit / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
+                const pctA = ((s.alpa / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
 
                 return (
                   <tr
