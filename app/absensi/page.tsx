@@ -7,7 +7,6 @@ import { useAppData } from "@/lib/AppDataContext";
 export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
   const list = students.length ? students : allStudents;
-  const total = 28;
 
   // State bulan aktif (Default: bulan pertama / Juli -> index 0)
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
@@ -25,7 +24,9 @@ export default function AbsensiPage() {
     }),
     { hadir: 0, izin: 0, sakit: 0, alpa: 0 }
   );
-  const n = list.length * total || 1;
+
+  // Total akumulasi seluruh entri kehadiran semua siswa
+  const totalEntriSiswa = sum.hadir + sum.izin + sum.sakit + sum.alpa || 1;
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -89,7 +90,7 @@ export default function AbsensiPage() {
               className="card-val"
               style={{ color: item.color, fontSize: 13 }}
             >
-              {((item.val / n) * 100).toFixed(1)}%
+              {((item.val / totalEntriSiswa) * 100).toFixed(1)}%
             </div>
           </div>
         ))}
@@ -226,10 +227,14 @@ export default function AbsensiPage() {
             </thead>
             <tbody>
               {list.map((s, idx) => {
-                const pctH = ((s.hadir / total) * 100).toFixed(1);
-                const pctI = ((s.izin / total) * 100).toFixed(1);
-                const pctS = ((s.sakit / total) * 100).toFixed(1);
-                const pctA = ((s.alpa / total) * 100).toFixed(1);
+                // Hitung total hari yang sudah tercatat khusus untuk siswa ini
+                const totalHariSiswa = s.hadir + s.izin + s.sakit + s.alpa || 1;
+
+                const pctH = ((s.hadir / totalHariSiswa) * 100).toFixed(1);
+                const pctI = ((s.izin / totalHariSiswa) * 100).toFixed(1);
+                const pctS = ((s.sakit / totalHariSiswa) * 100).toFixed(1);
+                const pctA = ((s.alpa / totalHariSiswa) * 100).toFixed(1);
+
                 return (
                   <tr
                     key={String(s.nisn) + "-" + String(idx)}
