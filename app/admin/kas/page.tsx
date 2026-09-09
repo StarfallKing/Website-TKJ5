@@ -8,6 +8,7 @@ import {
   NOMINAL_KAS,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
 
 export default function AdminKasPage() {
   const {
@@ -129,6 +130,9 @@ export default function AdminKasPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
+      <AdminHeader />
+
       <div className="glass-card text-center">
         <div className="title-sub">EDIT KAS</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
@@ -476,4 +480,5 @@ export default function AdminKasPage() {
       </div>
     </div>
   );
-}
+                  }
+                        
