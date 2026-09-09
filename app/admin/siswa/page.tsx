@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getInitials, type Student } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import AdminHeader from "@/components/layout/AdminHeader";
 
 const empty: Student = {
   nama: "",
@@ -48,7 +49,9 @@ export default function AdminSiswaPage() {
   }
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <AdminHeader />
+
       <div className="glass-card text-center">
         <div className="title-sub">DATA SISWA</div>
         <p style={{ fontSize: 12, fontWeight: 700 }}>
@@ -59,7 +62,7 @@ export default function AdminSiswaPage() {
       <button
         type="button"
         className="btn-pay-qris"
-        style={{ marginBottom: 10 }}
+        style={{ marginBottom: 2 }}
         onClick={() => {
           setIsNew(true);
           setEdit({ ...empty });
@@ -70,7 +73,7 @@ export default function AdminSiswaPage() {
 
       <div
         className="search-box expanded"
-        style={{ width: "100%", marginBottom: 10 }}
+        style={{ width: "100%", marginBottom: 2 }}
       >
         <div className="search-icon">
           <i className="fa-solid fa-magnifying-glass" />
@@ -105,11 +108,11 @@ export default function AdminSiswaPage() {
           />
 
           <input
-  className="search-box expanded"
-  style={{ width: "100%", padding: 10 }}
-  placeholder="NIS (Nomor Induk)"
-  value={edit.nis}
-  onChange={(e) => setEdit({ ...edit, nis: e.target.value })}
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            placeholder="NIS (Nomor Induk)"
+            value={edit.nis}
+            onChange={(e) => setEdit({ ...edit, nis: e.target.value })}
           />
           
           <select
@@ -171,8 +174,8 @@ export default function AdminSiswaPage() {
                   </div>
                 )}
                 <span className="student-subtext">
-  NISN: {s.nisn} · NIS: {s.nis}
-</span>
+                  NISN: {s.nisn} · NIS: {s.nis}
+                </span>
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
@@ -201,6 +204,6 @@ export default function AdminSiswaPage() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }
