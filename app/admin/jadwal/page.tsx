@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAppData } from "@/lib/AppDataContext";
 import type { ScheduleData, ScheduleSlot } from "@/lib/data";
 import { scheduleDays, masterSchedule } from "@/lib/data";
+import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
 
 export default function AdminJadwalPage() {
   const { schedule, setSchedule } = useAppData();
@@ -93,13 +94,16 @@ export default function AdminJadwalPage() {
 
   return (
     /* Pembungkus utama diberi paddingBottom 110px agar navbar tidak ketutupan/offside */
-    <div style={{ paddingBottom: 110 }}>
-      <div className="glass-card text-center" style={{ marginBottom: 12 }}>
+    <div style={{ paddingBottom: 110, display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
+      <AdminHeader />
+
+      <div className="glass-card text-center">
         <div className="title-sub">EDIT JADWAL PELAJARAN</div>
       </div>
 
       {/* Switcher Shift */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         <button
           type="button"
           className={"filter-btn" + (shift === "pagi" ? " active" : "")}
@@ -121,7 +125,7 @@ export default function AdminJadwalPage() {
         const daySlots = currentShiftData[day] || [];
 
         return (
-          <div key={day} className="glass-card" style={{ marginBottom: 12, padding: 12 }}>
+          <div key={day} className="glass-card" style={{ padding: 12 }}>
             <div className="title-sub" style={{ marginBottom: 8, fontWeight: "bold" }}>
               {day}
             </div>
