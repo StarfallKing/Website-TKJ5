@@ -70,7 +70,7 @@ export default function AbsensiPage() {
       >
         <div className="title-sub">DATA KEHADIRAN & ABSENSI</div>
         <p style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>
-          Rekapitulasi Kehadiran Kelas X TKJ–5
+          Rekapan Kehadiran Kelas X TKJ–5
         </p>
       </div>
 
