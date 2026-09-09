@@ -92,7 +92,8 @@ export default function AdminJadwalPage() {
   }
 
   return (
-    <>
+    /* Pembungkus utama diberi paddingBottom 110px agar navbar tidak ketutupan/offside */
+    <div style={{ paddingBottom: 110 }}>
       <div className="glass-card text-center" style={{ marginBottom: 12 }}>
         <div className="title-sub">EDIT JADWAL PELAJARAN</div>
       </div>
@@ -129,20 +130,30 @@ export default function AdminJadwalPage() {
               <div style={{ fontSize: 12, opacity: 0.6 }}>Belum ada mata pelajaran</div>
             ) : (
               daySlots.map((slot, i) => (
-                <div key={i} style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    gap: 4,
+                    marginTop: 6,
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
                   <input
                     type="text"
                     placeholder="Nama Mapel"
                     value={slot.mapel || ""}
                     onChange={(e) => updateSlot(day, i, "mapel", e.target.value)}
                     style={{
-                      flex: 2,
-                      padding: 8,
+                      flex: 1,
+                      minWidth: 0, // Mencegah input melar keluar dari flexbox
+                      padding: "8px 6px",
                       borderRadius: 8,
                       background: "#0f172a",
                       color: "#fff",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      fontSize: 13,
+                      fontSize: 11,
                     }}
                   />
                   <input
@@ -151,13 +162,13 @@ export default function AdminJadwalPage() {
                     value={slot.start || ""}
                     onChange={(e) => updateSlot(day, i, "start", e.target.value)}
                     style={{
-                      width: 65,
-                      padding: 8,
+                      width: 52,
+                      padding: "8px 2px",
                       borderRadius: 8,
                       background: "#0f172a",
                       color: "#fff",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      fontSize: 13,
+                      fontSize: 11,
                       textAlign: "center",
                     }}
                   />
@@ -167,13 +178,13 @@ export default function AdminJadwalPage() {
                     value={slot.end || ""}
                     onChange={(e) => updateSlot(day, i, "end", e.target.value)}
                     style={{
-                      width: 65,
-                      padding: 8,
+                      width: 52,
+                      padding: "8px 2px",
                       borderRadius: 8,
                       background: "#0f172a",
                       color: "#fff",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      fontSize: 13,
+                      fontSize: 11,
                       textAlign: "center",
                     }}
                   />
@@ -185,9 +196,10 @@ export default function AdminJadwalPage() {
                       color: "#ef4444",
                       border: "1px solid rgba(239, 68, 68, 0.3)",
                       borderRadius: 8,
-                      padding: "8px 10px",
+                      padding: "8px 8px",
                       cursor: "pointer",
-                      fontSize: 12,
+                      fontSize: 11,
+                      flexShrink: 0,
                     }}
                   >
                     ✕
@@ -216,6 +228,6 @@ export default function AdminJadwalPage() {
       >
         {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
       </button>
-    </>
+    </div>
   );
 }
