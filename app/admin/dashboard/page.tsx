@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   formatRupiah,
   type NewsItem,
@@ -453,47 +452,6 @@ export default function AdminDashboardPage() {
       >
         {saving ? "Menyimpan..." : "Simpan ke homepage publik"}
       </button>
-
-      <div className="glass-card">
-        <div className="title-sub" style={{ marginBottom: 8 }}>
-          KELOLA DATA
-        </div>
-        {[
-          { href: "/admin/siswa", title: "Siswa", icon: "fa-users" },
-          { href: "/admin/kas", title: "Kas", icon: "fa-sack-dollar" },
-          {
-            href: "/admin/absensi",
-            title: "Absensi",
-            icon: "fa-clipboard-user",
-          },
-          { href: "/admin/settings", title: "Settings", icon: "fa-gear" },
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex-between"
-            style={{
-              textDecoration: "none",
-              padding: "10px 0",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
-              color: "#f8fafc",
-            }}
-          >
-            <span style={{ fontSize: 12, fontWeight: 700 }}>
-              <i
-                className={"fa-solid " + item.icon}
-                style={{ marginRight: 8, color: "#60a5fa" }}
-              />
-              {item.title}
-            </span>
-            <i
-              className="fa-solid fa-chevron-right"
-              style={{ color: "#64748b" }}
-            />
-          </Link>
-        ))}
-      </div>
     </div>
   );
-              }
-  
+}
