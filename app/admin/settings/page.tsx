@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAppData } from "@/lib/AppDataContext";
+import AdminHeader from "@/components/layout/AdminHeader";
 
 type AdminUser = {
   id: number;
@@ -59,7 +60,9 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <AdminHeader />
+
       <div className="glass-card text-center">
         <div className="title-sub">SETTINGS ADMIN</div>
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
@@ -125,7 +128,7 @@ export default function AdminSettingsPage() {
         </p>
       )}
 
-      <div className="glass-card" style={{ marginTop: 12 }}>
+      <div className="glass-card" style={{ marginTop: 2 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
           LOG AKTIVITAS
         </div>
@@ -150,6 +153,6 @@ export default function AdminSettingsPage() {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
-                }
+}
