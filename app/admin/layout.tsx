@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     check();
 
     function onVis() {
-      if (document.visibilityState === "hidden") {
+      if (documentvisibilityState === "hidden") {
         sessionStorage.setItem(KEY_LAST, String(Date.now()));
       } else {
         check();
@@ -69,36 +69,47 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <div style={{ paddingBottom: isLogin ? 0 : 100 }}>
         {/* CARD HEADER ADMIN PANEL (Hanya muncul jika BUKAN di halaman login) */}
         {!isLogin && (
-          <div className="max-w-7xl mx-auto pt-4 px-4">
-            <div className="w-full bg-[#0d1527]/80 border border-slate-800/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xl">
+          <div className="max-w-7xl mx-auto pt-4 px-3 sm:px-4">
+            <div className="w-full bg-[#0d1527]/90 border border-slate-800 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-2 shadow-xl">
               {/* Judul & Identity */}
-              <div>
-                <h1 className="text-base sm:text-lg font-bold tracking-wider text-blue-400 uppercase">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xs sm:text-base font-bold tracking-wider text-blue-400 uppercase truncate">
                   ADMIN PANEL X TKJ–5
                 </h1>
-                <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate">
                   Sistem Kontrol & Manajemen Kelas
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Direct ke Halaman Publik */}
                 <Link
                   href="/"
                   target="_blank"
-                  className="px-3 py-2 sm:px-4 bg-slate-800/80 hover:bg-blue-600/20 text-slate-200 hover:text-blue-400 text-xs sm:text-sm font-medium rounded-xl border border-slate-700/60 hover:border-blue-500/50 transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-800/80 hover:bg-blue-600/20 text-slate-200 hover:text-blue-400 text-xs sm:text-sm font-medium rounded-xl border border-slate-700/60 hover:border-blue-500/50 transition-all flex items-center gap-1.5"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  <svg
+                    style={{ width: "14px", height: "14px" }}
+                    className="w-3.5 h-3.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
                   </svg>
-                  <span className="hidden sm:inline">Lihat</span> Publik
+                  <span>Publik</span>
                 </Link>
 
                 {/* Tombol Logout */}
                 <button
                   onClick={handleLogout}
-                  className="px-3.5 py-2 sm:px-4 bg-slate-800 hover:bg-red-500/20 text-slate-200 hover:text-red-400 text-xs sm:text-sm font-semibold rounded-xl border border-slate-700/60 hover:border-red-500/50 transition-all"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-800 hover:bg-red-500/20 text-slate-200 hover:text-red-400 text-xs sm:text-sm font-semibold rounded-xl border border-slate-700/60 hover:border-red-500/50 transition-all"
                 >
                   Logout
                 </button>
