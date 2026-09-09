@@ -20,6 +20,7 @@ body {
   padding: 16px; 
   padding-bottom: 120px; 
   position: relative; 
+  perspective: 1000px; /* Perspektif global untuk mendukung efek kedalaman 3D */
 }
 
 /* BACKGROUND BLOBS */
@@ -36,6 +37,7 @@ body {
   gap: 14px;
   position: relative;
   z-index: 10;
+  transform-style: preserve-3d;
 }
 
 /* PAGE VISIBILITY */
@@ -47,16 +49,21 @@ body {
   overflow: hidden;
 }
 
-/* GLASS CARD BASE (DIAM & STATIS: DILARANG MELEKUK/MENCIUT) */
+/* GLASS CARD BASE (DENGAN EFEK 3D & KEDALAMAN HIGH-END) */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.25); /* Hilight atas untuk efek 3D bevel */
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 10px 30px -5px rgba(0, 0, 0, 0.5),
+    0 20px 25px -5px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15); /* Inset shadow untuk efek ruang dalam */
   border-radius: 16px;
   padding: 14px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transform: none !important; /* Mencegah efek gerak turun/mengecil */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateZ(0);
 }
 
 /* UTILS */
@@ -67,7 +74,8 @@ body {
 .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .text-center { text-align: center; }
 
-/* EFEK TEKAN / MENCIUT KHUSUS TOMBOL & ELEMEN INTERAKTIF */
+/* EFEK TRANSISI ELEMEN BERGETAR / INTERAKTIF */
+.widget-side,
 .student-card,
 .btn-pay-qris,
 .btn-whatsapp-submit,
@@ -77,21 +85,31 @@ body {
 .radio-card,
 .template-card,
 .suggestion-item,
-.nav-btn {
+.nav-btn,
+.top-btn,
+.title-main,
+.title-sub {
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
   cursor: pointer;
 }
 
-.student-card:active,
-.btn-pay-qris:active,
+/* EFEK TEKAN / MEMBAL KHUSUS WIDGET DASHBOARD, CARD SISWA, TOMBOL, SERTA JUDUL & SUBJUDUL */
+#page-0 .glass-card:active,         /* Widget Dashboard */
+.student-card:active,               /* Card Siswa */
+.title-main:active,                 /* Judul Halaman */
+.title-sub:active,                  /* Subjudul Halaman */
+.btn-pay-qris:active,               /* Seluruh Tombol Aksi */
 .btn-whatsapp-submit:active,
 .btn-action-light:active,
 .filter-btn:active,
 .file-upload-btn:active,
 .radio-card:active,
 .template-card:active,
-.suggestion-item:active {
-  transform: translateY(2px) scale(0.98) !important;
+.suggestion-item:active,
+.top-btn:active,
+.nav-btn:active {
+  transform: translateY(2px) scale(0.97) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* CUSTOM FILE UPLOAD BUTTON */
@@ -119,11 +137,13 @@ body {
   width: 100%;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   padding: 12px 14px;
   color: #94a3b8;
   font-size: 11px;
   font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .file-upload-btn:hover {
@@ -149,7 +169,7 @@ body {
   position: relative;
   width: 96px;
   height: 38px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
   user-select: none;
   touch-action: none;
 }
@@ -166,22 +186,38 @@ body {
 .capsule-bg-green {
   position: absolute; top: 3px; left: 49px; width: 44px; height: 30px;
   background: rgba(34, 197, 94, 0.25); border: 1px solid rgba(74, 222, 128, 0.6);
-  border-radius: 999px; box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+  border-radius: 999px; box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
   transition: left 0.15s ease-out; z-index: 1; pointer-events: none;
 }
 
 .capsule-bg-yellow {
   position: absolute; top: 3px; left: 49px; width: 44px; height: 30px;
   background: rgba(234, 179, 8, 0.25); border: 1px solid rgba(253, 224, 71, 0.6);
-  border-radius: 999px; box-shadow: 0 0 12px rgba(234, 179, 8, 0.3);
+  border-radius: 999px; box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
   transition: left 0.15s ease-out; z-index: 1; pointer-events: none;
 }
 
 /* TYPOGRAPHY */
-.title-sub { font-size: 11px; font-weight: 800; color: #60a5fa; letter-spacing: 1px; text-transform: uppercase; }
-.title-main { font-size: 18px; font-weight: 900; color: #60a5fa; }
+.title-sub { 
+  font-size: 11px; 
+  font-weight: 800; 
+  color: #60a5fa; 
+  letter-spacing: 1px; 
+  text-transform: uppercase; 
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: inline-block;
+}
+
+.title-main { 
+  font-size: 18px; 
+  font-weight: 900; 
+  color: #60a5fa; 
+  text-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+  display: inline-block;
+}
+
 .card-val { font-size: 11px; font-weight: 800; margin-top: 4px; }
-.news-banner { width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); margin: 4px 0; }
+.news-banner { width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); margin: 4px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
 /* EXPANDABLE NEWS TEXT */
 .news-desc {
@@ -196,24 +232,34 @@ body {
   color: #60a5fa; text-decoration: none; font-weight: 700; cursor: pointer; display: inline-block; margin-top: 4px;
 }
 
-/* STRUKTUR ORGANISASI */
+/* STRUKTUR ORGANISASI (EFEK LAYER 3D DETAILED) */
 .tree-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; padding: 20px 0; }
+
 .widget-side {
-  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(96, 165, 250, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   padding: 6px 10px; border-radius: 10px; font-size: 9px; font-weight: 700; color: #93c5fd;
   display: flex; align-items: center; gap: 5px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
 .tree-node { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+
 .avatar-box {
   width: 70px; height: 70px; border-radius: 50%; border: 2px solid #60a5fa;
   background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 16px rgba(96, 165, 250, 0.4); overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(96, 165, 250, 0.4); 
+  overflow: hidden;
+  transform: translateZ(10px);
 }
 
 .role-card {
-  background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 8px 10px; border-radius: 12px; margin-top: 8px; text-align: center; min-width: 125px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  background: rgba(15, 23, 42, 0.9); 
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 10px; border-radius: 12px; margin-top: 8px; text-align: center; min-width: 125px; 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }
 
 .person-name { font-size: 11px; font-weight: 700; color: #f8fafc; line-height: 1.2; }
@@ -241,15 +287,16 @@ body {
   align-items: center;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 22px;
   padding: 0 12px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
   transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
               background 0.3s ease, 
               border-color 0.3s ease, 
@@ -288,9 +335,9 @@ body {
 
 .search-box.expanded {
   width: 100%;
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(96, 165, 250, 0.5);
-  box-shadow: 0 0 15px rgba(96, 165, 250, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(96, 165, 250, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(96, 165, 250, 0.3);
 }
 
 .search-box.expanded .search-icon {
@@ -313,8 +360,9 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(96, 165, 250, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.7);
   z-index: 99;
   max-height: 200px;
   overflow-y: auto;
@@ -351,9 +399,10 @@ body {
   margin-top: 10px;
   background: rgba(15, 23, 42, 0.95);
   border: 1.5px solid rgba(96, 165, 250, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   display: none;
   animation: expandDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -392,6 +441,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .summary-label { color: #94a3b8; font-size: 9px; font-weight: 700; }
@@ -402,24 +452,27 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
 }
 
 .filter-btn {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   padding: 6px 14px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
   color: #94a3b8;
   white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
 .filter-btn.active {
   background: rgba(37, 99, 235, 0.3);
   border-color: rgba(96, 165, 250, 0.6);
   color: #60a5fa;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
 }
 
 .student-list {
@@ -433,6 +486,11 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .student-avatar {
@@ -448,6 +506,7 @@ body {
   font-size: 14px;
   font-weight: 800;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
 .student-avatar.female {
@@ -507,7 +566,7 @@ body {
 .badge-l { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
 .badge-p { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3); }
 
-/* TABLE (MURNI STATIS TANPA PERUBAHAN UKURAN/TRANSFORM SAAT DI-UPDATE) */
+/* TABLE (MURNI STATIS: TOTAL BEBAS DARI MEMBAL/EFEK TEKAN/TRANSFORM) */
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -515,6 +574,8 @@ body {
   border-radius: 12px;
   -webkit-overflow-scrolling: touch;
   transform: none !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .absensi-table {
@@ -533,11 +594,12 @@ body {
   padding: 10px 8px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  transition: background 0.2s ease, border-color 0.2s ease; /* Dihapus efek transform/box-shadow gerak */
+  transition: background 0.2s ease, border-color 0.2s ease;
+  transform: none !important; /* Dilarang keras bergerak/membal */
 }
 
 .absensi-table th {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.95);
   color: #94a3b8;
   font-size: 10px;
   font-weight: 800;
@@ -576,6 +638,7 @@ body {
   overflow: hidden;
   display: flex;
   margin: 0 auto;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .progress-seg { height: 100%; }
@@ -618,7 +681,7 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
 }
 
 /* MONTHLY KAS CELL */
@@ -626,14 +689,15 @@ body {
 .kas-paid { color: #4ade80; }
 .kas-unpaid { color: #f43f5e; }
 
-/* BUTTON BAYAR KAS QRIS */
+/* BUTTON BAYAR KAS QRIS DENGAN KEDALAMAN HIGH 3D */
 .qris-pay-card {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(168, 85, 247, 0.25));
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(168, 85, 247, 0.3));
   border: 1.5px solid rgba(96, 165, 250, 0.5);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
   border-radius: 16px;
   padding: 16px;
   text-align: center;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3), inset 0 1px 2px rgba(255,255,255,0.3);
   margin: 10px 0;
 }
 
@@ -641,6 +705,7 @@ body {
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: #ffffff;
   border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 12px 18px;
   font-size: 12px;
@@ -650,7 +715,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
   margin-top: 10px;
 }
 
@@ -673,7 +738,7 @@ body {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
   margin: 12px auto;
 }
 
@@ -705,6 +770,7 @@ body {
 .btn-action-light {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 10px;
@@ -713,6 +779,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .btn-action-light:hover {
@@ -728,6 +795,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 /* HALAMAN 6 - JADWAL & DOKUMEN IZIN */
@@ -735,9 +803,10 @@ body {
   width: 100%;
   background: rgba(15, 23, 42, 0.92);
   border: 1.5px solid rgba(96, 165, 250, 0.5);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
   padding: 12px 16px;
-  box-shadow: 0 0 20px rgba(96, 165, 250, 0.25);
+  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   cursor: pointer;
@@ -813,6 +882,7 @@ body {
   color: #f8fafc;
   font-size: 11px;
   outline: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .form-select:focus, .form-textarea:focus { border-color: #60a5fa; }
@@ -821,18 +891,21 @@ body {
 .radio-card {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255,255,255,0.2);
   border-radius: 10px;
   padding: 10px;
   text-align: center;
   font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
 .radio-card.active {
   background: rgba(37,99,235,0.25);
   border-color: #60a5fa;
   color: #60a5fa;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
 }
 
 .template-card {
@@ -844,6 +917,7 @@ body {
   color: #cbd5e1;
   margin-bottom: 6px;
   line-height: 1.45;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 .template-card:hover, .template-card.active {
@@ -855,6 +929,7 @@ body {
   background: linear-gradient(135deg, #25D366, #128C7E);
   color: #ffffff;
   border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 14px;
   font-size: 12px;
@@ -864,7 +939,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
   margin-top: 6px;
 }
 
@@ -874,6 +949,7 @@ body {
   border-radius: 12px;
   padding: 10px;
   margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .schedule-day-title {
@@ -898,7 +974,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* BOTTOM NAV */
+/* BOTTOM NAV DENGAN EFEK FLOATING 3D */
 .nav-dual-container {
   position: fixed; bottom: 24px; left: 0; right: 0; margin: 0 auto;
   width: calc(100% - 32px); max-width: 340px; display: flex;
@@ -906,10 +982,12 @@ body {
 }
 
 .bubble-nav {
-  width: 156px; height: 48px; background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px;
+  width: 156px; height: 48px; background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
   padding: 4px 6px; display: flex; justify-content: space-between; align-items: center;
-  position: relative; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); backdrop-filter: blur(12px);
+  position: relative; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
 }
 
 .nav-btn {
@@ -922,14 +1000,16 @@ body {
 
 .glass-liquid-pill {
   position: fixed; bottom: 28px; width: 44px; height: 40px;
-  background: rgba(255, 255, 255, 0.12); border: 1.5px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px; z-index: 1000; box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 4px 15px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.15); 
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px; z-index: 1000; 
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 6px 20px rgba(0, 0, 0, 0.4);
   pointer-events: none; transition: left 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .glass-liquid-pill.dragging { transition: none !important; }
 
-/* LIGHT THEME */
+/* LIGHT THEME MODIFICATIONS */
 [data-theme="light"] body,
 [data-theme="light"] html {
   background-color: #f1f5f9;
@@ -937,14 +1017,16 @@ body {
 }
 
 [data-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.75);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
   border-color: rgba(15, 23, 42, 0.08);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 
 [data-theme="light"] .title-sub,
 [data-theme="light"] .title-main {
   color: #2563eb;
+  text-shadow: none;
 }
 
 [data-theme="light"] .student-name,
@@ -959,24 +1041,17 @@ body {
   color: #64748b;
 }
 
-[data-theme="light"] .blob-1 {
-  background: rgba(37, 99, 235, 0.2);
-}
-[data-theme="light"] .blob-2 {
-  background: rgba(147, 51, 234, 0.2);
-}
+[data-theme="light"] .blob-1 { background: rgba(37, 99, 235, 0.2); }
+[data-theme="light"] .blob-2 { background: rgba(147, 51, 234, 0.2); }
 
 [data-theme="light"] .bubble-nav {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .nav-btn {
-  color: #64748b;
-}
-[data-theme="light"] .nav-btn.active {
-  color: #0f172a;
-}
+[data-theme="light"] .nav-btn { color: #64748b; }
+[data-theme="light"] .nav-btn.active { color: #0f172a; }
 
 [data-theme="light"] .glass-liquid-pill {
   background: rgba(37, 99, 235, 0.15);
