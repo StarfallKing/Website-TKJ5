@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     check();
 
     function onVis() {
-      if (documentvisibilityState === "hidden") {
+      if (document.visibilityState === "hidden") {
         sessionStorage.setItem(KEY_LAST, String(Date.now()));
       } else {
         check();
