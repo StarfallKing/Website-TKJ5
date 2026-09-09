@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppData } from "@/lib/AppDataContext";
 import { supabase } from "@/lib/supabase";
+import AdminHeader from "@/components/layout/AdminHeader";
 
 const ROLES = [
   "Ketua Kelas",
@@ -112,6 +113,8 @@ export default function AdminStrukturPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <AdminHeader />
+
       <div className="glass-card text-center">
         <div className="title-sub">EDIT STRUKTUR</div>
         <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginTop: 4 }}>
