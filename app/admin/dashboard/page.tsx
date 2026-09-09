@@ -10,6 +10,7 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import { createClient } from "@supabase/supabase-js";
+import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER DI SINI
 
 // Inisialisasi Supabase Client (Pastikan ENV di .env.local sudah sesuai)
 const supabase = createClient(
@@ -229,6 +230,9 @@ export default function AdminDashboardPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* 2. DITAMPILKAN DI SINI PALING ATAS */}
+      <AdminHeader />
+
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 8 }}
