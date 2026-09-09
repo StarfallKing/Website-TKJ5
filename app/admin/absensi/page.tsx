@@ -7,6 +7,7 @@ import {
   type StatusHarian,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
 
 const CYCLE: StatusHarian[] = ["H", "I", "S", "A", "-"];
 const DAYS = schoolYearDays(2026);
@@ -39,6 +40,9 @@ export default function AdminAbsensiPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
+      <AdminHeader />
+
       {/* 1. REKAP RATA-RATA ATAS (Sesuai Gambar 1) */}
       <div
         style={{
