@@ -10,9 +10,9 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import { createClient } from "@supabase/supabase-js";
-import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER DI SINI
+import AdminHeader from "@/components/layout/AdminHeader";
 
-// Inisialisasi Supabase Client (Pastikan ENV di .env.local sudah sesuai)
+// Inisialisasi Supabase Client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
@@ -47,7 +47,6 @@ function NewsImageInput({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Batas 2MB (2 * 1024 * 1024 bytes)
     if (file.size > 2 * 1024 * 1024) {
       setErr("Ukuran gambar terlalu besar! Maksimal 2MB.");
       e.target.value = "";
@@ -59,14 +58,12 @@ function NewsImageInput({
       const ext = file.name.split(".").pop();
       const fileName = `berita-${Date.now()}.${ext}`;
 
-      // Upload ke bucket berita-images
       const { error: uploadError } = await supabase.storage
         .from("berita-images")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      // Ambil Public URL
       const { data } = supabase.storage
         .from("berita-images")
         .getPublicUrl(fileName);
@@ -148,8 +145,6 @@ export default function AdminDashboardPage() {
     kasLog,
     siteContent,
     setSiteContent,
-    maintenanceMode,
-    setMaintenanceMode,
   } = useAppData();
 
   const [draft, setDraft] = useState<SiteContent>(siteContent);
@@ -230,7 +225,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* 2. DITAMPILKAN DI SINI PALING ATAS */}
       <AdminHeader />
 
       <div
@@ -415,7 +409,6 @@ export default function AdminDashboardPage() {
                 style={{ ...inp, resize: "vertical" }}
               />
 
-              {/* DUA PILIHAN: PASTE URL / UPLOAD GAMBAR MAKS 2MB */}
               <NewsImageInput
                 value={n.imageUrl}
                 onChange={(url) => updateNews(i, { imageUrl: url })}
@@ -461,48 +454,6 @@ export default function AdminDashboardPage() {
         {saving ? "Menyimpan..." : "Simpan ke homepage publik"}
       </button>
 
-      <div
-        className="glass-card"
-        style={{
-          borderColor: maintenanceMode
-            ? "rgba(244,63,94,0.45)"
-            : undefined,
-        }}
-      >
-        <div className="flex-between">
-          <div>
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: 12,
-                color: maintenanceMode ? "#f43f5e" : "#4ade80",
-              }}
-            >
-              {maintenanceMode ? "MODE PERBAIKAN ON" : "WEB PUBLIK AKTIF"}
-            </div>
-            <p style={{ fontSize: 10, color: "#94a3b8" }}>
-              {maintenanceMode
-                ? "Pengunjung hanya lihat teks perbaikan"
-                : "Portal publik bisa dibuka normal"}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn-action-light"
-            style={{
-              fontSize: 10,
-              background: maintenanceMode
-                ? "rgba(34,197,94,0.2)"
-                : "rgba(244,63,94,0.25)",
-              color: maintenanceMode ? "#4ade80" : "#fda4af",
-            }}
-            onClick={() => void setMaintenanceMode(!maintenanceMode)}
-          >
-            {maintenanceMode ? "Matikan" : "Website sedang perbaikan"}
-          </button>
-        </div>
-      </div>
-
       <div className="glass-card">
         <div className="title-sub" style={{ marginBottom: 8 }}>
           KELOLA DATA
@@ -544,4 +495,5 @@ export default function AdminDashboardPage() {
       </div>
     </div>
   );
-}
+              }
+  
