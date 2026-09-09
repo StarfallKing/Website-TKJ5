@@ -47,15 +47,26 @@ body {
   overflow: hidden;
 }
 
-/* GLASS CARD BASE */
+/* GLASS CARD BASE (3D CLAYMORPHISM) */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  border-radius: 16px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
   padding: 14px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 
+    6px 10px 20px rgba(0, 0, 0, 0.45),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.2),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.glass-card:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 
+    2px 4px 10px rgba(0, 0, 0, 0.5),
+    inset 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* UTILS */
@@ -112,10 +123,10 @@ body {
   background: rgba(34, 197, 94, 0.1);
 }
 
-/* TOP BAR TOGGLES */
+/* TOP BAR TOGGLES (PILL TOGGLE TIMBUL 3D) */
 .top-pill-container {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 3px;
   border-radius: 999px;
   display: flex;
@@ -123,7 +134,9 @@ body {
   position: relative;
   width: 96px;
   height: 38px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  box-shadow: 
+    inset 2px 3px 6px rgba(0, 0, 0, 0.6),
+    0 4px 10px rgba(0, 0, 0, 0.3);
   user-select: none;
   touch-action: none;
 }
@@ -170,7 +183,7 @@ body {
   color: #60a5fa; text-decoration: none; font-weight: 700; cursor: pointer; display: inline-block; margin-top: 4px;
 }
 
-/* STRUKTUR ORGANISASI */
+/* STRUKTUR ORGANISASI (AVATAR & ROLE CARD 3D) */
 .tree-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; padding: 20px 0; }
 .widget-side {
   background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(96, 165, 250, 0.2);
@@ -179,15 +192,30 @@ body {
 }
 
 .tree-node { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+
 .avatar-box {
-  width: 70px; height: 70px; border-radius: 50%; border: 2px solid #60a5fa;
-  background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 16px rgba(96, 165, 250, 0.4); overflow: hidden;
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 2px solid #60a5fa;
+  background: rgba(15, 23, 42, 0.95);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 
+    0 0 18px rgba(96, 165, 250, 0.5),
+    4px 6px 12px rgba(0, 0, 0, 0.6),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
 }
 
 .role-card {
-  background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 8px 10px; border-radius: 12px; margin-top: 8px; text-align: center; min-width: 125px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 10px;
+  border-radius: 12px;
+  margin-top: 8px;
+  text-align: center;
+  min-width: 125px;
+  box-shadow: 
+    4px 6px 14px rgba(0, 0, 0, 0.5),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .person-name { font-size: 11px; font-weight: 700; color: #f8fafc; line-height: 1.2; }
@@ -599,7 +627,7 @@ body {
 .kas-paid { color: #4ade80; }
 .kas-unpaid { color: #f43f5e; }
 
-/* BUTTON BAYAR KAS QRIS */
+/* BUTTON BAYAR KAS QRIS (TOMBOL FISIK 3D) */
 .qris-pay-card {
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(168, 85, 247, 0.25));
   border: 1.5px solid rgba(96, 165, 250, 0.5);
@@ -614,7 +642,8 @@ body {
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: #ffffff;
   border: none;
-  border-radius: 12px;
+  border-bottom: 4px solid #1e3a8a;
+  border-radius: 14px;
   padding: 12px 18px;
   font-size: 12px;
   font-weight: 800;
@@ -624,13 +653,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
+  transition: all 0.1s ease;
   margin-top: 10px;
 }
 
 .btn-pay-qris:active {
-  transform: scale(0.97);
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 /* SUB-PAGE */
@@ -839,6 +870,7 @@ body {
   background: linear-gradient(135deg, #25D366, #128C7E);
   color: #ffffff;
   border: none;
+  border-bottom: 4px solid #0e6655;
   border-radius: 12px;
   padding: 14px;
   font-size: 12px;
@@ -849,8 +881,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.3);
   margin-top: 6px;
+  transition: all 0.1s ease;
+}
+
+.btn-whatsapp-submit:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
 }
 
 .schedule-day-box {
@@ -924,7 +963,9 @@ body {
 [data-theme="light"] .glass-card {
   background: rgba(255, 255, 255, 0.75);
   border-color: rgba(15, 23, 42, 0.08);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: 
+    6px 10px 20px rgba(0, 0, 0, 0.08),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.9);
 }
 
 [data-theme="light"] .title-sub,
