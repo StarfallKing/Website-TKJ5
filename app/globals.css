@@ -47,26 +47,16 @@ body {
   overflow: hidden;
 }
 
-/* GLASS CARD BASE (3D CLAYMORPHISM) */
+/* GLASS CARD BASE (DIAM & STATIS: DILARANG MELEKUK/MENCIUT) */
 .glass-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 16px;
   padding: 14px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 
-    6px 10px 20px rgba(0, 0, 0, 0.45),
-    inset 1px 1px 1px rgba(255, 255, 255, 0.2),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-}
-
-.glass-card:active {
-  transform: translateY(2px) scale(0.99);
-  box-shadow: 
-    2px 4px 10px rgba(0, 0, 0, 0.5),
-    inset 1px 1px 2px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transform: none !important; /* Mencegah efek gerak turun/mengecil */
 }
 
 /* UTILS */
@@ -76,6 +66,33 @@ body {
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .text-center { text-align: center; }
+
+/* EFEK TEKAN / MENCIUT KHUSUS TOMBOL & ELEMEN INTERAKTIF */
+.student-card,
+.btn-pay-qris,
+.btn-whatsapp-submit,
+.btn-action-light,
+.filter-btn,
+.file-upload-btn,
+.radio-card,
+.template-card,
+.suggestion-item,
+.nav-btn {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+.student-card:active,
+.btn-pay-qris:active,
+.btn-whatsapp-submit:active,
+.btn-action-light:active,
+.filter-btn:active,
+.file-upload-btn:active,
+.radio-card:active,
+.template-card:active,
+.suggestion-item:active {
+  transform: translateY(2px) scale(0.98) !important;
+}
 
 /* CUSTOM FILE UPLOAD BUTTON */
 .custom-file-upload {
@@ -107,8 +124,6 @@ body {
   color: #94a3b8;
   font-size: 11px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .file-upload-btn:hover {
@@ -123,10 +138,10 @@ body {
   background: rgba(34, 197, 94, 0.1);
 }
 
-/* TOP BAR TOGGLES (PILL TOGGLE TIMBUL 3D) */
+/* TOP BAR TOGGLES */
 .top-pill-container {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 3px;
   border-radius: 999px;
   display: flex;
@@ -134,9 +149,7 @@ body {
   position: relative;
   width: 96px;
   height: 38px;
-  box-shadow: 
-    inset 2px 3px 6px rgba(0, 0, 0, 0.6),
-    0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
   user-select: none;
   touch-action: none;
 }
@@ -183,7 +196,7 @@ body {
   color: #60a5fa; text-decoration: none; font-weight: 700; cursor: pointer; display: inline-block; margin-top: 4px;
 }
 
-/* STRUKTUR ORGANISASI (AVATAR & ROLE CARD 3D) */
+/* STRUKTUR ORGANISASI */
 .tree-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; padding: 20px 0; }
 .widget-side {
   background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(96, 165, 250, 0.2);
@@ -192,30 +205,15 @@ body {
 }
 
 .tree-node { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
-
 .avatar-box {
-  width: 70px; height: 70px; border-radius: 50%;
-  border: 2px solid #60a5fa;
-  background: rgba(15, 23, 42, 0.95);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 
-    0 0 18px rgba(96, 165, 250, 0.5),
-    4px 6px 12px rgba(0, 0, 0, 0.6),
-    inset 2px 2px 4px rgba(255, 255, 255, 0.2);
-  overflow: hidden;
+  width: 70px; height: 70px; border-radius: 50%; border: 2px solid #60a5fa;
+  background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 16px rgba(96, 165, 250, 0.4); overflow: hidden;
 }
 
 .role-card {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 8px 10px;
-  border-radius: 12px;
-  margin-top: 8px;
-  text-align: center;
-  min-width: 125px;
-  box-shadow: 
-    4px 6px 14px rgba(0, 0, 0, 0.5),
-    inset 1px 1px 1px rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 10px; border-radius: 12px; margin-top: 8px; text-align: center; min-width: 125px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
 .person-name { font-size: 11px; font-weight: 700; color: #f8fafc; line-height: 1.2; }
@@ -333,11 +331,9 @@ body {
   font-weight: 700;
   color: #cbd5e1;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .suggestion-item:hover {
@@ -417,9 +413,7 @@ body {
   font-size: 10px;
   font-weight: 700;
   color: #94a3b8;
-  cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
 }
 
 .filter-btn.active {
@@ -513,13 +507,14 @@ body {
 .badge-l { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
 .badge-p { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.3); }
 
-/* TABLE */
+/* TABLE (MURNI STATIS TANPA PERUBAHAN UKURAN/TRANSFORM SAAT DI-UPDATE) */
 .table-responsive {
   width: 100%;
   overflow-x: auto;
   overflow-y: visible;
   border-radius: 12px;
   -webkit-overflow-scrolling: touch;
+  transform: none !important;
 }
 
 .absensi-table {
@@ -527,6 +522,7 @@ body {
   border-collapse: collapse;
   font-size: 11px;
   white-space: nowrap;
+  transform: none !important;
 }
 
 .monthly-table { min-width: 1200px; }
@@ -537,7 +533,7 @@ body {
   padding: 10px 8px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease; /* Dihapus efek transform/box-shadow gerak */
 }
 
 .absensi-table th {
@@ -549,6 +545,10 @@ body {
   letter-spacing: 0.5px;
 }
 
+.absensi-table tr {
+  transform: none !important;
+}
+
 .absensi-table tr:hover {
   background: rgba(255, 255, 255, 0.04);
 }
@@ -557,7 +557,6 @@ body {
   background: rgba(59, 130, 246, 0.25) !important;
   border-top: 1px solid rgba(96, 165, 250, 0.6);
   border-bottom: 1px solid rgba(96, 165, 250, 0.6);
-  box-shadow: inset 0 0 15px rgba(96, 165, 250, 0.4);
 }
 
 .pct-breakdown {
@@ -627,7 +626,7 @@ body {
 .kas-paid { color: #4ade80; }
 .kas-unpaid { color: #f43f5e; }
 
-/* BUTTON BAYAR KAS QRIS (TOMBOL FISIK 3D) */
+/* BUTTON BAYAR KAS QRIS */
 .qris-pay-card {
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(168, 85, 247, 0.25));
   border: 1.5px solid rgba(96, 165, 250, 0.5);
@@ -642,26 +641,17 @@ body {
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: #ffffff;
   border: none;
-  border-bottom: 4px solid #1e3a8a;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 12px 18px;
   font-size: 12px;
   font-weight: 800;
-  cursor: pointer;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4);
-  transition: all 0.1s ease;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
   margin-top: 10px;
-}
-
-.btn-pay-qris:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 /* SUB-PAGE */
@@ -720,7 +710,6 @@ body {
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -835,11 +824,9 @@ body {
   border-radius: 10px;
   padding: 10px;
   text-align: center;
-  cursor: pointer;
   font-size: 11px;
   font-weight: 700;
   color: #94a3b8;
-  transition: all 0.2s ease;
 }
 
 .radio-card.active {
@@ -855,10 +842,8 @@ body {
   padding: 10px;
   font-size: 10.5px;
   color: #cbd5e1;
-  cursor: pointer;
   margin-bottom: 6px;
   line-height: 1.45;
-  transition: all 0.2s ease;
 }
 
 .template-card:hover, .template-card.active {
@@ -870,26 +855,17 @@ body {
   background: linear-gradient(135deg, #25D366, #128C7E);
   color: #ffffff;
   border: none;
-  border-bottom: 4px solid #0e6655;
   border-radius: 12px;
   padding: 14px;
   font-size: 12px;
   font-weight: 800;
-  cursor: pointer;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.3);
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
   margin-top: 6px;
-  transition: all 0.1s ease;
-}
-
-.btn-whatsapp-submit:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
-  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
 }
 
 .schedule-day-box {
@@ -937,12 +913,12 @@ body {
 }
 
 .nav-btn {
-  background: none; border: none; font-size: 16px; cursor: pointer; color: #94a3b8;
+  background: none; border: none; font-size: 16px; color: #94a3b8;
   width: 44px; height: 40px; display: flex; align-items: center; justify-content: center;
-  z-index: 1001; position: relative; transition: color 0.2s ease, transform 0.2s ease;
+  z-index: 1001; position: relative;
 }
 
-.nav-btn.active { color: #ffffff; transform: scale(1.15); }
+.nav-btn.active { color: #ffffff; transform: scale(1.15) !important; }
 
 .glass-liquid-pill {
   position: fixed; bottom: 28px; width: 44px; height: 40px;
@@ -963,9 +939,7 @@ body {
 [data-theme="light"] .glass-card {
   background: rgba(255, 255, 255, 0.75);
   border-color: rgba(15, 23, 42, 0.08);
-  box-shadow: 
-    6px 10px 20px rgba(0, 0, 0, 0.08),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 [data-theme="light"] .title-sub,
