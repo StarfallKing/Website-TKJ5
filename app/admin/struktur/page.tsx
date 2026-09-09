@@ -188,14 +188,6 @@ export default function AdminStrukturPage() {
           </select>
         </div>
       ))}
-
-      <Link
-        href="/admin/siswa"
-        className="btn-action-light"
-        style={{ textAlign: "center", fontSize: 11 }}
-      >
-        Atau edit detail lewat Data Siswa →
-      </Link>
     </div>
   );
 }
