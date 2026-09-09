@@ -36,7 +36,7 @@ function colorOf(role: string) {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { activityLog } = useAppData();
+  const { activityLog, maintenanceMode, setMaintenanceMode } = useAppData();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +59,17 @@ export default function AdminSettingsPage() {
     setLoading(false);
   }
 
+  function handleToggleMaintenance() {
+    const nextState = !maintenanceMode;
+    const confirmMsg = nextState
+      ? "Aktifkan Mode Perbaikan (Maintenance)? Pengunjung tidak akan bisa mengakses website publik."
+      : "Matikan Mode Perbaikan? Website publik akan kembali dibuka normal.";
+
+    if (confirm(confirmMsg)) {
+      setMaintenanceMode(nextState);
+    }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <AdminHeader />
@@ -68,6 +79,54 @@ export default function AdminSettingsPage() {
         <p style={{ fontSize: 11, color: "#94a3b8" }}>
           Pilih kartu → ganti username / password / kode unik
         </p>
+      </div>
+
+      {/* MODAL / STATUS MAINTENANCE (PINDAH KE SINI) */}
+      <div
+        className="glass-card"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 12,
+          borderColor: maintenanceMode
+            ? "rgba(244, 63, 94, 0.45)"
+            : "rgba(74, 222, 128, 0.3)",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontWeight: 800,
+              fontSize: 12,
+              color: maintenanceMode ? "#f43f5e" : "#4ade80",
+            }}
+          >
+            {maintenanceMode ? "MODE PERBAIKAN ON" : "WEB PUBLIK AKTIF"}
+          </div>
+          <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
+            {maintenanceMode
+              ? "Pengunjung hanya lihat teks perbaikan"
+              : "Portal publik bisa dibuka normal"}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn-action-light"
+          style={{
+            fontSize: 10,
+            padding: "6px 12px",
+            borderRadius: 8,
+            fontWeight: 700,
+            background: maintenanceMode
+              ? "rgba(34,197,94,0.2)"
+              : "rgba(244,63,94,0.25)",
+            color: maintenanceMode ? "#4ade80" : "#fda4af",
+          }}
+          onClick={handleToggleMaintenance}
+        >
+          {maintenanceMode ? "Matikan" : "Website sedang perbaikan"}
+        </button>
       </div>
 
       {loading && (
