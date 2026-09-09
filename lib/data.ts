@@ -34,11 +34,11 @@ export const allStudents: Student[] = [
   { nama: "LUTHFI RAFFANZA CHAIRIAN", gender: "L", nisn: "0117279674", nis: "26100188", hadir: 26, izin: 1, sakit: 0, alpa: 1 },
   { nama: "M.ALIF RIDHWAN", gender: "L", nisn: "0115656008", nis: "26100189", hadir: 25, izin: 2, sakit: 0, alpa: 1 },
   { nama: "MONICKA SILVIA", gender: "P", nisn: "0102193855", nis: "26100190", role: "Bendahara 1", roleClass: "bendahara", icon: "fa-wallet", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
-  { nama: "MUHAMAD ARIEL SASMITA", gender: "L", nisn: "0109211649", nis: "26100191", hadir: 27, izin: 1, sakit: 0, alpa: 0 },
-  { nama: "MUHAMAD FAUZAN FADILLAH", gender: "L", nisn: "0102306580", nis: "26100192", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
-  { nama: "MUHAMAD KHOIRUL FAZRI", gender: "L", nisn: "0121671431", nis: "26100193", hadir: 25, izin: 1, sakit: 1, alpa: 1 },
-  { nama: "MUHAMAD SULTAN AL HAFIZH", gender: "L", nisn: "0115341712", nis: "26100194", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
-  { nama: "MUHAMAD SYAPRAN ASSYAFIQ HASIBUAN", gender: "L", nisn: "0104306313", nis: "26100195", hadir: 24, izin: 2, sakit: 1, alpa: 1 },
+  { nama: "MUHAMAD SYAPRAN ASSYAFIQ HASIBUAN", gender: "L", nisn: "0104306313", nis: "26100191", hadir: 24, izin: 2, sakit: 1, alpa: 1 },
+  { nama: "MUHAMAD ARIEL SASMITA", gender: "L", nisn: "0109211649", nis: "26100192", hadir: 27, izin: 1, sakit: 0, alpa: 0 },
+  { nama: "MUHAMAD FAUZAN FADILLAH", gender: "L", nisn: "0102306580", nis: "26100193", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
+  { nama: "MUHAMAD KHOIRUL FAZRI", gender: "L", nisn: "0121671431", nis: "26100194", hadir: 25, izin: 1, sakit: 1, alpa: 1 },
+  { nama: "MUHAMAD SULTAN AL HAFIZH", gender: "L", nisn: "0115341712", nis: "26100195", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
   { nama: "MUHAMMAD FADILLAH ADITIA PUTRA", gender: "L", nisn: "3117264510", nis: "26100196", hadir: 27, izin: 0, sakit: 1, alpa: 0 },
   { nama: "MUHAMMAD FAUZAN ASSYAKIR NOTO PAMBUDI", gender: "L", nisn: "0101905489", nis: "26100197", role: "Keamanan", roleClass: "keamanan", icon: "fa-shield-halved", hadir: 26, izin: 1, sakit: 1, alpa: 0 },
   { nama: "MUHAMMAD IHZA FAHREZI", gender: "L", nisn: "3105342675", nis: "26100198", role: "Bendahara 2", roleClass: "bendahara", icon: "fa-wallet", hadir: 25, izin: 2, sakit: 0, alpa: 1 },
@@ -58,6 +58,7 @@ export const allStudents: Student[] = [
   { nama: "VINCENT GABRIEL NAINGGOLAN", gender: "L", nisn: "0118226076", nis: "26100212", hadir: 25, izin: 1, sakit: 1, alpa: 1 },
   { nama: "ZIDRAM AIDIL ADHA", gender: "L", nisn: "0091703516", nis: "26100213", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
 ];
+
 
 export type StatusHarian = "H" | "I" | "S" | "A" | "-";
 
