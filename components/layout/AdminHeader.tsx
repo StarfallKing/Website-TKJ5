@@ -1,15 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function AdminHeader() {
-  const router = useRouter();
-
   function logout() {
     sessionStorage.removeItem("admin-ok");
     sessionStorage.removeItem("admin-user");
     sessionStorage.removeItem("admin-last");
-    router.replace("/admin");
+    // Gunakan window.location.href agar redirect bersih tanpa screen error
+    window.location.href = "/admin";
   }
 
   return (
@@ -33,14 +32,22 @@ export default function AdminHeader() {
         </div>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
+        {/* Menggunakan Link Next.js agar berpindah di tab yang sama ke homepage publik */}
+        <Link
+          href="/"
           className="btn-action-light"
-          style={{ fontSize: 10 }}
-          onClick={() => window.open("/", "_blank")}
+          style={{
+            fontSize: 10,
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+          }}
         >
           <i className="fa-solid fa-arrow-up-right-from-square" /> Publik
-        </button>
+        </Link>
+
+        {/* Tombol Logout */}
         <button
           type="button"
           className="btn-action-light"
