@@ -31,7 +31,7 @@ export default function AbsensiPage() {
   // Total kapasitas entri kelas dalam 1 tahun (jumlah siswa * 365 hari)
   const totalEntriKelasTahunan = (list.length || 1) * TOTAL_HARI_TAHUNAN;
 
-  // PERBAIKAN ERROR BUILD: Hitung rata-rata akumulasi kelas
+  // Tetap simpan kalkulasi avg agar tidak error TS2304 pada Vercel Build
   const avg = useMemo(() => {
     if (!totalEntriKelasTahunan) return { h: 0, i: 0, s: 0, a: 0 };
     return {
@@ -272,7 +272,7 @@ export default function AbsensiPage() {
         )}
       </div>
 
-      {/* Rekap 1 tahun */}
+      {/* Rekap 1 tahun (DIBALIKIN KE KODE ASLI KAMU) */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div
           className="flex-between"
@@ -302,17 +302,16 @@ export default function AbsensiPage() {
         </div>
 
         <div className="table-responsive">
-          {/* PERBAIKAN LAYOUT: Tambahkan class 'rekap-yearly-table' */}
-          <table className="absensi-table rekap-yearly-table">
+          <table className="absensi-table">
             <thead>
               <tr>
-                <th style={{ width: 28 }}>No</th>
-                <th style={{ textAlign: "left", paddingLeft: 6 }}>Nama</th>
-                <th style={{ color: "#4ade80", width: 22 }}>H</th>
-                <th style={{ color: "#60a5fa", width: 22 }}>I</th>
-                <th style={{ color: "#facc15", width: 22 }}>S</th>
-                <th style={{ color: "#f43f5e", width: 22 }}>A</th>
-                <th style={{ textAlign: "center", width: 85 }}>PERSENTASE</th>
+                <th>No</th>
+                <th style={{ textAlign: "left", paddingLeft: 10 }}>Nama</th>
+                <th style={{ color: "#4ade80" }}>Hadir</th>
+                <th style={{ color: "#60a5fa" }}>Izin</th>
+                <th style={{ color: "#facc15" }}>Sakit</th>
+                <th style={{ color: "#f43f5e" }}>Alpa</th>
+                <th style={{ textAlign: "center", minWidth: 200 }}>PERSENTASE</th>
               </tr>
             </thead>
             <tbody>
@@ -336,10 +335,7 @@ export default function AbsensiPage() {
                       style={{
                         textAlign: "left",
                         fontWeight: 700,
-                        paddingLeft: 6,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        paddingLeft: 10,
                       }}
                     >
                       {s.nama}
@@ -356,16 +352,34 @@ export default function AbsensiPage() {
                     <td style={{ color: "#f43f5e", fontWeight: 800 }}>
                       {s.alpa}
                     </td>
-                    <td style={{ padding: "6px 2px" }}>
-                      {/* Class pct-breakdown & progress-bar-container mengambil style dari global.css */}
-                      <div className="pct-breakdown">
+                    <td style={{ padding: "8px 10px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          marginBottom: 6,
+                          gap: 6,
+                        }}
+                      >
                         <span style={{ color: "#4ade80" }}>H:{pctH}%</span>
                         <span style={{ color: "#60a5fa" }}>I:{pctI}%</span>
                         <span style={{ color: "#facc15" }}>S:{pctS}%</span>
                         <span style={{ color: "#f43f5e" }}>A:{pctA}%</span>
                       </div>
 
-                      <div className="progress-bar-container">
+                      {/* Stacked Progress Bar */}
+                      <div
+                        style={{
+                          width: "100%",
+                          height: 8,
+                          background: "rgba(255,255,255,0.08)",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          display: "flex",
+                        }}
+                      >
                         <div
                           style={{
                             width: `${pctH}%`,
