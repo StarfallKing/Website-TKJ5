@@ -1,18 +1,54 @@
 "use client";
 
+import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
-import { formatRupiah, getInitials, NOMINAL_KAS } from "@/lib/data";
+import { formatRupiah, getInitials, NOMINAL_KAS, monthConfigs } from "@/lib/data";
 
 export default function SiswaDetailPage() {
   const params = useParams();
   const router = useRouter();
   const nisn = params.nisn as string;
 
-  const { students, isKasPaid } = useAppData();
+  const { students, isKasPaid, paymentOverrides } = useAppData();
 
   const sIdx = students.findIndex((s) => s.nisn === nisn);
   const siswa = sIdx >= 0 ? students[sIdx] : undefined;
+
+  // --- LOGIKA DETEKSI BULAN REAL-TIME DENGAN TAHUN AJARAN ---
+  const currentMonthIdx = useMemo(() => {
+    const now = new Date();
+    const curMonth = now.getMonth(); // 0 = Jan, 1 = Feb, ..., 6 = Jul, 7 = Tgt, dst.
+    const curYear = now.getFullYear();
+
+    // Cari indeks bulan di monthConfigs yang cocok dengan bulan & tahun saat ini
+    const foundIdx = monthConfigs.findIndex((m) => {
+      const parts = m.name.split(" ");
+      const monthName = parts[0];
+      const yearNum = parseInt(parts[1], 10);
+
+      // Mapping nama bulan Indonesia ke indeks 0-11
+      const idMonths: { [key: string]: number } = {
+        Juli: 6,
+        Agustus: 7,
+        September: 8,
+        Oktober: 9,
+        November: 10,
+        Desember: 11,
+        Januari: 0,
+        Februari: 1,
+        Maret: 2,
+        April: 3,
+        Mei: 4,
+        Juni: 5,
+      };
+
+      return idMonths[monthName] === curMonth && yearNum === curYear;
+    });
+
+    // Jika ketemu gunakan indeksnya, jika tidak (misal di luar rentang) default ke 0
+    return foundIdx !== -1 ? foundIdx : 0;
+  }, []);
 
   if (!siswa) {
     return (
@@ -40,7 +76,9 @@ export default function SiswaDetailPage() {
   for (let m = 0; m < 12; m++) {
     if (isKasPaid(siswa.nisn, sIdx, m)) paidMonths++;
   }
-  const isPaidThisMonth = isKasPaid(siswa.nisn, sIdx, 1);
+
+  // Menggunakan currentMonthIdx agar otomatis sesuai bulan & tanggal real-time saat ini
+  const isPaidThisMonth = isKasPaid(siswa.nisn, sIdx, currentMonthIdx);
 
   return (
     <>
@@ -183,7 +221,9 @@ export default function SiswaDetailPage() {
         </div>
         <div className="summary-grid">
           <div className="summary-box">
-            <div className="summary-label">STATUS BULAN INI</div>
+            <div className="summary-label">
+              STATUS ({monthConfigs[currentMonthIdx]?.name.toUpperCase() || "BULAN INI"})
+            </div>
             <div
               className="summary-val"
               style={{ color: isPaidThisMonth ? "#4ade80" : "#f43f5e" }}
@@ -211,4 +251,4 @@ export default function SiswaDetailPage() {
       </div>
     </>
   );
-        }
+}
