@@ -161,8 +161,19 @@ export default function AdminDashboardPage() {
 
   const saldo = useMemo(() => {
     if (!kasLog?.length) return 0;
-    const last = [...kasLog].reverse().find((x) => x.desc?.trim() || x.val);
-    return last?.balance ?? 0;
+
+    // Sortir transaksi berdasarkan nomor urut tertinggi
+    const sorted = [...kasLog].sort((a, b) => b.no - a.no);
+    const last = sorted.find((x) => x.desc?.trim() || x.val);
+
+    if (last?.balance !== undefined && last?.balance !== 0) {
+      return last.balance;
+    }
+
+    // Fallback akumulasi manual jika balance di database bernilai 0
+    return kasLog.reduce((acc, curr) => {
+      return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
+    }, 0);
   }, [kasLog]);
 
   const countL = students.filter((s) => s.gender === "L").length;
