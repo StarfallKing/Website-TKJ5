@@ -74,29 +74,104 @@ export default function AbsensiPage() {
         </p>
       </div>
 
-      <div className="grid-4">
-        {[
-          { label: "RATA-RATA HADIR", val: sum.hadir, color: "#4ade80" },
-          { label: "RATA-RATA IZIN", val: sum.izin, color: "#60a5fa" },
-          { label: "RATA-RATA SAKIT", val: sum.sakit, color: "#facc15" },
-          { label: "RATA-RATA ALPA", val: sum.alpa, color: "#f43f5e" },
-        ].map((item) => (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 10,
+        }}
+      >
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
           <div
-            key={item.label}
-            className="glass-card text-center"
-            style={{ padding: 8 }}
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
           >
-            <div className="title-sub" style={{ fontSize: 8 }}>
-              {item.label}
-            </div>
-            <div
-              className="card-val"
-              style={{ color: item.color, fontSize: 13 }}
-            >
-              {((item.val / totalEntriKelasTahunan) * 100).toFixed(1)}%
-            </div>
+            RATA-RATA HADIR
           </div>
-        ))}
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#4ade80",
+              fontSize: 20,
+              marginTop: 4,
+            }}
+          >
+            {avg.h.toFixed(1)}%
+          </div>
+        </div>
+
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
+            RATA-RATA IZIN
+          </div>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#60a5fa",
+              fontSize: 20,
+              marginTop: 4,
+            }}
+          >
+            {avg.i.toFixed(1)}%
+          </div>
+        </div>
+
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
+            RATA-RATA SAKIT
+          </div>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#facc15",
+              fontSize: 20,
+              marginTop: 4,
+            }}
+          >
+            {avg.s.toFixed(1)}%
+          </div>
+        </div>
+
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
+            RATA-RATA ALPA
+          </div>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#f43f5e",
+              fontSize: 20,
+              marginTop: 4,
+            }}
+          >
+            {avg.a.toFixed(1)}%
+          </div>
+        </div>
       </div>
 
       <div className="search-wrapper">
