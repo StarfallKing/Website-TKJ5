@@ -12,8 +12,19 @@ export default function HomePage() {
 
   const kasNow = useMemo(() => {
     if (!kasLog?.length) return 0;
-    const last = [...kasLog].reverse().find((x) => x.desc?.trim() || x.val);
-    return last?.balance ?? kasLog[kasLog.length - 1]?.balance ?? 0;
+    
+    // Sortir transaksi berdasarkan nomor urut tertinggi
+    const sorted = [...kasLog].sort((a, b) => b.no - a.no);
+    const last = sorted.find((x) => x.desc?.trim() || x.val);
+
+    if (last?.balance !== undefined && last?.balance !== 0) {
+      return last.balance;
+    }
+
+    // Fallback jika balance di database tidak terakumulasi
+    return kasLog.reduce((acc, curr) => {
+      return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
+    }, 0);
   }, [kasLog]);
 
   const w = siteContent.widgets;
