@@ -109,7 +109,7 @@ function rowToStudent(r: Record<string, unknown>): Student {
 function normalizeKasRows(
   data: Record<string, unknown>[]
 ): KasTransaction[] {
-  return data
+  const normalized = data
     .map((r, i) => ({
       no: Number(r.no ?? i + 1),
       date: String(r.date ?? ""),
@@ -119,7 +119,11 @@ function normalizeKasRows(
       balance: Number(r.balance ?? 0),
     }))
     .filter((r) => r.desc !== "" || r.val !== 0);
+
+  // URUTKAN BERDASARKAN NOMOR URUT (no) ASCENDING
+  return normalized.sort((a, b) => a.no - b.no);
 }
+
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>(seedStudents);
