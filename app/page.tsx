@@ -3,29 +3,28 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
-import { formatRupiah } from "@/lib/data";
+import { formatRupiah, NOMINAL_KAS } from "@/lib/data";
 
 export default function HomePage() {
   const router = useRouter();
-  const { students, kasLog, siteContent } = useAppData();
+  const { students, paymentOverrides, kasLog, siteContent } = useAppData();
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // Kalkulasi total kas otomatis dari pembayaran murid + kasLog
   const kasNow = useMemo(() => {
-    if (!kasLog?.length) return 0;
-    
-    // Sortir transaksi berdasarkan nomor urut tertinggi
-    const sorted = [...kasLog].sort((a, b) => b.no - a.no);
-    const last = sorted.find((x) => x.desc?.trim() || x.val);
+    // 1. Hitung total uang masuk dari centang bayar kas murid (kas_paid)
+    // Tiap centang dikali NOMINAL_KAS (2.000)
+    const totalMasukPaid =
+      Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
 
-    if (last?.balance !== undefined && last?.balance !== 0) {
-      return last.balance;
-    }
-
-    // Fallback jika balance di database tidak terakumulasi
-    return kasLog.reduce((acc, curr) => {
+    // 2. Hitung transaksi manual di kasLog (jika ada transaksi 'masuk' atau 'keluar')
+    const totalLog = (kasLog || []).reduce((acc, curr) => {
       return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
     }, 0);
-  }, [kasLog]);
+
+    // Total gabungan
+    return totalMasukPaid + totalLog;
+  }, [paymentOverrides, kasLog]);
 
   const w = siteContent.widgets;
   const news = siteContent.news || [];
