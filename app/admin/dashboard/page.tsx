@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   formatRupiah,
+  NOMINAL_KAS,
   type NewsItem,
   type SiteContent,
 } from "@/lib/data";
@@ -141,6 +142,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const {
     students,
+    paymentOverrides,
     kasLog,
     siteContent,
     setSiteContent,
@@ -159,22 +161,19 @@ export default function AdminDashboardPage() {
     setDraft(siteContent);
   }, [siteContent]);
 
+  // Kalkulasi saldo otomatis gabungan kas_paid dan kasLog
   const saldo = useMemo(() => {
-    if (!kasLog?.length) return 0;
+    // 1. Total dari centang bayar murid (paymentOverrides / kas_paid)
+    const totalMasukPaid =
+      Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
 
-    // Sortir transaksi berdasarkan nomor urut tertinggi
-    const sorted = [...kasLog].sort((a, b) => b.no - a.no);
-    const last = sorted.find((x) => x.desc?.trim() || x.val);
-
-    if (last?.balance !== undefined && last?.balance !== 0) {
-      return last.balance;
-    }
-
-    // Fallback akumulasi manual jika balance di database bernilai 0
-    return kasLog.reduce((acc, curr) => {
+    // 2. Total log transaksi manual (kas_log)
+    const totalLog = (kasLog || []).reduce((acc, curr) => {
       return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
     }, 0);
-  }, [kasLog]);
+
+    return totalMasukPaid + totalLog;
+  }, [paymentOverrides, kasLog]);
 
   const countL = students.filter((s) => s.gender === "L").length;
   const countP = students.filter((s) => s.gender === "P").length;
@@ -318,7 +317,7 @@ export default function AdminDashboardPage() {
             {formatRupiah(saldo)}
           </div>
           <p style={{ fontSize: 9, color: "#64748b", marginTop: 4 }}>
-            Nominal dari tabel kas (otomatis)
+            Hitung otomatis (pembayaran murid × Rp 2.000)
           </p>
         </div>
 
@@ -465,4 +464,5 @@ export default function AdminDashboardPage() {
       </button>
     </div>
   );
-}
+            }
+        
