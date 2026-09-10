@@ -86,7 +86,7 @@ export default function AbsensiPage() {
             className="glass-card text-center"
             style={{ padding: 8 }}
           >
-            <div className="title-sub" style={{ fontSize: 7.5 }}>
+            <div className="title-sub" style={{ fontSize: 8 }}>
               {item.label}
             </div>
             <div
@@ -132,7 +132,7 @@ export default function AbsensiPage() {
                 onClick={() => pickStudent(s.idx, s.nama)}
               >
                 <span>{s.nama}</span>
-                <span style={{ fontSize: 9, color: "#60a5fa" }}>
+                <span style={{ fontSize: 10, color: "#60a5fa" }}>
                   NISN: {s.nisn}
                 </span>
               </div>
@@ -196,17 +196,17 @@ export default function AbsensiPage() {
             borderBottom: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
-            <i className="fa-solid fa-chart-pie" style={{ marginRight: 4 }} />
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa" }}>
+            <i className="fa-solid fa-chart-pie" style={{ marginRight: 6 }} />
             Rekap Akumulasi 1 Tahun
           </span>
           <span
             style={{
-              fontSize: 8.5,
+              fontSize: 10,
               background: "rgba(34,197,94,0.15)",
               color: "#4ade80",
               border: "1px solid rgba(74,222,128,0.3)",
-              padding: "2px 6px",
+              padding: "2px 8px",
               borderRadius: 6,
               fontWeight: 700,
             }}
@@ -225,7 +225,7 @@ export default function AbsensiPage() {
                 <th style={{ color: "#60a5fa" }}>Izin</th>
                 <th style={{ color: "#facc15" }}>Sakit</th>
                 <th style={{ color: "#f43f5e" }}>Alpa</th>
-                <th style={{ textAlign: "center", minWidth: 160 }}>PERSENTASE</th>
+                <th style={{ textAlign: "center", minWidth: 200 }}>PERSENTASE</th>
               </tr>
             </thead>
             <tbody>
@@ -266,16 +266,16 @@ export default function AbsensiPage() {
                     <td style={{ color: "#f43f5e", fontWeight: 800 }}>
                       {s.alpa}
                     </td>
-                    <td style={{ padding: "8px 4px" }}>
-                      {/* Teks %H %I %S %A (Ukuran disamakan persis dengan halaman admin) */}
+                    <td style={{ padding: "8px 10px" }}>
+                      {/* Font persentase dinaikkan ke 11px agar terbaca jelas */}
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          fontSize: 8,
-                          fontWeight: 800,
-                          marginBottom: 4,
-                          gap: 2,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          marginBottom: 6,
+                          gap: 6,
                         }}
                       >
                         <span style={{ color: "#4ade80" }}>H:{pctH}%</span>
@@ -284,11 +284,11 @@ export default function AbsensiPage() {
                         <span style={{ color: "#f43f5e" }}>A:{pctA}%</span>
                       </div>
 
-                      {/* Stacked Progress Bar */}
+                      {/* Stacked Progress Bar (Tinggi 8px) */}
                       <div
                         style={{
                           width: "100%",
-                          height: 6,
+                          height: 8,
                           background: "rgba(255,255,255,0.08)",
                           borderRadius: 4,
                           overflow: "hidden",
@@ -397,7 +397,7 @@ export default function AbsensiPage() {
           </span>
           <span
             style={{
-              fontSize: 8.5,
+              fontSize: 10,
               background: "rgba(96,165,250,0.15)",
               color: "#60a5fa",
               border: "1px solid rgba(96,165,250,0.3)",
@@ -455,7 +455,7 @@ export default function AbsensiPage() {
                             ? "#f43f5e"
                             : "#64748b",
                         fontWeight: 700,
-                        fontSize: 9,
+                        fontSize: 10,
                       }}
                     >
                       {st}
