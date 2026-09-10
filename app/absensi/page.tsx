@@ -225,7 +225,7 @@ export default function AbsensiPage() {
                 <th style={{ color: "#60a5fa" }}>Izin</th>
                 <th style={{ color: "#facc15" }}>Sakit</th>
                 <th style={{ color: "#f43f5e" }}>Alpa</th>
-                <th>Persentase</th>
+                <th style={{ textAlign: "center", minWidth: 160 }}>PERSENTASE</th>
               </tr>
             </thead>
             <tbody>
@@ -266,29 +266,62 @@ export default function AbsensiPage() {
                     <td style={{ color: "#f43f5e", fontWeight: 800 }}>
                       {s.alpa}
                     </td>
-                    <td>
-                      <div className="pct-breakdown">
+                    <td style={{ padding: "8px 4px" }}>
+                      {/* Teks %H %I %S %A (Ukuran disamakan persis dengan halaman admin) */}
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 8,
+                          fontWeight: 800,
+                          marginBottom: 4,
+                          gap: 2,
+                        }}
+                      >
                         <span style={{ color: "#4ade80" }}>H:{pctH}%</span>
                         <span style={{ color: "#60a5fa" }}>I:{pctI}%</span>
                         <span style={{ color: "#facc15" }}>S:{pctS}%</span>
                         <span style={{ color: "#f43f5e" }}>A:{pctA}%</span>
                       </div>
-                      <div className="progress-bar-container">
+
+                      {/* Stacked Progress Bar */}
+                      <div
+                        style={{
+                          width: "100%",
+                          height: 6,
+                          background: "rgba(255,255,255,0.08)",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          display: "flex",
+                        }}
+                      >
                         <div
-                          className="progress-seg bg-hadir"
-                          style={{ width: pctH + "%" }}
+                          style={{
+                            width: `${pctH}%`,
+                            background: "#4ade80",
+                            height: "100%",
+                          }}
                         />
                         <div
-                          className="progress-seg bg-izin"
-                          style={{ width: pctI + "%" }}
+                          style={{
+                            width: `${pctI}%`,
+                            background: "#60a5fa",
+                            height: "100%",
+                          }}
                         />
                         <div
-                          className="progress-seg bg-sakit"
-                          style={{ width: pctS + "%" }}
+                          style={{
+                            width: `${pctS}%`,
+                            background: "#facc15",
+                            height: "100%",
+                          }}
                         />
                         <div
-                          className="progress-seg bg-alpha"
-                          style={{ width: pctA + "%" }}
+                          style={{
+                            width: `${pctA}%`,
+                            background: "#f43f5e",
+                            height: "100%",
+                          }}
                         />
                       </div>
                     </td>
