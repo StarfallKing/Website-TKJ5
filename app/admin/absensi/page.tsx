@@ -43,7 +43,7 @@ export default function AdminAbsensiPage() {
       {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
       <AdminHeader />
 
-      {/* 1. REKAP RATA-RATA ATAS (Sesuai Gambar 1) */}
+      {/* 1. REKAP RATA-RATA ATAS */}
       <div
         style={{
           display: "grid",
@@ -144,7 +144,7 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* 2. REKAP AKUMULASI 1 TAHUN AJARAN (Sesuai Gambar 3) */}
+      {/* 2. REKAP AKUMULASI 1 TAHUN AJARAN */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           style={{
@@ -326,65 +326,91 @@ export default function AdminAbsensiPage() {
         })}
       </div>
 
-      {/* Tabel Harian */}
+      {/* Tabel Harian dengan Kolom H, I, S, A */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="table-responsive">
           <table className="absensi-table monthly-table">
             <thead>
               <tr>
                 <th>No</th>
-                <th style={{ textAlign: "left" }}>Nama</th>
+                <th style={{ textAlign: "left", paddingLeft: 10 }}>Nama</th>
                 {Array.from({ length: m.days }, (_, d) => (
                   <th key={d}>{d + 1}</th>
                 ))}
+                {/* Header Rekap Bulan Ini */}
+                <th style={{ color: "#4ade80" }}>H</th>
+                <th style={{ color: "#60a5fa" }}>I</th>
+                <th style={{ color: "#facc15" }}>S</th>
+                <th style={{ color: "#f43f5e" }}>A</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s, si) => (
-                <tr key={s.nisn}>
-                  <td style={{ color: "#60a5fa", fontWeight: 700 }}>{si + 1}</td>
-                  <td
-                    style={{
-                      textAlign: "left",
-                      fontWeight: 700,
-                      fontSize: 10,
-                    }}
-                  >
-                    {s.nama}
-                  </td>
-                  {Array.from({ length: m.days }, (_, d) => {
-                    const day = d + 1;
-                    const st = getAttendanceCell(si, monthIdx, day);
-                    return (
-                      <td
-                        key={day}
-                        onClick={() => cycle(si, day)}
-                        style={{
-                          cursor: "pointer",
-                          fontWeight: 800,
-                          fontSize: 10,
-                          color:
-                            st === "H"
-                              ? "#4ade80"
-                              : st === "I"
-                              ? "#60a5fa"
-                              : st === "S"
-                              ? "#facc15"
-                              : st === "A"
-                              ? "#f43f5e"
-                              : "#64748b",
-                        }}
-                      >
-                        {st}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {students.map((s, si) => {
+                let mH = 0;
+                let mI = 0;
+                let mS = 0;
+                let mA = 0;
+                const cells = [];
+
+                for (let d = 1; d <= m.days; d++) {
+                  const st = getAttendanceCell(si, monthIdx, d);
+                  if (st === "H") mH++;
+                  else if (st === "I") mI++;
+                  else if (st === "S") mS++;
+                  else if (st === "A") mA++;
+
+                  cells.push(
+                    <td
+                      key={d}
+                      onClick={() => cycle(si, d)}
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: 800,
+                        fontSize: 10,
+                        color:
+                          st === "H"
+                            ? "#4ade80"
+                            : st === "I"
+                            ? "#60a5fa"
+                            : st === "S"
+                            ? "#facc15"
+                            : st === "A"
+                            ? "#f43f5e"
+                            : "#64748b",
+                      }}
+                    >
+                      {st}
+                    </td>
+                  );
+                }
+
+                return (
+                  <tr key={s.nisn}>
+                    <td style={{ color: "#60a5fa", fontWeight: 700 }}>{si + 1}</td>
+                    <td
+                      style={{
+                        textAlign: "left",
+                        fontWeight: 700,
+                        fontSize: 10,
+                        paddingLeft: 10,
+                      }}
+                    >
+                      {s.nama}
+                    </td>
+                    {cells}
+                    {/* Render Nilai Akumulasi H I S A Per Bulan */}
+                    <td style={{ color: "#4ade80", fontWeight: 800 }}>{mH}</td>
+                    <td style={{ color: "#60a5fa", fontWeight: 800 }}>{mI}</td>
+                    <td style={{ color: "#facc15", fontWeight: 800 }}>{mS}</td>
+                    <td style={{ color: "#f43f5e", fontWeight: 800 }}>{mA}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
     </div>
   );
-}
+              }
+              
