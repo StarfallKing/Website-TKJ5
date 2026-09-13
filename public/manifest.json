@@ -1,0 +1,21 @@
+{
+  "name": "Kelas X TKJ-5",
+  "short_name": "X TKJ-5",
+  "description": "Website Resmi dan Data Absensi Kelas X TKJ-5",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
