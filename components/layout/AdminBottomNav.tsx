@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const LEFT = [
   { href: "/admin/dashboard", icon: "fa-house" },
@@ -25,34 +25,46 @@ export default function AdminBottomNav() {
   const [pillLeft, setPillLeft] = useState(0);
   const [dragging, setDragging] = useState(false);
 
-  if (!pathname || pathname === "/admin") return null;
+  const isLoginScreen = !pathname || pathname === "/admin" || pathname === "/admin/";
 
   const active = Math.max(
     0,
-    ALL.findIndex((i) => pathname.startsWith(i.href))
+    ALL.findIndex((i) => pathname?.startsWith(i.href))
   );
 
-  function snap(i: number) {
-    const el = refs.current[i];
+  const updatePillPosition = useCallback((index: number) => {
+    const el = refs.current[index];
     if (el) {
       const r = el.getBoundingClientRect();
       setPillLeft(r.left + r.width / 2 - 22);
     }
+  }, []);
+
+  function snap(i: number) {
+    updatePillPosition(i);
     router.push(ALL[i].href);
   }
 
   useEffect(() => {
-    const el = refs.current[active];
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setPillLeft(r.left + r.width / 2 - 22);
-  }, [active, pathname]);
+    if (isLoginScreen) return;
+    updatePillPosition(active);
+
+    const handleResize = () => updatePillPosition(active);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [active, pathname, isLoginScreen, updatePillPosition]);
+
+  if (isLoginScreen) return null;
 
   function onTouchEnd(e: React.TouchEvent) {
     setDragging(false);
     const x = e.changedTouches[0].clientX;
     let best = active;
     let min = Infinity;
+
     refs.current.forEach((btn, i) => {
       if (!btn) return;
       const r = btn.getBoundingClientRect();
@@ -62,6 +74,7 @@ export default function AdminBottomNav() {
         best = i;
       }
     });
+
     snap(best);
   }
 
