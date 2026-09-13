@@ -146,16 +146,23 @@ export default function AdminDashboardPage() {
     kasLog,
     siteContent,
     setSiteContent,
+    currentUser,
+    authInitialized,
   } = useAppData();
 
   const [draft, setDraft] = useState<SiteContent>(siteContent);
   const [saving, setSaving] = useState(false);
 
+  // --- CEK SESI LOGIN DENGAN SAFE GUARD ---
   useEffect(() => {
-    if (sessionStorage.getItem("admin-ok") !== "1") {
+    // Tunggu pembacaan localStorage selesai 100%
+    if (!authInitialized) return;
+
+    // Jika tidak ada user login dan penanda sessionStorage kosong, kembalikan ke login
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
     }
-  }, [router]);
+  }, [authInitialized, currentUser, router]);
 
   useEffect(() => {
     setDraft(siteContent);
@@ -163,11 +170,10 @@ export default function AdminDashboardPage() {
 
   // Kalkulasi saldo otomatis gabungan kas_paid dan kasLog
   const saldo = useMemo(() => {
-    // 1. Total dari centang bayar murid (paymentOverrides / kas_paid)
     const totalMasukPaid =
-      Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
+      Object.values(paymentOverrides || {}).filter(Boolean).length *
+      (NOMINAL_KAS || 2000);
 
-    // 2. Total log transaksi manual (kas_log)
     const totalLog = (kasLog || []).reduce((acc, curr) => {
       return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
     }, 0);
@@ -230,6 +236,22 @@ export default function AdminDashboardPage() {
       ...d,
       news: d.news.filter((_, idx) => idx !== i),
     }));
+  }
+
+  // Tampilkan layar memuat sementara jika status auth belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: 40,
+          color: "#94a3b8",
+          fontSize: 12,
+        }}
+      >
+        Memuat Dashboard Admin...
+      </div>
+    );
   }
 
   return (
@@ -464,5 +486,4 @@ export default function AdminDashboardPage() {
       </button>
     </div>
   );
-            }
-        
+}
