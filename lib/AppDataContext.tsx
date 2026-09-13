@@ -62,6 +62,7 @@ type AppData = {
   schedule: ScheduleData;
   loading: boolean;
   // --- AUTH STATES & METHODS ---
+  authInitialized: boolean; // <-- Tambahan penanda status parsing localStorage
   currentUser: UserSession | null;
   setCurrentUser: (user: UserAccount | null) => void;
   login: (account: UserAccount) => void;
@@ -163,22 +164,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // --- STATE AKUN LOGIN (PERSISTENT 6 BULAN) ---
   const [currentUser, setCurrentUserSession] = useState<UserSession | null>(null);
+  const [authInitialized, setAuthInitialized] = useState(false); // Penanda pembacaan localStorage selesai
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(SESSION_STORAGE_KEY);
-      if (saved) {
-        try {
+      try {
+        const saved = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (saved) {
           const session: UserSession = JSON.parse(saved);
           const now = Date.now();
           if (now < session.expiresAt) {
             setCurrentUserSession(session);
+            sessionStorage.setItem("admin-ok", "1");
           } else {
             localStorage.removeItem(SESSION_STORAGE_KEY);
+            sessionStorage.removeItem("admin-ok");
           }
-        } catch {
-          localStorage.removeItem(SESSION_STORAGE_KEY);
         }
+      } catch (e) {
+        console.error("Failed parsing session:", e);
+      } finally {
+        setAuthInitialized(true); // Memastikan flag diset true setelah cek localStorage
       }
     }
   }, []);
@@ -580,6 +586,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       siteContent,
       schedule,
       loading,
+      authInitialized,
       currentUser,
       setCurrentUser: handleSetCurrentUser,
       login,
@@ -765,6 +772,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       siteContent,
       schedule,
       loading,
+      authInitialized,
       currentUser,
     ]
   );
