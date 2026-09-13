@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAppData, type UserRole } from "@/lib/AppDataContext";
 
 export default function AdminLoginPage() {
+  const router = useRouter();
+  const { login, currentUser } = useAppData();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [kode, setKode] = useState("");
@@ -12,18 +16,19 @@ export default function AdminLoginPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Jika sudah login, langsung lempar ke dashboard admin
-    if (sessionStorage.getItem("admin-ok") === "1") {
-      window.location.href = "/admin/dashboard";
+    // Cek jika sesi login 6 bulan aktif dari AppDataContext
+    if (currentUser) {
+      router.replace("/admin/dashboard");
     } else {
       setCheckingAuth(false);
     }
-  }, []);
+  }, [currentUser, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
     setLoading(true);
+
     try {
       const { data, error } = await supabase
         .from("admin_users")
@@ -40,13 +45,26 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Simpan session
-      sessionStorage.setItem("admin-ok", "1");
-      sessionStorage.setItem("admin-user", username);
-      sessionStorage.setItem("admin-last", String(Date.now()));
+      // Tentukan UserRole sederhana berdasarkan string role dari DB
+      const dbRole = String(data.role || "").toLowerCase();
+      let parsedRole: UserRole = "admin";
+      if (dbRole.includes("ketua")) parsedRole = "ketua";
+      else if (dbRole.includes("sekretaris")) parsedRole = "sekretaris";
+      else if (dbRole.includes("bendahara")) parsedRole = "bendahara";
 
-      // Redirect bersih ke dashboard admin
-      window.location.href = "/admin/dashboard";
+      // Eksekusi login persistent 6 bulan
+      login({
+        username: data.username,
+        name: data.username,
+        role: parsedRole,
+        roleClass: data.role || "Pengurus Kelas",
+        avatar: "/avatars/default.png",
+      });
+
+      // Simpan penanda fallback
+      sessionStorage.setItem("admin-ok", "1");
+
+      router.replace("/admin/dashboard");
     } catch {
       setErr("Gagal terhubung ke server");
       setLoading(false);
@@ -104,11 +122,7 @@ export default function AdminLoginPage() {
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        className="btn-pay-qris"
-        disabled={loading}
-      >
+      <button type="submit" className="btn-pay-qris" disabled={loading}>
         {loading ? "Memeriksa..." : "Masuk"}
       </button>
     </form>
