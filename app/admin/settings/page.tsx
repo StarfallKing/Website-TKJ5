@@ -8,7 +8,16 @@ import AdminHeader from "@/components/layout/AdminHeader";
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { currentUser, setCurrentUser, maintenanceMode, setMaintenanceMode, activityLog, pushLog, loading: appLoading } = useAppData();
+  const {
+    currentUser,
+    setCurrentUser,
+    maintenanceMode,
+    setMaintenanceMode,
+    activityLog,
+    pushLog,
+    loading: appLoading,
+    authInitialized,
+  } = useAppData();
 
   const [targetId, setTargetId] = useState<number | null>(null);
   const [username, setUsername] = useState("");
@@ -21,8 +30,11 @@ export default function AdminSettingsPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
+  // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
-    if (!appLoading && !currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
       return;
     }
@@ -38,7 +50,7 @@ export default function AdminSettingsPage() {
         void loadAllUsers();
       }
     }
-  }, [currentUser, appLoading, router, targetId]);
+  }, [currentUser, authInitialized, router, targetId]);
 
   function isSuperAdmin(r?: string) {
     if (!r) return false;
@@ -100,7 +112,8 @@ export default function AdminSettingsPage() {
     }
   }
 
-  if (appLoading || !currentUser) {
+  // Prevent render jika status auth belum siap
+  if (!authInitialized || appLoading || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div style={{ padding: 40, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
         Memuat data sistem...
@@ -108,8 +121,8 @@ export default function AdminSettingsPage() {
     );
   }
 
-  const isSuper = isSuperAdmin(currentUser.role);
-  const userInitial = (currentUser.username || currentUser.name || "A").substring(0, 2).toUpperCase();
+  const isSuper = isSuperAdmin(currentUser?.role);
+  const userInitial = (currentUser?.username || currentUser?.name || "A").substring(0, 2).toUpperCase();
   
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -160,7 +173,7 @@ export default function AdminSettingsPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 16, fontWeight: 800, color: "#f8fafc" }}>
-                {currentUser.username || currentUser.name}
+                {currentUser?.username || currentUser?.name}
               </span>
               <span
                 style={{
@@ -177,7 +190,7 @@ export default function AdminSettingsPage() {
               </span>
             </div>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-              Jabatan: <strong style={{ color: "#38bdf8" }}>{currentUser.role}</strong>
+              Jabatan: <strong style={{ color: "#38bdf8" }}>{currentUser?.role}</strong>
             </div>
           </div>
         </div>
@@ -197,13 +210,13 @@ export default function AdminSettingsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
             <span style={{ color: "#94a3b8" }}>ID Sesi Login</span>
             <span style={{ color: "#f8fafc", fontWeight: 700, fontFamily: "monospace" }}>
-              #{targetId ?? currentUser.id ?? "-"}
+              #{targetId ?? currentUser?.id ?? "-"}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
             <span style={{ color: "#94a3b8" }}>Kode Akses Login</span>
             <span style={{ color: "#facc15", fontWeight: 700, fontFamily: "monospace" }}>
-              {kode || currentUser.kode || "-"}
+              {kode || currentUser?.kode || "-"}
             </span>
           </div>
         </div>
@@ -215,7 +228,7 @@ export default function AdminSettingsPage() {
           <button
             type="button"
             onClick={() => {
-              if (currentUser.id) handleSelectUserToEdit(currentUser);
+              if (currentUser?.id) handleSelectUserToEdit(currentUser);
             }}
             style={{
               flex: 1,
@@ -442,7 +455,7 @@ export default function AdminSettingsPage() {
             <p style={{ fontSize: 10, color: "#64748b" }}>Belum ada catatan aktivitas</p>
           ) : (
             activityLog
-              .filter((l) => isSuper || l.user === (currentUser.username || currentUser.name))
+              .filter((l) => isSuper || l.user === (currentUser?.username || currentUser?.name))
               .slice(0, 30)
               .map((l) => (
                 <div
