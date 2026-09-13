@@ -25,15 +25,18 @@ import {
 } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
-// --- TYPE DEFINITIONS UNTUK MULTI-AKUN & SESI 6 BULAN ---
-export type UserRole = "admin" | "ketua" | "sekretaris" | "bendahara";
+// --- TYPE DEFINITIONS MULTI-AKUN & SESI 6 BULAN ---
+export type UserRole = "admin" | "ketua" | "sekretaris" | "bendahara" | "superadmin" | string;
 
 export type UserAccount = {
+  id: number;
   username: string;
-  name: string;
+  name?: string;
+  password?: string;
+  kode?: string;
   role: UserRole;
-  roleClass: string;
-  avatar: string;
+  roleClass?: string;
+  avatar?: string;
 };
 
 export type UserSession = UserAccount & {
@@ -60,6 +63,7 @@ type AppData = {
   loading: boolean;
   // --- AUTH STATES & METHODS ---
   currentUser: UserSession | null;
+  setCurrentUser: (user: UserAccount | null) => void;
   login: (account: UserAccount) => void;
   logout: () => void;
   // --- ACTION METHODS ---
@@ -158,9 +162,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // --- STATE AKUN LOGIN (PERSISTENT 6 BULAN) ---
-  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+  const [currentUser, setCurrentUserSession] = useState<UserSession | null>(null);
 
-  // Initial Check Sesi Login dari localStorage saat komponen pertama di-mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(SESSION_STORAGE_KEY);
@@ -169,7 +172,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           const session: UserSession = JSON.parse(saved);
           const now = Date.now();
           if (now < session.expiresAt) {
-            setCurrentUser(session);
+            setCurrentUserSession(session);
           } else {
             localStorage.removeItem(SESSION_STORAGE_KEY);
           }
@@ -180,32 +183,41 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = (account: UserAccount) => {
-    const session: UserSession = {
-      ...account,
-      expiresAt: Date.now() + SIX_MONTHS_MS,
-    };
-    setCurrentUser(session);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-      sessionStorage.setItem("admin-user", account.name);
+  const handleSetCurrentUser = (account: UserAccount | null) => {
+    if (account) {
+      const session: UserSession = {
+        ...account,
+        name: account.name || account.username,
+        expiresAt: Date.now() + SIX_MONTHS_MS,
+      };
+      setCurrentUserSession(session);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+        sessionStorage.setItem("admin-ok", "1");
+      }
+    } else {
+      setCurrentUserSession(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        sessionStorage.removeItem("admin-ok");
+      }
     }
-    pushLog(`Login Akun (${account.roleClass})`);
+  };
+
+  const login = (account: UserAccount) => {
+    handleSetCurrentUser(account);
+    pushLog(`Login Akun (${account.roleClass || account.role})`);
   };
 
   const logout = () => {
     if (currentUser) {
-      pushLog(`Logout Akun (${currentUser.roleClass})`);
+      pushLog(`Logout Akun (${currentUser.roleClass || currentUser.role})`);
     }
-    setCurrentUser(null);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(SESSION_STORAGE_KEY);
-      sessionStorage.removeItem("admin-user");
-    }
+    handleSetCurrentUser(null);
   };
 
   function currentAdminUser() {
-    return currentUser?.name || "system";
+    return currentUser?.name || currentUser?.username || "system";
   }
 
   async function refreshFromDb() {
@@ -569,6 +581,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       schedule,
       loading,
       currentUser,
+      setCurrentUser: handleSetCurrentUser,
       login,
       logout,
       setSiteContent,
