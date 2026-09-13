@@ -15,11 +15,11 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Tunggu sampai pembacaan localStorage selesai 100%
+    // Tunggu sampai pembacaan auth/localStorage selesai 100%
     if (!authInitialized) return;
 
-    // Jika sesi login aktif, redirect ke dashboard
-    if (currentUser) {
+    // Jika sesi login aktif, redirect otomatis ke dashboard
+    if (currentUser || sessionStorage.getItem("admin-ok") === "1") {
       router.replace("/admin/dashboard");
     }
   }, [currentUser, authInitialized, router]);
@@ -27,6 +27,12 @@ export default function AdminLoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
+
+    if (!username.trim() || !password || !kode.trim()) {
+      setErr("Semua kolom wajib diisi");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -39,21 +45,21 @@ export default function AdminLoginPage() {
         .maybeSingle();
 
       if (error) throw error;
+
       if (!data) {
         setErr("Username / password / kode salah");
         setLoading(false);
         return;
       }
 
-      // Tentukan UserRole sederhana berdasarkan string role dari DB
+      // Tentukan UserRole berdasarkan string role dari DB
       const dbRole = String(data.role || "").toLowerCase();
       let parsedRole: UserRole = "admin";
       if (dbRole.includes("ketua")) parsedRole = "ketua";
       else if (dbRole.includes("sekretaris")) parsedRole = "sekretaris";
       else if (dbRole.includes("bendahara")) parsedRole = "bendahara";
 
-      // Eksekusi login persistent 6 bulan
-      login({
+      const userPayload = {
         id: data.id ?? 1,
         username: data.username,
         name: data.username,
@@ -62,9 +68,14 @@ export default function AdminLoginPage() {
         role: parsedRole,
         roleClass: data.role || "Pengurus Kelas",
         avatar: "/avatars/default.png",
-      });
+      };
 
+      // Simpan state ke AppDataContext & SessionStorage
+      login(userPayload);
       sessionStorage.setItem("admin-ok", "1");
+      sessionStorage.setItem("admin-last", String(Date.now()));
+      sessionStorage.setItem("admin-user", JSON.stringify(userPayload));
+
       router.replace("/admin/dashboard");
     } catch {
       setErr("Gagal terhubung ke server");
@@ -72,7 +83,7 @@ export default function AdminLoginPage() {
     }
   }
 
-  // Tampilkan indikator memuat selama localStorage belum selesai dibaca
+  // Tampilkan indikator memuat selama localStorage/auth belum siap
   if (!authInitialized) {
     return (
       <div style={{ textAlign: "center", padding: 20, color: "#94a3b8", fontSize: 12 }}>
