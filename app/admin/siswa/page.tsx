@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getInitials, type Student } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
@@ -19,10 +19,27 @@ const empty: Student = {
 
 export default function AdminSiswaPage() {
   const router = useRouter();
-  const { students, addStudent, updateStudent, removeStudent } = useAppData();
+  const {
+    students,
+    addStudent,
+    updateStudent,
+    removeStudent,
+    currentUser,
+    authInitialized,
+  } = useAppData();
+  
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Student | null>(null);
   const [isNew, setIsNew] = useState(false);
+
+  // --- PROTEKSI RUTE & AUTH GUARD ---
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+      router.replace("/admin");
+    }
+  }, [authInitialized, currentUser, router]);
 
   const list = useMemo(() => {
     const t = q.toLowerCase().trim();
@@ -46,6 +63,15 @@ export default function AdminSiswaPage() {
     }
     setEdit(null);
     setIsNew(false);
+  }
+
+  // Prevent render jika status auth belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data siswa...
+      </div>
+    );
   }
 
   return (
