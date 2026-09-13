@@ -2,85 +2,339 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
 
-type AdminUser = {
-  id: number;
-  username: string;
-  password: string;
-  kode: string;
-  role: string;
-};
-
-const roleColor: Record<string, string> = {
-  superadmin: "#f8fafc",
-  Superadmin: "#f8fafc",
-  "Ketua Kelas": "#facc15",
-  "Wakil Ketua": "#60a5fa",
-  "Sekretaris 1": "#38bdf8",
-  "Sekretaris 2": "#22d3ee",
-  "Bendahara 1": "#4ade80",
-  "Bendahara 2": "#34d399",
-  Keamanan: "#fb923c",
-  "Kesehatan 1": "#f43f5e",
-  "Kesehatan 2": "#fb7185",
-  pengurus: "#94a3b8",
-};
-
-function colorOf(role: string) {
-  return roleColor[role] || "#94a3b8";
-}
-
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { activityLog, maintenanceMode, setMaintenanceMode, currentUser, loading: appLoading, students } = useAppData();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { currentUser, maintenanceMode, setMaintenanceMode, activityLog, loading: appLoading } = useAppData();
+
+  // State Form Edit Kredensial Akun Aktif
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [kode, setKode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "all_users">("profile");
+
+  // State untuk Superadmin (List Semua Akun)
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     if (!appLoading && !currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
       return;
     }
-    void loadUsers();
+
+    if (currentUser) {
+      setUsername(currentUser.username || "");
+      setPassword(currentUser.password || "");
+      setKode(currentUser.kode || "");
+
+      // Jika yang login Superadmin, baru load data semua akun
+      if (isSuperAdmin(currentUser.role)) {
+        void loadAllUsers();
+      }
+    }
   }, [currentUser, appLoading, router]);
 
-  async function loadUsers() {
-    setLoading(true);
-    const { data, error } = await supabase
+  function isSuperAdmin(role?: string) {
+    if (!role) return false;
+    const r = role.toLowerCase();
+    return r === "superadmin" || r === "super admin" || r === "admin";
+  }
+
+  async function loadAllUsers() {
+    setLoadingUsers(true);
+    const { data } = await supabase.from("admin_users").select("*").order("id");
+    if (data) setAllUsers(data);
+    setLoadingUsers(false);
+  }
+
+  // Simpan Perubahan Akun Sendiri
+  async function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    if (!currentUser?.id) return alert("Sesi login tidak valid!");
+
+    setSaving(true);
+    const { error } = await supabase
       .from("admin_users")
-      .select("*")
-      .order("id");
-    if (error) alert(error.message);
-    else setUsers((data as AdminUser[]) || []);
-    setLoading(false);
+      .update({
+        username: username.trim(),
+        password: password.trim(),
+        kode: kode.trim(),
+      })
+      .eq("id", currentUser.id);
+
+    setSaving(false);
+
+    if (error) {
+      alert("Gagal memperbarui data: " + error.message);
+    } else {
+      alert("Data akun Anda berhasil diperbarui! Silakan gunakan kredensial baru saat login berikutnya.");
+    }
   }
 
   function handleToggleMaintenance() {
     const nextState = !maintenanceMode;
     const confirmMsg = nextState
-      ? "Aktifkan Mode Perbaikan (Maintenance)? Pengunjung tidak akan bisa mengakses website publik."
-      : "Matikan Mode Perbaikan? Website publik akan kembali dibuka normal.";
+      ? "Aktifkan Mode Perbaikan (Maintenance)? Pengunjung publik tidak bisa mengakses web."
+      : "Matikan Mode Perbaikan? Website publik akan kembali diakses normal.";
 
     if (confirm(confirmMsg)) {
       void setMaintenanceMode(nextState);
     }
   }
 
+  // Tampilan Loading
+  if (appLoading || !currentUser) {
+    return (
+      <div style={{ padding: 20, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
+        Memuat profil akun...
+      </div>
+    );
+  }
+
+  const isSuper = isSuperAdmin(currentUser.role);
+  const userInitial = (currentUser.username || "A").substring(0, 2).toUpperCase();
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 60 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 80 }}>
       <AdminHeader />
 
-      <div className="glass-card text-center">
-        <div className="title-sub">STRUKTUR AKUN PERANGKAT KELAS</div>
-        <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
-          Pilih kartu perangkat → ganti username / password / kode unik
-        </p>
+      {/* HEADER PROFIL PERSONAL (Sesuai Gambar 2) */}
+      <div
+        className="glass-card"
+        style={{
+          padding: 16,
+          background: "linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.95) 100%)",
+          borderRadius: 16,
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          {/* Avatar Inisial Bulat */}
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 20,
+              fontWeight: 900,
+              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+              flexShrink: 0,
+            }}
+          >
+            {userInitial}
+          </div>
+
+          {/* Info Utama User Login */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 16, fontWeight: 900, color: "#f8fafc" }}>
+                {currentUser.username}
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  background: "rgba(34, 197, 94, 0.2)",
+                  color: "#4ade80",
+                  border: "1px solid rgba(34, 197, 94, 0.4)",
+                  padding: "2px 8px",
+                  borderRadius: 12,
+                }}
+              >
+                Verified Account
+              </span>
+            </div>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
+              Jabatan: <strong style={{ color: "#38bdf8" }}>{currentUser.role}</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* METRICS / BADGE ID (Sesuai Layout Gambar 2) */}
+        <div
+          style={{
+            marginTop: 14,
+            padding: 12,
+            borderRadius: 12,
+            background: "rgba(0,0,0,0.3)",
+            border: "1px solid rgba(255,255,255,0.05)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+            <span style={{ color: "#94a3b8" }}>ID Sesi Login</span>
+            <span style={{ color: "#f8fafc", fontWeight: 700, fontFamily: "monospace" }}>
+              #{currentUser.id}
+            </span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+            <span style={{ color: "#94a3b8" }}>Kode Akses Login</span>
+            <span style={{ color: "#facc15", fontWeight: 700, fontFamily: "monospace" }}>
+              {currentUser.kode}
+            </span>
+          </div>
+        </div>
       </div>
 
+      {/* TAB KHUSUS UNTUK SUPERADMIN */}
+      {isSuper && (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("profile")}
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+              background: activeTab === "profile" ? "rgba(56, 189, 248, 0.2)" : "rgba(255,255,255,0.05)",
+              color: activeTab === "profile" ? "#38bdf8" : "#94a3b8",
+              border: "1px solid " + (activeTab === "profile" ? "#38bdf8" : "transparent"),
+            }}
+          >
+            👤 Profil Akun Saya
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("all_users")}
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+              background: activeTab === "all_users" ? "rgba(56, 189, 248, 0.2)" : "rgba(255,255,255,0.05)",
+              color: activeTab === "all_users" ? "#38bdf8" : "#94a3b8",
+              border: "1px solid " + (activeTab === "all_users" ? "#38bdf8" : "transparent"),
+            }}
+          >
+            ⚙️ Kelola Semua Akun ({allUsers.length})
+          </button>
+        </div>
+      )}
+
+      {/* TAB 1: EDIT FORM AKUN LOGIN SAAT INI */}
+      {activeTab === "profile" && (
+        <form onSubmit={handleSaveProfile} className="glass-card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="title-sub" style={{ fontSize: 12 }}>
+            PENGATURAN KREDENSIAL AKUN
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>
+              Username Akses
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={{ width: "100%", padding: 10, fontSize: 12, borderRadius: 8 }}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>
+              Password Login
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ width: "100%", padding: 10, fontSize: 12, borderRadius: 8 }}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>
+              Kode Unik Akun
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              value={kode}
+              onChange={(e) => setKode(e.target.value)}
+              required
+              style={{ width: "100%", padding: 10, fontSize: 12, borderRadius: 8 }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-action-light"
+            style={{
+              marginTop: 4,
+              padding: 10,
+              fontWeight: 800,
+              fontSize: 12,
+              background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+              color: "#fff",
+              borderRadius: 8,
+              border: "none",
+            }}
+          >
+            {saving ? "Menyimpan Perubahan..." : "Simpan Perubahan Akun"}
+          </button>
+        </form>
+      )}
+
+      {/* TAB 2: KHUSUS SUPERADMIN KELOLA DATA AKUN LAIN */}
+      {isSuper && activeTab === "all_users" && (
+        <div className="glass-card" style={{ padding: 14 }}>
+          <div className="title-sub" style={{ marginBottom: 10 }}>
+            DAFTAR SELURUH AKUN ADMIN
+          </div>
+          {loadingUsers ? (
+            <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center" }}>Memuat daftar akun...</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {allUsers.map((u) => (
+                <div
+                  key={u.id}
+                  style={{
+                    padding: 10,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 12, color: "#f8fafc" }}>
+                      {u.username} <span style={{ color: "#38bdf8", fontSize: 10 }}>({u.role})</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
+                      Kode: {u.kode} · Pass: {u.password}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 10, color: "#64748b" }}>#{u.id}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* KONTROL MAINTENANCE (GLOBAL) */}
       <div
         className="glass-card"
         style={{
@@ -88,193 +342,63 @@ export default function AdminSettingsPage() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: 12,
-          borderColor: maintenanceMode
-            ? "rgba(244, 63, 94, 0.45)"
-            : "rgba(74, 222, 128, 0.3)",
+          borderColor: maintenanceMode ? "rgba(244, 63, 94, 0.45)" : "rgba(74, 222, 128, 0.3)",
         }}
       >
         <div>
-          <div
-            style={{
-              fontWeight: 800,
-              fontSize: 12,
-              color: maintenanceMode ? "#f43f5e" : "#4ade80",
-            }}
-          >
-            {maintenanceMode ? "MODE PERBAIKAN ON" : "WEB PUBLIK AKTIF"}
+          <div style={{ fontWeight: 800, fontSize: 12, color: maintenanceMode ? "#f43f5e" : "#4ade80" }}>
+            {maintenanceMode ? "🔴 MODE PERBAIKAN AKTIF" : "🟢 WEBSITE PUBLIK AKTIF"}
           </div>
           <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
-            {maintenanceMode
-              ? "Pengunjung hanya lihat teks perbaikan"
-              : "Portal publik bisa dibuka normal"}
+            {maintenanceMode ? "Publik dialihkan ke perbaikan" : "Publik bisa akses normal"}
           </p>
         </div>
         <button
           type="button"
-          className="btn-action-light"
+          onClick={handleToggleMaintenance}
           style={{
             fontSize: 10,
-            padding: "6px 12px",
+            padding: "8px 12px",
             borderRadius: 8,
             fontWeight: 700,
-            background: maintenanceMode
-              ? "rgba(34,197,94,0.2)"
-              : "rgba(244,63,94,0.25)",
+            background: maintenanceMode ? "rgba(34,197,94,0.2)" : "rgba(244,63,94,0.25)",
             color: maintenanceMode ? "#4ade80" : "#fda4af",
+            border: "none",
           }}
-          onClick={handleToggleMaintenance}
         >
-          {maintenanceMode ? "Matikan" : "Website sedang perbaikan"}
+          {maintenanceMode ? "Matikan" : "Set Maintenance"}
         </button>
       </div>
 
-      {loading && (
-        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
-          Memuat struktur akun...
-        </p>
-      )}
-
-      {/* TAMPILAN CARD STRUKTUR ORGANISASI ADMIN */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-          gap: 10,
-        }}
-      >
-        {users.map((u) => {
-          const c = colorOf(u.role);
-
-          // Coba cari data siswa yang cocok dengan role atau username
-          const matchedStudent = students.find(
-            (s) =>
-              s.roleClass?.toLowerCase() === u.role.toLowerCase() ||
-              s.nama.toLowerCase() === u.username.toLowerCase()
-          );
-
-          return (
-            <Link
-              key={u.id}
-              href={"/admin/settings/" + u.id}
-              className="glass-card"
-              style={{
-                textDecoration: "none",
-                borderColor: c + "66",
-                boxShadow: "0 0 12px " + c + "15",
-                padding: 14,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: 10,
-                borderRadius: 12,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span
+      {/* LOG AKTIVITAS USER SAYA */}
+      <div className="glass-card" style={{ padding: 14 }}>
+        <div className="title-sub" style={{ marginBottom: 8 }}>
+          📋 RIWAYAT AKTIVITAS SAYA
+        </div>
+        <div style={{ maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+          {activityLog.length === 0 ? (
+            <p style={{ fontSize: 11, color: "#64748b" }}>Belum ada log aktivitas</p>
+          ) : (
+            activityLog
+              .filter((l) => isSuper || l.user === currentUser.username)
+              .slice(0, 30)
+              .map((l) => (
+                <div
+                  key={l.id}
                   style={{
                     fontSize: 10,
-                    fontWeight: 800,
-                    color: c,
-                    background: c + "18",
-                    border: "1px solid " + c + "44",
-                    padding: "2px 8px",
+                    padding: "6px 8px",
                     borderRadius: 6,
-                  }}
-                >
-                  {u.role}
-                </span>
-                <span style={{ fontSize: 10, color: "#64748b" }}>#{u.id}</span>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: "50%",
-                    background: c + "22",
-                    border: "1.5px solid " + c,
+                    background: "rgba(255,255,255,0.02)",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                    fontWeight: 800,
-                    color: c,
-                    flexShrink: 0,
+                    justifyContent: "space-between",
                   }}
                 >
-                  {matchedStudent?.icon || u.username.charAt(0).toUpperCase()}
+                  <span style={{ color: "#f8fafc", fontWeight: 700 }}>{l.action}</span>
+                  <span style={{ color: "#64748b" }}>{l.at}</span>
                 </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontWeight: 900,
-                      fontSize: 14,
-                      color: "#f8fafc",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {u.username}
-                  </div>
-                  <div style={{ fontSize: 10, color: "#94a3b8" }}>
-                    {matchedStudent ? matchedStudent.nama : "Akun Pengurus"}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 4,
-                  paddingTop: 8,
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  fontSize: 10,
-                }}
-              >
-                <span style={{ color: "#94a3b8" }}>
-                  Kode: <strong style={{ color: "#f8fafc" }}>{u.kode}</strong>
-                </span>
-                <span style={{ color: c, fontWeight: 700 }}>Edit akun →</span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {!loading && users.length === 0 && (
-        <p style={{ textAlign: "center", color: "#64748b", fontSize: 12 }}>
-          Belum ada akun di tabel admin_users
-        </p>
-      )}
-
-      <div className="glass-card" style={{ marginTop: 2 }}>
-        <div className="title-sub" style={{ marginBottom: 8 }}>
-          LOG AKTIVITAS
-        </div>
-        <div style={{ maxHeight: 280, overflow: "auto" }}>
-          {activityLog.length === 0 && (
-            <p style={{ fontSize: 11, color: "#64748b" }}>Belum ada log</p>
+              ))
           )}
-          {activityLog.slice(0, 50).map((l) => (
-            <div
-              key={l.id}
-              style={{
-                fontSize: 10,
-                padding: "6px 0",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div style={{ fontWeight: 700, color: "#f8fafc" }}>{l.action}</div>
-              <div style={{ color: "#64748b" }}>
-                {l.user} · {l.at}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
