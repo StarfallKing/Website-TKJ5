@@ -36,7 +36,7 @@ function colorOf(role: string) {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { activityLog, maintenanceMode, setMaintenanceMode, currentUser, loading: appLoading } = useAppData();
+  const { activityLog, maintenanceMode, setMaintenanceMode, currentUser, loading: appLoading, students } = useAppData();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,13 +71,13 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 60 }}>
       <AdminHeader />
 
       <div className="glass-card text-center">
-        <div className="title-sub">SETTINGS ADMIN</div>
-        <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Pilih kartu → ganti username / password / kode unik
+        <div className="title-sub">STRUKTUR AKUN PERANGKAT KELAS</div>
+        <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+          Pilih kartu perangkat → ganti username / password / kode unik
         </p>
       </div>
 
@@ -130,13 +130,28 @@ export default function AdminSettingsPage() {
 
       {loading && (
         <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
-          Memuat akun...
+          Memuat struktur akun...
         </p>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* TAMPILAN CARD STRUKTUR ORGANISASI ADMIN */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gap: 10,
+        }}
+      >
         {users.map((u) => {
           const c = colorOf(u.role);
+
+          // Coba cari data siswa yang cocok dengan role atau username
+          const matchedStudent = students.find(
+            (s) =>
+              s.roleClass?.toLowerCase() === u.role.toLowerCase() ||
+              s.nama.toLowerCase() === u.username.toLowerCase()
+          );
+
           return (
             <Link
               key={u.id}
@@ -144,36 +159,87 @@ export default function AdminSettingsPage() {
               className="glass-card"
               style={{
                 textDecoration: "none",
-                borderColor: c + "55",
-                boxShadow: "0 0 12px " + c + "22",
+                borderColor: c + "66",
+                boxShadow: "0 0 12px " + c + "15",
                 padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 10,
+                borderRadius: 12,
               }}
             >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: c,
+                    background: c + "18",
+                    border: "1px solid " + c + "44",
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                  }}
+                >
+                  {u.role}
+                </span>
+                <span style={{ fontSize: 10, color: "#64748b" }}>#{u.id}</span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: "50%",
+                    background: c + "22",
+                    border: "1.5px solid " + c,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: c,
+                    flexShrink: 0,
+                  }}
+                >
+                  {matchedStudent?.icon || u.username.charAt(0).toUpperCase()}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      fontSize: 14,
+                      color: "#f8fafc",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {u.username}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#94a3b8" }}>
+                    {matchedStudent ? matchedStudent.nama : "Akun Pengurus"}
+                  </div>
+                </div>
+              </div>
+
               <div
                 style={{
-                  fontWeight: 900,
-                  fontSize: 14,
-                  color: c,
-                  marginBottom: 4,
-                }}
-              >
-                {u.username}
-              </div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                Role:{" "}
-                <span style={{ color: c, fontWeight: 800 }}>{u.role}</span>
-                {" · "}
-                Kode: {u.kode}
-              </div>
-              <div
-                style={{
-                  marginTop: 8,
+                  marginTop: 4,
+                  paddingTop: 8,
+                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                   fontSize: 10,
-                  color: "#60a5fa",
-                  fontWeight: 700,
                 }}
               >
-                Edit akun →
+                <span style={{ color: "#94a3b8" }}>
+                  Kode: <strong style={{ color: "#f8fafc" }}>{u.kode}</strong>
+                </span>
+                <span style={{ color: c, fontWeight: 700 }}>Edit akun →</span>
               </div>
             </Link>
           );
