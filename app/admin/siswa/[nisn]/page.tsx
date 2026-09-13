@@ -21,19 +21,30 @@ const ROLE_OPTIONS = [
 export default function AdminEditSiswaPage() {
   const { nisn } = useParams<{ nisn: string }>();
   const router = useRouter();
-  const { students, updateStudent, removeStudent, pushLog } = useAppData();
+  const {
+    students,
+    updateStudent,
+    removeStudent,
+    pushLog,
+    currentUser,
+    authInitialized,
+  } = useAppData();
+
   const found = students.find((s) => s.nisn === nisn);
   const [form, setForm] = useState<Student | null>(null);
+
+  // --- PROTEKSI RUTE & AUTH GUARD ---
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+      router.replace("/admin");
+    }
+  }, [authInitialized, currentUser, router]);
 
   useEffect(() => {
     if (found) setForm({ ...found });
   }, [found]);
-
-  if (!form) {
-    return (
-      <div className="glass-card text-center">Siswa tidak ditemukan</div>
-    );
-  }
 
   async function save() {
     if (!form) return;
@@ -63,6 +74,30 @@ export default function AdminEditSiswaPage() {
     router.push("/admin/siswa");
   }
 
+  // Prevent render jika status auth belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data autentikasi...
+      </div>
+    );
+  }
+
+  if (!form) {
+    return (
+      <div className="glass-card text-center" style={{ padding: 20 }}>
+        <p style={{ color: "#94a3b8", marginBottom: 12 }}>Siswa tidak ditemukan</p>
+        <button
+          type="button"
+          className="btn-action-light"
+          onClick={() => router.push("/admin/siswa")}
+        >
+          ← Kembali ke Data Siswa
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <button
@@ -75,7 +110,7 @@ export default function AdminEditSiswaPage() {
 
       <div
         className="glass-card"
-        style={{ display: "flex", flexDirection: "column", gap: 10 }}
+        style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}
       >
         <div className="title-sub">EDIT SISWA</div>
 
