@@ -6,18 +6,30 @@ import { supabase } from "@/lib/supabase";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
 
+// Type assertion untuk melengkapi properti currentUser
+type ExtendedUser = {
+  id?: number;
+  username?: string;
+  role?: string;
+  password?: string;
+  kode?: string;
+};
+
 export default function AdminSettingsPage() {
   const router = useRouter();
   const { currentUser, maintenanceMode, setMaintenanceMode, activityLog, loading: appLoading } = useAppData();
 
-  // State Form Edit Kredensial Akun Aktif
+  // Casting aman agar TypeScript tidak komplain
+  const user = (currentUser || {}) as ExtendedUser;
+
+  // Form edit akun
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [kode, setKode] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "all_users">("profile");
 
-  // State untuk Superadmin (List Semua Akun)
+  // State Superadmin
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
@@ -28,16 +40,15 @@ export default function AdminSettingsPage() {
     }
 
     if (currentUser) {
-      setUsername(currentUser.username || "");
-      setPassword(currentUser.password || "");
-      setKode(currentUser.kode || "");
+      setUsername(user.username || "");
+      setPassword(user.password || "");
+      setKode(user.kode || "");
 
-      // Jika yang login Superadmin, baru load data semua akun
-      if (isSuperAdmin(currentUser.role)) {
+      if (isSuperAdmin(user.role)) {
         void loadAllUsers();
       }
     }
-  }, [currentUser, appLoading, router]);
+  }, [currentUser, appLoading, router, user.username, user.password, user.kode, user.role]);
 
   function isSuperAdmin(role?: string) {
     if (!role) return false;
@@ -52,10 +63,9 @@ export default function AdminSettingsPage() {
     setLoadingUsers(false);
   }
 
-  // Simpan Perubahan Akun Sendiri
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    if (!currentUser?.id) return alert("Sesi login tidak valid!");
+    if (!user.id) return alert("ID akun tidak ditemukan di sesi login!");
 
     setSaving(true);
     const { error } = await supabase
@@ -65,29 +75,28 @@ export default function AdminSettingsPage() {
         password: password.trim(),
         kode: kode.trim(),
       })
-      .eq("id", currentUser.id);
+      .eq("id", user.id);
 
     setSaving(false);
 
     if (error) {
       alert("Gagal memperbarui data: " + error.message);
     } else {
-      alert("Data akun Anda berhasil diperbarui! Silakan gunakan kredensial baru saat login berikutnya.");
+      alert("Data akun berhasil disimpan! Silakan pakai kredensial baru di login berikutnya.");
     }
   }
 
   function handleToggleMaintenance() {
     const nextState = !maintenanceMode;
     const confirmMsg = nextState
-      ? "Aktifkan Mode Perbaikan (Maintenance)? Pengunjung publik tidak bisa mengakses web."
-      : "Matikan Mode Perbaikan? Website publik akan kembali diakses normal.";
+      ? "Aktifkan Mode Perbaikan (Maintenance)? Web publik tidak bisa diakses."
+      : "Matikan Mode Perbaikan? Web publik kembali dibuka normal.";
 
     if (confirm(confirmMsg)) {
       void setMaintenanceMode(nextState);
     }
   }
 
-  // Tampilan Loading
   if (appLoading || !currentUser) {
     return (
       <div style={{ padding: 20, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
@@ -96,14 +105,14 @@ export default function AdminSettingsPage() {
     );
   }
 
-  const isSuper = isSuperAdmin(currentUser.role);
-  const userInitial = (currentUser.username || "A").substring(0, 2).toUpperCase();
+  const isSuper = isSuperAdmin(user.role);
+  const userInitial = (user.username || "A").substring(0, 2).toUpperCase();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 80 }}>
       <AdminHeader />
 
-      {/* HEADER PROFIL PERSONAL (Sesuai Gambar 2) */}
+      {/* CARD PROFIL USER LOGIN */}
       <div
         className="glass-card"
         style={{
@@ -114,7 +123,6 @@ export default function AdminSettingsPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          {/* Avatar Inisial Bulat */}
           <div
             style={{
               width: 56,
@@ -134,11 +142,10 @@ export default function AdminSettingsPage() {
             {userInitial}
           </div>
 
-          {/* Info Utama User Login */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 16, fontWeight: 900, color: "#f8fafc" }}>
-                {currentUser.username}
+                {user.username}
               </span>
               <span
                 style={{
@@ -155,12 +162,12 @@ export default function AdminSettingsPage() {
               </span>
             </div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
-              Jabatan: <strong style={{ color: "#38bdf8" }}>{currentUser.role}</strong>
+              Jabatan: <strong style={{ color: "#38bdf8" }}>{user.role}</strong>
             </div>
           </div>
         </div>
 
-        {/* METRICS / BADGE ID (Sesuai Layout Gambar 2) */}
+        {/* METRICS METADATA */}
         <div
           style={{
             marginTop: 14,
@@ -176,19 +183,19 @@ export default function AdminSettingsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
             <span style={{ color: "#94a3b8" }}>ID Sesi Login</span>
             <span style={{ color: "#f8fafc", fontWeight: 700, fontFamily: "monospace" }}>
-              #{currentUser.id}
+              #{user.id ?? "-"}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
             <span style={{ color: "#94a3b8" }}>Kode Akses Login</span>
             <span style={{ color: "#facc15", fontWeight: 700, fontFamily: "monospace" }}>
-              {currentUser.kode}
+              {user.kode ?? "-"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* TAB KHUSUS UNTUK SUPERADMIN */}
+      {/* TAB AKSI UNTUK SUPERADMIN */}
       {isSuper && (
         <div style={{ display: "flex", gap: 8 }}>
           <button
@@ -226,7 +233,7 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* TAB 1: EDIT FORM AKUN LOGIN SAAT INI */}
+      {/* EDIT FORM AKUN LOGIN SAAT INI */}
       {activeTab === "profile" && (
         <form onSubmit={handleSaveProfile} className="glass-card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div className="title-sub" style={{ fontSize: 12 }}>
@@ -295,7 +302,7 @@ export default function AdminSettingsPage() {
         </form>
       )}
 
-      {/* TAB 2: KHUSUS SUPERADMIN KELOLA DATA AKUN LAIN */}
+      {/* TAB KHUSUS SUPERADMIN */}
       {isSuper && activeTab === "all_users" && (
         <div className="glass-card" style={{ padding: 14 }}>
           <div className="title-sub" style={{ marginBottom: 10 }}>
@@ -334,7 +341,7 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* KONTROL MAINTENANCE (GLOBAL) */}
+      {/* MODE MAINTENANCE */}
       <div
         className="glass-card"
         style={{
@@ -370,7 +377,7 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
-      {/* LOG AKTIVITAS USER SAYA */}
+      {/* LOG AKTIVITAS SAYA */}
       <div className="glass-card" style={{ padding: 14 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
           📋 RIWAYAT AKTIVITAS SAYA
@@ -380,7 +387,7 @@ export default function AdminSettingsPage() {
             <p style={{ fontSize: 11, color: "#64748b" }}>Belum ada log aktivitas</p>
           ) : (
             activityLog
-              .filter((l) => isSuper || l.user === currentUser.username)
+              .filter((l) => isSuper || l.user === user.username)
               .slice(0, 30)
               .map((l) => (
                 <div
