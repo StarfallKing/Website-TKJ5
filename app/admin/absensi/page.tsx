@@ -1,20 +1,39 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   monthConfigs,
   schoolYearDays,
   type StatusHarian,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
-import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
+import AdminHeader from "@/components/layout/AdminHeader";
 
 const CYCLE: StatusHarian[] = ["H", "I", "S", "A", "-"];
 const DAYS = schoolYearDays(2026);
 
 export default function AdminAbsensiPage() {
-  const { students, getAttendanceCell, setAttendanceCell } = useAppData();
+  const router = useRouter();
+  const {
+    students,
+    getAttendanceCell,
+    setAttendanceCell,
+    currentUser,
+    authInitialized,
+  } = useAppData();
+
   const [monthIdx, setMonthIdx] = useState(0);
+
+  // --- PROTEKSI RUTE & AUTH GUARD ---
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+      router.replace("/admin");
+    }
+  }, [authInitialized, currentUser, router]);
+
   const m = monthConfigs[monthIdx];
 
   const avg = useMemo(() => {
@@ -38,9 +57,18 @@ export default function AdminAbsensiPage() {
     void setAttendanceCell(si, monthIdx, day, next);
   }
 
+  // Tampilkan loading screen jika sesi belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data absensi...
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
+      {/* 2. ADMIN HEADER */}
       <AdminHeader />
 
       {/* 1. REKAP RATA-RATA ATAS */}
@@ -214,7 +242,6 @@ export default function AdminAbsensiPage() {
                     <td style={{ color: "#facc15", fontWeight: 700 }}>{sk}</td>
                     <td style={{ color: "#f43f5e", fontWeight: 700 }}>{al}</td>
                     <td style={{ padding: "8px 4px" }}>
-                      {/* Teks %H %I %S %A */}
                       <div
                         style={{
                           display: "flex",
@@ -231,7 +258,6 @@ export default function AdminAbsensiPage() {
                         <span style={{ color: "#f43f5e" }}>A:{pctA}%</span>
                       </div>
 
-                      {/* Stacked Progress Bar */}
                       <div
                         style={{
                           width: "100%",
@@ -326,7 +352,7 @@ export default function AdminAbsensiPage() {
         })}
       </div>
 
-      {/* Tabel Harian dengan Kolom H, I, S, A */}
+      {/* Tabel Harian */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="table-responsive">
           <table className="absensi-table monthly-table">
@@ -337,7 +363,6 @@ export default function AdminAbsensiPage() {
                 {Array.from({ length: m.days }, (_, d) => (
                   <th key={d}>{d + 1}</th>
                 ))}
-                {/* Header Rekap Bulan Ini */}
                 <th style={{ color: "#4ade80" }}>H</th>
                 <th style={{ color: "#60a5fa" }}>I</th>
                 <th style={{ color: "#facc15" }}>S</th>
@@ -398,7 +423,6 @@ export default function AdminAbsensiPage() {
                       {s.nama}
                     </td>
                     {cells}
-                    {/* Render Nilai Akumulasi H I S A Per Bulan */}
                     <td style={{ color: "#4ade80", fontWeight: 800 }}>{mH}</td>
                     <td style={{ color: "#60a5fa", fontWeight: 800 }}>{mI}</td>
                     <td style={{ color: "#facc15", fontWeight: 800 }}>{mS}</td>
@@ -412,5 +436,4 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-              }
-              
+}
