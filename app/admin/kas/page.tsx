@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   monthShort,
   monthConfigs,
@@ -8,9 +9,10 @@ import {
   NOMINAL_KAS,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
-import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
+import AdminHeader from "@/components/layout/AdminHeader";
 
 export default function AdminKasPage() {
+  const router = useRouter();
   const {
     students,
     isKasPaid,
@@ -19,6 +21,8 @@ export default function AdminKasPage() {
     addKasTransaction,
     deleteKasTransactions,
     paymentOverrides,
+    currentUser,
+    authInitialized,
   } = useAppData();
 
   const [monthIdx, setMonthIdx] = useState(1); // default Agustus
@@ -30,6 +34,15 @@ export default function AdminKasPage() {
   // State melacak item log terpilih berdasarkan key unik `${row.no}-${row.date}`
   const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
+
+  // --- PROTEKSI RUTE & AUTH GUARD ---
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+      router.replace("/admin");
+    }
+  }, [authInitialized, currentUser, router]);
 
   const logs = useMemo(
     () => kasLog.filter((t) => t.desc?.trim() || t.val),
@@ -50,7 +63,6 @@ export default function AdminKasPage() {
   }, [students, isKasPaid, paymentOverrides]);
 
   // 2. Hitung pemasukan MURNI non-kas dari log manual
-  // PENTING: Mengecualikan log yang mengandung kata 'kas' atau 'qris' agar tidak terhitung 2 kali
   const totalMasukLog = useMemo(
     () =>
       logs
@@ -128,9 +140,17 @@ export default function AdminKasPage() {
     }
   }
 
+  // Prevent render jika status auth belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data kas...
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
       <AdminHeader />
 
       <div className="glass-card text-center">
@@ -448,7 +468,7 @@ export default function AdminKasPage() {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => {}} // dikontrol parent div
+                    onChange={() => {}}
                     style={{ cursor: "pointer" }}
                   />
                   <div>
@@ -480,5 +500,4 @@ export default function AdminKasPage() {
       </div>
     </div>
   );
-                  }
-                        
+}
