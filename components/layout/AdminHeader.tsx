@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useAppData } from "@/lib/AppDataContext";
 
 export default function AdminHeader() {
+  const { setCurrentUser } = useAppData();
+
   function logout() {
+    // Bersihkan state di React Context
+    setCurrentUser(null);
+
+    // Bersihkan storage
     sessionStorage.removeItem("admin-ok");
     sessionStorage.removeItem("admin-user");
     sessionStorage.removeItem("admin-last");
-    // Gunakan window.location.href agar redirect bersih tanpa screen error
+
+    // Redirect bersih ke halaman login admin
     window.location.href = "/admin";
   }
 
@@ -32,7 +40,7 @@ export default function AdminHeader() {
         </div>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {/* Menggunakan Link Next.js agar berpindah di tab yang sama ke homepage publik */}
+        {/* Navigasi ke homepage publik */}
         <Link
           href="/"
           className="btn-action-light"
