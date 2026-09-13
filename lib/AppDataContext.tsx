@@ -62,7 +62,7 @@ type AppData = {
   schedule: ScheduleData;
   loading: boolean;
   // --- AUTH STATES & METHODS ---
-  authInitialized: boolean; // <-- Tambahan penanda status parsing localStorage
+  authInitialized: boolean; // Penanda status parsing localStorage selesai
   currentUser: UserSession | null;
   setCurrentUser: (user: UserAccount | null) => void;
   login: (account: UserAccount) => void;
@@ -164,7 +164,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // --- STATE AKUN LOGIN (PERSISTENT 6 BULAN) ---
   const [currentUser, setCurrentUserSession] = useState<UserSession | null>(null);
-  const [authInitialized, setAuthInitialized] = useState(false); // Penanda pembacaan localStorage selesai
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -179,12 +179,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           } else {
             localStorage.removeItem(SESSION_STORAGE_KEY);
             sessionStorage.removeItem("admin-ok");
+            sessionStorage.removeItem("admin-user");
+            sessionStorage.removeItem("admin-last");
           }
         }
       } catch (e) {
         console.error("Failed parsing session:", e);
       } finally {
-        setAuthInitialized(true); // Memastikan flag diset true setelah cek localStorage
+        setAuthInitialized(true);
       }
     }
   }, []);
@@ -206,6 +208,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (typeof window !== "undefined") {
         localStorage.removeItem(SESSION_STORAGE_KEY);
         sessionStorage.removeItem("admin-ok");
+        sessionStorage.removeItem("admin-user");
+        sessionStorage.removeItem("admin-last");
       }
     }
   };
