@@ -36,17 +36,17 @@ function colorOf(role: string) {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { activityLog, maintenanceMode, setMaintenanceMode } = useAppData();
+  const { activityLog, maintenanceMode, setMaintenanceMode, currentUser, loading: appLoading } = useAppData();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (sessionStorage.getItem("admin-ok") !== "1") {
+    if (!appLoading && !currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
       return;
     }
     void loadUsers();
-  }, [router]);
+  }, [currentUser, appLoading, router]);
 
   async function loadUsers() {
     setLoading(true);
@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
       : "Matikan Mode Perbaikan? Website publik akan kembali dibuka normal.";
 
     if (confirm(confirmMsg)) {
-      setMaintenanceMode(nextState);
+      void setMaintenanceMode(nextState);
     }
   }
 
@@ -81,7 +81,6 @@ export default function AdminSettingsPage() {
         </p>
       </div>
 
-      {/* MODAL / STATUS MAINTENANCE (PINDAH KE SINI) */}
       <div
         className="glass-card"
         style={{
