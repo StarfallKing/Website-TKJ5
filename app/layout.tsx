@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import BottomNav from "@/components/layout/BottomNav";
@@ -6,9 +6,11 @@ import Header from "@/components/layout/Header";
 import { AppDataProvider } from "@/lib/AppDataContext";
 import MaintenanceGate from "@/components/MaintenanceGate";
 
+// Konfigurasi Metadata + PWA Manifest
 export const metadata: Metadata = {
   title: "Portal X TKJ-5 - SMK PGRI 2 Cibinong",
   description: "Sistem Terpadu Kelas X TKJ-5",
+  manifest: "/manifest.json", // <-- PWA Manifest
   openGraph: {
     title: "Portal X TKJ-5 - SMK PGRI 2 Cibinong",
     description: "Sistem Terpadu Kelas X TKJ-5",
@@ -27,14 +29,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Konfigurasi Viewport & Theme Color khas Next.js App Router
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+};
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id" data-theme="dark">
       <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
-        />
         <link
           href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap"
           rel="stylesheet"
