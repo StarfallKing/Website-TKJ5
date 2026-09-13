@@ -54,8 +54,11 @@ export default function AdminLoginPage() {
 
       // Eksekusi login persistent 6 bulan
       login({
+        id: data.id ?? 1, // <-- Menambahkan id dari DB Supabase untuk memenuhi UserAccount
         username: data.username,
         name: data.username,
+        password: data.password,
+        kode: data.kode,
         role: parsedRole,
         roleClass: data.role || "Pengurus Kelas",
         avatar: "/avatars/default.png",
