@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAppData } from "@/lib/AppDataContext";
 import { supabase } from "@/lib/supabase";
 import AdminHeader from "@/components/layout/AdminHeader";
@@ -33,15 +32,19 @@ const roleIcon: Record<string, string> = {
 
 export default function AdminStrukturPage() {
   const router = useRouter();
-  const { students, updateStudent, pushLog } = useAppData();
+  const { students, updateStudent, pushLog, currentUser, authInitialized } = useAppData();
   const [wali, setWali] = useState("Shendy Nuria Feriansyah, S.Pd");
   const [busy, setBusy] = useState(false);
 
+  // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
-    if (sessionStorage.getItem("admin-ok") !== "1") {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
       return;
     }
+
     void supabase
       .from("app_settings")
       .select("*")
@@ -51,7 +54,7 @@ export default function AdminStrukturPage() {
         const w = (data as { wali_nama?: string } | null)?.wali_nama;
         if (w) setWali(w);
       });
-  }, [router]);
+  }, [authInitialized, currentUser, router]);
 
   function whoHas(role: string) {
     return (
@@ -109,6 +112,15 @@ export default function AdminStrukturPage() {
     }
     pushLog("Update wali kelas: " + wali);
     alert("Wali kelas disimpan");
+  }
+
+  // Prevent render jika status auth belum siap
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data struktur...
+      </div>
+    );
   }
 
   return (
