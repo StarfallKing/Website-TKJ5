@@ -1,17 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
 import type { ScheduleData, ScheduleSlot } from "@/lib/data";
 import { scheduleDays, masterSchedule } from "@/lib/data";
-import AdminHeader from "@/components/layout/AdminHeader"; // 1. IMPORT ADMIN HEADER
+import AdminHeader from "@/components/layout/AdminHeader";
 
 export default function AdminJadwalPage() {
-  const { schedule, setSchedule } = useAppData();
-  
+  const router = useRouter();
+  const {
+    schedule,
+    setSchedule,
+    currentUser,
+    authInitialized,
+  } = useAppData();
+
   const [draft, setDraft] = useState<ScheduleData>(schedule || masterSchedule);
   const [shift, setShift] = useState<"pagi" | "siang">("siang");
   const [saving, setSaving] = useState(false);
+
+  // --- PROTEKSI RUTE & AUTH GUARD ---
+  useEffect(() => {
+    if (!authInitialized) return;
+
+    if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
+      router.replace("/admin");
+    }
+  }, [authInitialized, currentUser, router]);
 
   useEffect(() => {
     if (schedule && (schedule.pagi || schedule.siang)) {
@@ -92,10 +108,17 @@ export default function AdminJadwalPage() {
     }
   }
 
+  // Tampilkan loading screen jika status auth belum dibaca dari localStorage
+  if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
+    return (
+      <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
+        Memuat data jadwal...
+      </div>
+    );
+  }
+
   return (
-    /* Pembungkus utama diberi paddingBottom 110px agar navbar tidak ketutupan/offside */
     <div style={{ paddingBottom: 110, display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* 2. PASANG ADMIN HEADER DI PALING ATAS */}
       <AdminHeader />
 
       <div className="glass-card text-center">
@@ -151,7 +174,7 @@ export default function AdminJadwalPage() {
                     onChange={(e) => updateSlot(day, i, "mapel", e.target.value)}
                     style={{
                       flex: 1,
-                      minWidth: 0, // Mencegah input melar keluar dari flexbox
+                      minWidth: 0,
                       padding: "8px 6px",
                       borderRadius: 8,
                       background: "#0f172a",
