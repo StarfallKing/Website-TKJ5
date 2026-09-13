@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
 
-// Type assertion untuk melengkapi properti currentUser
 type ExtendedUser = {
   id?: number;
   username?: string;
@@ -17,12 +16,12 @@ type ExtendedUser = {
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { currentUser, maintenanceMode, setMaintenanceMode, activityLog, loading: appLoading } = useAppData();
+  const { currentUser, maintenanceMode, setMaintenanceMode, activityLog, pushLog, loading: appLoading } = useAppData();
 
-  // Casting aman agar TypeScript tidak komplain
   const user = (currentUser || {}) as ExtendedUser;
 
-  // Form edit akun
+  // Target ID yang sedang diedit (default: id user yang sedang login)
+  const [targetId, setTargetId] = useState<number | null>(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [kode, setKode] = useState("");
@@ -40,15 +39,18 @@ export default function AdminSettingsPage() {
     }
 
     if (currentUser) {
-      setUsername(user.username || "");
-      setPassword(user.password || "");
-      setKode(user.kode || "");
+      if (!targetId) {
+        setTargetId(user.id || null);
+        setUsername(user.username || "");
+        setPassword(user.password || "");
+        setKode(user.kode || "");
+      }
 
       if (isSuperAdmin(user.role)) {
         void loadAllUsers();
       }
     }
-  }, [currentUser, appLoading, router, user.username, user.password, user.kode, user.role]);
+  }, [currentUser, appLoading, router, user.id, user.username, user.password, user.kode, user.role, targetId]);
 
   function isSuperAdmin(role?: string) {
     if (!role) return false;
@@ -63,9 +65,18 @@ export default function AdminSettingsPage() {
     setLoadingUsers(false);
   }
 
+  // Fungsi saat Superadmin klik tombol Edit pada salah satu user di daftar
+  function handleSelectUserToEdit(u: any) {
+    setTargetId(u.id);
+    setUsername(u.username || "");
+    setPassword(u.password || "");
+    setKode(u.kode || "");
+    setActiveTab("profile");
+  }
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    if (!user.id) return alert("ID akun tidak ditemukan di sesi login!");
+    if (!targetId) return alert("ID akun tidak valid!");
 
     setSaving(true);
     const { error } = await supabase
@@ -73,16 +84,20 @@ export default function AdminSettingsPage() {
       .update({
         username: username.trim(),
         password: password.trim(),
-        kode: kode.trim(),
+        kode: kode.trim().toUpperCase(),
       })
-      .eq("id", user.id);
+      .eq("id", targetId);
 
     setSaving(false);
 
     if (error) {
       alert("Gagal memperbarui data: " + error.message);
     } else {
-      alert("Data akun berhasil disimpan! Silakan pakai kredensial baru di login berikutnya.");
+      pushLog?.(`Update akun ${username} (id #${targetId})`);
+      alert("Data akun berhasil disimpan!");
+      if (isSuperAdmin(user.role)) {
+        void loadAllUsers();
+      }
     }
   }
 
@@ -200,7 +215,9 @@ export default function AdminSettingsPage() {
         <div style={{ display: "flex", gap: 8 }}>
           <button
             type="button"
-            onClick={() => setActiveTab("profile")}
+            onClick={() => {
+              if (user.id) handleSelectUserToEdit(user);
+            }}
             style={{
               flex: 1,
               padding: "8px 12px",
@@ -233,11 +250,11 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* EDIT FORM AKUN LOGIN SAAT INI */}
+      {/* EDIT FORM AKUN */}
       {activeTab === "profile" && (
         <form onSubmit={handleSaveProfile} className="glass-card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
           <div className="title-sub" style={{ fontSize: 12 }}>
-            PENGATURAN KREDENSIAL AKUN
+            PENGATURAN KREDENSIAL AKUN {targetId !== user.id ? `(#${targetId})` : ""}
           </div>
 
           <div>
@@ -333,7 +350,14 @@ export default function AdminSettingsPage() {
                       Kode: {u.kode} · Pass: {u.password}
                     </div>
                   </div>
-                  <span style={{ fontSize: 10, color: "#64748b" }}>#{u.id}</span>
+                  <button
+                    type="button"
+                    className="btn-action-light"
+                    style={{ fontSize: 10, padding: "4px 8px" }}
+                    onClick={() => handleSelectUserToEdit(u)}
+                  >
+                    Edit →
+                  </button>
                 </div>
               ))}
             </div>
