@@ -31,19 +31,19 @@ const roleColor: Record<string, string> = {
 export default function AdminSettingsEditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { pushLog } = useAppData();
+  const { pushLog, currentUser, loading: appLoading } = useAppData();
 
   const [form, setForm] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem("admin-ok") !== "1") {
+    if (!appLoading && !currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
       return;
     }
     void load();
-  }, [id, router]);
+  }, [id, currentUser, appLoading, router]);
 
   async function load() {
     setLoading(true);
@@ -232,4 +232,4 @@ export default function AdminSettingsEditPage() {
       </div>
     </>
   );
-  }
+}
