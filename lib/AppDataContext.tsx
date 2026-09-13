@@ -25,6 +25,21 @@ import {
 } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
+// --- TYPE DEFINITIONS UNTUK MULTI-AKUN & SESI 6 BULAN ---
+export type UserRole = "admin" | "ketua" | "sekretaris" | "bendahara";
+
+export type UserAccount = {
+  username: string;
+  name: string;
+  role: UserRole;
+  roleClass: string;
+  avatar: string;
+};
+
+export type UserSession = UserAccount & {
+  expiresAt: number; // Timestamp kedaluwarsa 6 bulan
+};
+
 export type ActivityLogItem = {
   id: string;
   at: string;
@@ -43,6 +58,11 @@ type AppData = {
   siteContent: SiteContent;
   schedule: ScheduleData;
   loading: boolean;
+  // --- AUTH STATES & METHODS ---
+  currentUser: UserSession | null;
+  login: (account: UserAccount) => void;
+  logout: () => void;
+  // --- ACTION METHODS ---
   setSiteContent: (c: SiteContent) => Promise<void>;
   setMaintenanceMode: (value: boolean) => Promise<void>;
   setSchedule: (s: ScheduleData) => Promise<void>;
@@ -85,10 +105,9 @@ type AppData = {
 
 const Ctx = createContext<AppData | null>(null);
 
-function currentAdminUser() {
-  if (typeof window === "undefined") return "system";
-  return sessionStorage.getItem("admin-user") || "admin";
-}
+// Waktu kedaluwarsa sesi: 180 Hari (6 Bulan) dalam milidetik
+const SIX_MONTHS_MS = 180 * 24 * 60 * 60 * 1000;
+const SESSION_STORAGE_KEY = "portal_tkj5_session";
 
 function rowToStudent(r: Record<string, unknown>): Student {
   return {
@@ -106,9 +125,7 @@ function rowToStudent(r: Record<string, unknown>): Student {
   };
 }
 
-function normalizeKasRows(
-  data: Record<string, unknown>[]
-): KasTransaction[] {
+function normalizeKasRows(data: Record<string, unknown>[]): KasTransaction[] {
   const normalized = data
     .map((r, i) => ({
       no: Number(r.no ?? i + 1),
@@ -120,10 +137,8 @@ function normalizeKasRows(
     }))
     .filter((r) => r.desc !== "" || r.val !== 0);
 
-  // URUTKAN BERDASARKAN NOMOR URUT (no) ASCENDING
   return normalized.sort((a, b) => a.no - b.no);
 }
-
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [students, setStudents] = useState<Student[]>(seedStudents);
@@ -139,9 +154,59 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [siteContent, setSiteContentState] =
     useState<SiteContent>(defaultSiteContent);
-  const [schedule, setScheduleState] =
-    useState<ScheduleData>(defaultSchedule);
+  const [schedule, setScheduleState] = useState<ScheduleData>(defaultSchedule);
   const [loading, setLoading] = useState(true);
+
+  // --- STATE AKUN LOGIN (PERSISTENT 6 BULAN) ---
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+
+  // Initial Check Sesi Login dari localStorage saat komponen pertama di-mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (saved) {
+        try {
+          const session: UserSession = JSON.parse(saved);
+          const now = Date.now();
+          if (now < session.expiresAt) {
+            setCurrentUser(session);
+          } else {
+            localStorage.removeItem(SESSION_STORAGE_KEY);
+          }
+        } catch {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+        }
+      }
+    }
+  }, []);
+
+  const login = (account: UserAccount) => {
+    const session: UserSession = {
+      ...account,
+      expiresAt: Date.now() + SIX_MONTHS_MS,
+    };
+    setCurrentUser(session);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      sessionStorage.setItem("admin-user", account.name);
+    }
+    pushLog(`Login Akun (${account.roleClass})`);
+  };
+
+  const logout = () => {
+    if (currentUser) {
+      pushLog(`Logout Akun (${currentUser.roleClass})`);
+    }
+    setCurrentUser(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      sessionStorage.removeItem("admin-user");
+    }
+  };
+
+  function currentAdminUser() {
+    return currentUser?.name || "system";
+  }
 
   async function refreshFromDb() {
     try {
@@ -202,7 +267,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (paidRes.data) {
         const ov: Record<string, boolean> = {};
         for (const row of paidRes.data) {
-          ov[`${String(row.nisn).trim()}-${Number(row.month_index)}`] = Boolean(row.paid);
+          ov[`${String(row.nisn).trim()}-${Number(row.month_index)}`] = Boolean(
+            row.paid
+          );
         }
         setPaymentOverrides(ov);
       }
@@ -501,6 +568,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       siteContent,
       schedule,
       loading,
+      currentUser,
+      login,
+      logout,
       setSiteContent,
       setMaintenanceMode,
       setSchedule,
@@ -682,6 +752,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       siteContent,
       schedule,
       loading,
+      currentUser,
     ]
   );
 
