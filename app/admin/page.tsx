@@ -7,22 +7,22 @@ import { useAppData, type UserRole } from "@/lib/AppDataContext";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login, currentUser } = useAppData();
+  const { login, currentUser, authInitialized } = useAppData();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [kode, setKode] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Cek jika sesi login 6 bulan aktif dari AppDataContext
+    // Tunggu sampai pembacaan localStorage selesai 100%
+    if (!authInitialized) return;
+
+    // Jika sesi login aktif, redirect ke dashboard
     if (currentUser) {
       router.replace("/admin/dashboard");
-    } else {
-      setCheckingAuth(false);
     }
-  }, [currentUser, router]);
+  }, [currentUser, authInitialized, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
 
       // Eksekusi login persistent 6 bulan
       login({
-        id: data.id ?? 1, // <-- Menambahkan id dari DB Supabase untuk memenuhi UserAccount
+        id: data.id ?? 1,
         username: data.username,
         name: data.username,
         password: data.password,
@@ -64,9 +64,7 @@ export default function AdminLoginPage() {
         avatar: "/avatars/default.png",
       });
 
-      // Simpan penanda fallback
       sessionStorage.setItem("admin-ok", "1");
-
       router.replace("/admin/dashboard");
     } catch {
       setErr("Gagal terhubung ke server");
@@ -74,7 +72,8 @@ export default function AdminLoginPage() {
     }
   }
 
-  if (checkingAuth) {
+  // Tampilkan indikator memuat selama localStorage belum selesai dibaca
+  if (!authInitialized) {
     return (
       <div style={{ textAlign: "center", padding: 20, color: "#94a3b8", fontSize: 12 }}>
         Memeriksa sesi...
