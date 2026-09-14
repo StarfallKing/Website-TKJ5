@@ -62,7 +62,7 @@ type AppData = {
   schedule: ScheduleData;
   loading: boolean;
   // --- AUTH STATES & METHODS ---
-  authInitialized: boolean; // Penanda status parsing localStorage selesai
+  authInitialized: boolean;
   currentUser: UserSession | null;
   setCurrentUser: (user: UserAccount | null) => void;
   login: (account: UserAccount) => void;
@@ -110,7 +110,6 @@ type AppData = {
 
 const Ctx = createContext<AppData | null>(null);
 
-// Waktu kedaluwarsa sesi: 180 Hari (6 Bulan) dalam milidetik
 const SIX_MONTHS_MS = 180 * 24 * 60 * 60 * 1000;
 const SESSION_STORAGE_KEY = "portal_tkj5_session";
 
@@ -264,12 +263,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       let ordered: Student[] = seedStudents;
       if (stRes.data?.length) {
         const byNisn = new Map(
-          stRes.data.map((r) => [String(r.nisn), rowToStudent(r)])
+          stRes.data.map((r) => [String(r.nisn).trim(), rowToStudent(r)])
         );
         ordered = [];
         for (const s of seedStudents) {
-          ordered.push(byNisn.get(s.nisn) ?? s);
-          byNisn.delete(s.nisn);
+          const cleanNisn = String(s.nisn).trim();
+          ordered.push(byNisn.get(cleanNisn) ?? s);
+          byNisn.delete(cleanNisn);
         }
         byNisn.forEach((s) => ordered.push(s));
         setStudents(ordered);
@@ -278,9 +278,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (attRes.data) {
         const map: Record<string, StatusHarian> = {};
         for (const row of attRes.data) {
-          const idx = ordered.findIndex((s) => s.nisn === row.nisn);
+          // PERBAIKAN PENTING: PENGUBAHAN SAMAKAN TIPE DATA NISN STRING & TRIM
+          const cleanRowNisn = String(row.nisn ?? "").trim();
+          const idx = ordered.findIndex((s) => String(s.nisn).trim() === cleanRowNisn);
           if (idx < 0) continue;
-          map[idx + "-" + row.month_index + "-" + row.day] =
+          map[idx + "-" + Number(row.month_index) + "-" + Number(row.day)] =
             row.status as StatusHarian;
         }
         setAttendanceMap(map);
@@ -605,8 +607,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       deleteKasTransactions,
 
       updateStudent: async (nisn, patch) => {
+        const cleanNisn = String(nisn).trim();
         setStudents((prev) =>
-          prev.map((s) => (s.nisn === nisn ? { ...s, ...patch } : s))
+          prev.map((s) => (String(s.nisn).trim() === cleanNisn ? { ...s, ...patch } : s))
         );
         const p = patch;
         const { error } = await supabase
@@ -626,18 +629,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
             updated_at: new Date().toISOString(),
           })
-          .eq("nisn", nisn);
+          .eq("nisn", cleanNisn);
         if (error) {
           alert("Gagal siswa: " + error.message);
           return;
         }
-        pushLog("Update siswa " + nisn);
+        pushLog("Update siswa " + cleanNisn);
       },
 
       addStudent: (s) => {
         setStudents((prev) => [...prev, s]);
         void supabase.from("students").upsert({
-          nisn: s.nisn,
+          nisn: String(s.nisn).trim(),
           nis: s.nis || "",
           nama: s.nama,
           gender: s.gender,
@@ -653,9 +656,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       removeStudent: (nisn) => {
-        setStudents((prev) => prev.filter((s) => s.nisn !== nisn));
-        void supabase.from("students").delete().eq("nisn", nisn);
-        pushLog("Hapus siswa " + nisn);
+        const cleanNisn = String(nisn).trim();
+        setStudents((prev) => prev.filter((s) => String(s.nisn).trim() !== cleanNisn));
+        void supabase.from("students").delete().eq("nisn", cleanNisn);
+        pushLog("Hapus siswa " + cleanNisn);
       },
 
       isKasPaid: (nisn, _si, monthIndex) => {
@@ -745,25 +749,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
 
       setAttendanceCell: async (studentIndex, monthIndex, day, status) => {
+        const mIdx = Number(monthIndex);
+        const dNum = Number(day);
+        
+        // Optimistic UI Update
         setAttendanceMap((prev) => ({
           ...prev,
-          [studentIndex + "-" + monthIndex + "-" + day]: status,
+          [studentIndex + "-" + mIdx + "-" + dNum]: status,
         }));
-        const nisn = students[studentIndex]?.nisn;
-        if (!nisn) return;
+
+        const rawNisn = students[studentIndex]?.nisn;
+        if (!rawNisn) return;
+        const cleanNisn = String(rawNisn).trim();
+
         const { error } = await supabase.from("attendance").upsert(
-          { nisn, month_index: monthIndex, day, status },
+          { nisn: cleanNisn, month_index: mIdx, day: dNum, status },
           { onConflict: "nisn,month_index,day" }
         );
+
         if (error) {
+          console.error("Gagal simpan absensi:", error);
           alert("Gagal absensi: " + error.message);
+          void refreshFromDb();
           return;
         }
-        pushLog("Absensi " + nisn + " → " + status);
+
+        pushLog("Absensi " + cleanNisn + " → " + status);
       },
 
-      getAttendanceCell: (studentIndex, monthIndex, day) =>
-        attendanceMap[studentIndex + "-" + monthIndex + "-" + day] ?? "-",
+      getAttendanceCell: (studentIndex, monthIndex, day) => {
+        const key = studentIndex + "-" + Number(monthIndex) + "-" + Number(day);
+        return attendanceMap[key] ?? "-";
+      },
     }),
     [
       students,
