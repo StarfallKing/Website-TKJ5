@@ -15,6 +15,165 @@ function matchRole(role: string | undefined, target: string) {
   return (role || "").trim() === target;
 }
 
+type Officer = {
+  nama?: string;
+  role: string;
+  color: string;
+  icon: string;
+};
+
+function NodeCard({
+  title,
+  name,
+  color,
+  icon,
+  size = "md",
+}: {
+  title: string;
+  name: string;
+  color: string;
+  icon: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const avatarSize = size === "lg" ? 64 : size === "sm" ? 44 : 56;
+  const iconSize = size === "lg" ? 26 : size === "sm" ? 18 : 22;
+
+  return (
+    <div
+      className="struktur-node"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        width: "100%",
+        maxWidth: size === "lg" ? 200 : 160,
+      }}
+    >
+      <div
+        className="avatar-box"
+        style={{
+          width: avatarSize,
+          height: avatarSize,
+          borderColor: color,
+          boxShadow: `0 0 16px ${color}66`,
+        }}
+      >
+        <i
+          className={`fa-solid ${icon}`}
+          style={{ fontSize: iconSize, color }}
+        />
+      </div>
+      <div
+        className="role-card"
+        style={{
+          borderColor: `${color}55`,
+          width: "100%",
+          marginTop: 8,
+          textAlign: "center",
+        }}
+      >
+        <div
+          className="person-name"
+          style={{
+            textAlign: "center",
+            width: "100%",
+            wordBreak: "break-word",
+            lineHeight: 1.25,
+          }}
+        >
+          {name}
+        </div>
+        <div
+          className="role-badge"
+          style={{ color, textAlign: "center", width: "100%" }}
+        >
+          {title}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Node ringkas untuk HP (tanpa avatar besar) */
+function MobileNode({
+  title,
+  name,
+  color,
+}: {
+  title: string;
+  name: string;
+  color: string;
+}) {
+  return (
+    <div
+      className="glass-card"
+      style={{
+        padding: "10px 12px",
+        textAlign: "center",
+        borderColor: `${color}55`,
+        minWidth: 0,
+        flex: 1,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 800,
+          color,
+          textTransform: "uppercase",
+          letterSpacing: 0.4,
+          marginBottom: 4,
+        }}
+      >
+        {title}
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#f8fafc",
+          lineHeight: 1.3,
+          wordBreak: "break-word",
+        }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+}
+
+function VLine() {
+  return (
+    <div
+      style={{
+        width: 2,
+        height: 18,
+        background: "linear-gradient(180deg, #60a5fa, rgba(96,165,250,0.3))",
+        margin: "0 auto",
+        boxShadow: "0 0 8px rgba(96,165,250,0.4)",
+      }}
+    />
+  );
+}
+
+function HPair({ left, right }: { left: React.ReactNode; right: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10,
+        width: "100%",
+        position: "relative",
+      }}
+    >
+      {left}
+      {right}
+    </div>
+  );
+}
+
 export default function StrukturPage() {
   const { students } = useAppData();
   const officers = students.filter((s) => s.role);
@@ -29,16 +188,75 @@ export default function StrukturPage() {
   const kes2 = officers.find((s) => matchRole(s.role, "Kesehatan 2"));
   const amn = officers.find((s) => matchRole(s.role, "Keamanan"));
 
+  const desktopPairs: Officer[][] = [
+    [
+      {
+        nama: ketua?.nama,
+        role: "Ketua Kelas",
+        color: "#eab308",
+        icon: "fa-crown",
+      },
+      {
+        nama: wakil?.nama,
+        role: "Wakil Ketua",
+        color: "#38bdf8",
+        icon: "fa-user-shield",
+      },
+    ],
+    [
+      {
+        nama: sek1?.nama,
+        role: "Sekretaris 1",
+        color: "#c084fc",
+        icon: "fa-file-pen",
+      },
+      {
+        nama: sek2?.nama,
+        role: "Sekretaris 2",
+        color: "#c084fc",
+        icon: "fa-file-pen",
+      },
+    ],
+    [
+      {
+        nama: ben1?.nama,
+        role: "Bendahara 1",
+        color: "#4ade80",
+        icon: "fa-wallet",
+      },
+      {
+        nama: ben2?.nama,
+        role: "Bendahara 2",
+        color: "#4ade80",
+        icon: "fa-wallet",
+      },
+    ],
+    [
+      {
+        nama: kes1?.nama,
+        role: "Kesehatan 1",
+        color: "#f43f5e",
+        icon: "fa-heart-pulse",
+      },
+      {
+        nama: kes2?.nama,
+        role: "Kesehatan 2",
+        color: "#f43f5e",
+        icon: "fa-heart-pulse",
+      },
+    ],
+  ];
+
   return (
     <>
       <div
         className="glass-card text-center"
-        style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+        style={{ display: "flex", flexDirection: "column", gap: 4 }}
       >
         <div className="title-sub">STRUKTUR KEPENGURUSAN X TKJ–5</div>
         <p
           style={{
-            fontSize: "12px",
+            fontSize: 12,
             color: "#ffffff",
             fontWeight: 700,
             lineHeight: 1.4,
@@ -59,257 +277,183 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      <div className="glass-card tree-wrapper">
-        {/* Wali Kelas */}
-        <div className="tree-node">
-          <div className="avatar-box">
-            <i
-              className="fa-solid fa-user-tie"
-              style={{ fontSize: "28px", color: "#60a5fa" }}
+      {/* ========== MOBILE: node ringkas (referensi bagan) ========== */}
+      <div className="struktur-mobile glass-card" style={{ padding: 14 }}>
+        {/* Wali */}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <MobileNode
+            title="Wali Kelas"
+            name="Shendy Nuria Feriansyah, S.Pd"
+            color="#60a5fa"
+          />
+        </div>
+        <VLine />
+
+        <HPair
+          left={
+            <MobileNode
+              title="Ketua Kelas"
+              name={displayName(ketua?.nama)}
+              color="#eab308"
+            />
+          }
+          right={
+            <MobileNode
+              title="Wakil Ketua"
+              name={displayName(wakil?.nama)}
+              color="#38bdf8"
+            />
+          }
+        />
+        <VLine />
+
+        <HPair
+          left={
+            <MobileNode
+              title="Sekretaris 1"
+              name={displayName(sek1?.nama)}
+              color="#c084fc"
+            />
+          }
+          right={
+            <MobileNode
+              title="Sekretaris 2"
+              name={displayName(sek2?.nama)}
+              color="#c084fc"
+            />
+          }
+        />
+        <VLine />
+
+        <HPair
+          left={
+            <MobileNode
+              title="Bendahara 1"
+              name={displayName(ben1?.nama)}
+              color="#4ade80"
+            />
+          }
+          right={
+            <MobileNode
+              title="Bendahara 2"
+              name={displayName(ben2?.nama)}
+              color="#4ade80"
+            />
+          }
+        />
+        <VLine />
+
+        <HPair
+          left={
+            <MobileNode
+              title="Kesehatan 1"
+              name={displayName(kes1?.nama)}
+              color="#f43f5e"
+            />
+          }
+          right={
+            <MobileNode
+              title="Kesehatan 2"
+              name={displayName(kes2?.nama)}
+              color="#f43f5e"
+            />
+          }
+        />
+        <VLine />
+
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <div style={{ width: "50%" }}>
+            <MobileNode
+              title="Keamanan"
+              name={displayName(amn?.nama)}
+              color="#fb923c"
             />
           </div>
-          <div className="role-card">
-            <div className="person-name">Shendy Nuria Feriansyah, S.Pd</div>
-            <div className="role-badge">Wali Kelas</div>
-          </div>
         </div>
+      </div>
+
+      {/* ========== DESKTOP: tree + avatar (gambar 2, teks center) ========== */}
+      <div
+        className="struktur-desktop glass-card tree-wrapper"
+        style={{
+          display: "none",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 0,
+          padding: "24px 16px",
+        }}
+      >
+        {/* Wali */}
+        <NodeCard
+          title="Wali Kelas"
+          name="Shendy Nuria Feriansyah, S.Pd"
+          color="#60a5fa"
+          icon="fa-user-tie"
+          size="lg"
+        />
 
         <div className="line-v" />
-        <div className="branch-split">
+        <div className="branch-split" style={{ maxWidth: 420, margin: "0 auto" }}>
           <div className="branch-left" />
           <div className="branch-right" />
         </div>
 
-        {/* Ketua & Wakil */}
-        <div className="tree-row">
-          <div className="tree-node">
+        {desktopPairs.map((pair, idx) => (
+          <div key={idx} style={{ width: "100%", maxWidth: 480 }}>
             <div
-              className="avatar-box"
+              className="tree-row"
               style={{
-                borderColor: "#eab308",
-                boxShadow: "0 0 16px rgba(234,179,8,0.4)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 24,
+                justifyItems: "center",
+                width: "100%",
               }}
             >
-              <i
-                className="fa-solid fa-crown"
-                style={{ fontSize: "26px", color: "#eab308" }}
-              />
+              {pair.map((o) => (
+                <NodeCard
+                  key={o.role}
+                  title={o.role}
+                  name={displayName(o.nama)}
+                  color={o.color}
+                  icon={o.icon}
+                />
+              ))}
             </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(234,179,8,0.3)" }}
-            >
-              <div className="person-name">{displayName(ketua?.nama)}</div>
-              <div className="role-badge" style={{ color: "#eab308" }}>
-                Ketua Kelas
-              </div>
-            </div>
+            {idx < desktopPairs.length - 1 && (
+              <>
+                <div className="line-v" style={{ margin: "0 auto" }} />
+                <div
+                  className="branch-split"
+                  style={{ maxWidth: 420, margin: "0 auto" }}
+                >
+                  <div className="branch-left" />
+                  <div className="branch-right" />
+                </div>
+              </>
+            )}
           </div>
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#38bdf8",
-                boxShadow: "0 0 16px rgba(56,189,248,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-user-shield"
-                style={{ fontSize: "24px", color: "#38bdf8" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(56,189,248,0.3)" }}
-            >
-              <div className="person-name">{displayName(wakil?.nama)}</div>
-              <div className="role-badge" style={{ color: "#38bdf8" }}>
-                Wakil Ketua
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
 
-        <div className="line-v" />
-        <div className="branch-split">
+        <div className="line-v" style={{ margin: "0 auto" }} />
+        <div
+          className="branch-split"
+          style={{ maxWidth: 420, margin: "0 auto" }}
+        >
           <div className="branch-left" />
           <div className="branch-right" />
         </div>
 
-        {/* Sekretaris */}
-        <div className="tree-row">
-          <div className="tree-node">
-            <div className="avatar-box">
-              <i
-                className="fa-solid fa-file-pen"
-                style={{ fontSize: "24px", color: "#38bdf8" }}
-              />
-            </div>
-            <div className="role-card">
-              <div className="person-name">{displayName(sek1?.nama)}</div>
-              <div className="role-badge">Sekretaris 1</div>
-            </div>
-          </div>
-          <div className="tree-node">
-            <div className="avatar-box">
-              <i
-                className="fa-solid fa-file-pen"
-                style={{ fontSize: "24px", color: "#38bdf8" }}
-              />
-            </div>
-            <div className="role-card">
-              <div className="person-name">{displayName(sek2?.nama)}</div>
-              <div className="role-badge">Sekretaris 2</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="line-v" />
-        <div className="branch-split">
-          <div className="branch-left" />
-          <div className="branch-right" />
-        </div>
-
-        {/* Bendahara */}
-        <div className="tree-row">
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#4ade80",
-                boxShadow: "0 0 16px rgba(74,222,128,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-wallet"
-                style={{ fontSize: "24px", color: "#4ade80" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(74,222,128,0.3)" }}
-            >
-              <div className="person-name">{displayName(ben1?.nama)}</div>
-              <div className="role-badge" style={{ color: "#4ade80" }}>
-                Bendahara 1
-              </div>
-            </div>
-          </div>
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#4ade80",
-                boxShadow: "0 0 16px rgba(74,222,128,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-wallet"
-                style={{ fontSize: "24px", color: "#4ade80" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(74,222,128,0.3)" }}
-            >
-              <div className="person-name">{displayName(ben2?.nama)}</div>
-              <div className="role-badge" style={{ color: "#4ade80" }}>
-                Bendahara 2
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="line-v" />
-        <div className="branch-split">
-          <div className="branch-left" />
-          <div className="branch-right" />
-        </div>
-
-        {/* Kesehatan */}
-        <div className="tree-row">
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#f43f5e",
-                boxShadow: "0 0 16px rgba(244,63,94,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-heart-pulse"
-                style={{ fontSize: "24px", color: "#f43f5e" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(244,63,94,0.3)" }}
-            >
-              <div className="person-name">{displayName(kes1?.nama)}</div>
-              <div className="role-badge" style={{ color: "#f43f5e" }}>
-                Kesehatan 1
-              </div>
-            </div>
-          </div>
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#f43f5e",
-                boxShadow: "0 0 16px rgba(244,63,94,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-heart-pulse"
-                style={{ fontSize: "24px", color: "#f43f5e" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(244,63,94,0.3)" }}
-            >
-              <div className="person-name">{displayName(kes2?.nama)}</div>
-              <div className="role-badge" style={{ color: "#f43f5e" }}>
-                Kesehatan 2
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="line-v" />
-        <div className="branch-split">
-          <div className="branch-left" />
-          <div className="branch-right" />
-        </div>
-
-        {/* Keamanan */}
-        <div className="tree-row">
-          <div className="tree-node">
-            <div
-              className="avatar-box"
-              style={{
-                borderColor: "#fb923c",
-                boxShadow: "0 0 16px rgba(251,146,60,0.4)",
-              }}
-            >
-              <i
-                className="fa-solid fa-shield-halved"
-                style={{ fontSize: "24px", color: "#fb923c" }}
-              />
-            </div>
-            <div
-              className="role-card"
-              style={{ borderColor: "rgba(251,146,60,0.3)" }}
-            >
-              <div className="person-name">{displayName(amn?.nama)}</div>
-              <div className="role-badge" style={{ color: "#fb923c" }}>
-                Keamanan
-              </div>
-            </div>
-          </div>
-          <div className="tree-node" style={{ visibility: "hidden" }} />
+        {/* Keamanan di tengah */}
+        <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <NodeCard
+            title="Keamanan"
+            name={displayName(amn?.nama)}
+            color="#fb923c"
+            icon="fa-shield-halved"
+          />
         </div>
       </div>
     </>
   );
-    }
+}
