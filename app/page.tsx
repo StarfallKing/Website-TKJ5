@@ -10,7 +10,6 @@ export default function HomePage() {
   const { students, paymentOverrides, kasLog, siteContent } = useAppData();
   const [openId, setOpenId] = useState<string | null>(null);
 
-  // Kalkulasi total kas otomatis dari pembayaran murid + kasLog
   const kasNow = useMemo(() => {
     const totalMasukPaid =
       Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
@@ -26,8 +25,7 @@ export default function HomePage() {
   const news = siteContent.news || [];
 
   return (
-    // pb-24 diberikan agar bagian bawah tidak tertutup oleh Bottom Navigation Bar
-    <div className="w-full max-w-4xl mx-auto space-y-4 px-3 pb-24">
+    <div className="w-full space-y-4">
       {/* Header sistem */}
       <div
         className="glass-card text-center"
@@ -53,8 +51,8 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Widgets: Pakai CSS Grid bawaan Tailwind (2 kolom di HP, 4 kolom di Laptop/Desktop) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Widgets: 2 Kolom di HP, 4 Kolom di Desktop */}
+      <div className="responsive-widgets">
         <div
           className="glass-card text-center"
           style={{ cursor: "pointer" }}
@@ -130,8 +128,8 @@ export default function HomePage() {
           </p>
         )}
 
-        {/* Berita: 1 kolom di HP, 2 kolom menyamping di Desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Berita: 1 Kolom di HP, 2 Kolom di Desktop */}
+        <div className="responsive-news">
           {news.map((n) => {
             const expanded = openId === n.id;
             return (
