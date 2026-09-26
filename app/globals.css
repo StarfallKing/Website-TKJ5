@@ -1594,3 +1594,84 @@ body {
     border-radius: 12px;
   }
 }
+
+/* ===== Siswa detail profile (TikTok-style di desktop) ===== */
+.siswa-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.siswa-profile-avatar {
+  width: 72px !important;
+  height: 72px !important;
+  font-size: 24px !important;
+  flex-shrink: 0;
+}
+
+.siswa-profile-bio {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.siswa-profile-name {
+  font-size: 16px;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.siswa-profile-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.siswa-profile-stats {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Desktop: avatar kiri, bio kanan (mirip TikTok) */
+@media (min-width: 768px) {
+  .siswa-profile-card {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .siswa-profile-avatar {
+    width: 96px !important;
+    height: 96px !important;
+    font-size: 32px !important;
+  }
+
+  .siswa-profile-bio {
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .siswa-profile-name {
+    font-size: 20px;
+  }
+
+  .siswa-profile-meta {
+    font-size: 12px;
+  }
+
+  .siswa-profile-stats {
+    max-width: 360px;
+  }
+
+  .siswa-detail-header {
+    gap: 12px;
+  }
+}
