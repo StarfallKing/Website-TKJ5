@@ -1746,20 +1746,45 @@ body {
   );
 }
 
-/* Kas: widget TOTAL / PEMASUKAN / PENGELUARAN */
+/* Kas widgets — mobile kecil, desktop besar */
 .kas-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+}
+
+.kas-summary-card {
+  padding: 10px 6px !important;
+}
+
+.kas-summary-label {
+  font-size: 8px;
+  color: #60a5fa;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.kas-summary-val {
+  font-weight: 900;
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 @media (min-width: 768px) {
   .kas-summary-grid {
     gap: 12px;
   }
-  .kas-summary-grid .card-val,
-  .kas-summary-grid div[style*="fontSize: 18"] {
-    font-size: 20px !important;
+  .kas-summary-card {
+    padding: 14px 10px !important;
+  }
+  .kas-summary-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  .kas-summary-val {
+    font-size: 18px;
   }
 }
