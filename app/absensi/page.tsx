@@ -262,28 +262,38 @@ export default function AbsensiPage() {
         )}
       </div>
 
-      {/* Rekap 1 tahun */}
-      <div className="glass-card" style={{ padding: 10 }}>
+      {/* Rekap 1 tahun — judul diperbesar */}
+      <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
           style={{
-            marginBottom: 10,
-            paddingBottom: 6,
+            marginBottom: 12,
+            paddingBottom: 8,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
+            alignItems: "center",
           }}
         >
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa" }}>
-            <i className="fa-solid fa-chart-pie" style={{ marginRight: 6 }} />
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#60a5fa",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-chart-pie" style={{ fontSize: 15 }} />
             Rekap Akumulasi 1 Tahun
           </span>
           <span
             style={{
-              fontSize: 10,
+              fontSize: 11,
               background: "rgba(34,197,94,0.15)",
               color: "#4ade80",
               border: "1px solid rgba(74,222,128,0.3)",
-              padding: "2px 8px",
-              borderRadius: 6,
+              padding: "4px 10px",
+              borderRadius: 8,
               fontWeight: 700,
             }}
           >
@@ -456,27 +466,34 @@ export default function AbsensiPage() {
         })}
       </div>
 
-      {/* Tabel 1 bulan aktif */}
-      <div className="glass-card" style={{ padding: 10 }}>
+      {/* Tabel 1 bulan aktif — judul diperbesar */}
+      <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
           style={{
-            marginBottom: 10,
-            paddingBottom: 6,
+            marginBottom: 12,
+            paddingBottom: 8,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
+            alignItems: "center",
           }}
         >
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#60a5fa" }}>
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#60a5fa",
+            }}
+          >
             Presensi {activeMConfig.name}
           </span>
           <span
             style={{
-              fontSize: 10,
+              fontSize: 11,
               background: "rgba(96,165,250,0.15)",
               color: "#60a5fa",
               border: "1px solid rgba(96,165,250,0.3)",
-              padding: "2px 6px",
-              borderRadius: 6,
+              padding: "4px 10px",
+              borderRadius: 8,
               fontWeight: 700,
             }}
           >
@@ -571,4 +588,4 @@ export default function AbsensiPage() {
       </div>
     </>
   );
-                }
+        }
