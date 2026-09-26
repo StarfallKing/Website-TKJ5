@@ -88,8 +88,8 @@ function formatScheduleText(
     }
     lines.push("");
   });
-  lines.push("_Portal X TKJ-5_");
-  return lines.join("\n");
+  // watermark dihapus
+  return lines.join("\n").trim();
 }
 
 export default function JadwalPage() {
@@ -188,9 +188,7 @@ export default function JadwalPage() {
         alasan +
         "\n\n" +
         "*Lampiran (buka / unduh):*\n" +
-        linkFile +
-        "\n\n" +
-        "_Digenerate via Portal X TKJ-5_";
+        linkFile;
 
       const url =
         "https://wa.me/" +
@@ -275,7 +273,7 @@ export default function JadwalPage() {
         </p>
       </div>
 
-      {/* Dynamic Island — pil → expand (frosted) */}
+      {/* Dynamic Island */}
       <div
         className={`dynamic-island-bar ${islandOpen ? "open" : ""}`}
         onClick={() => setIslandOpen((v) => !v)}
@@ -473,6 +471,7 @@ export default function JadwalPage() {
             value={alasan}
             onChange={(e) => setAlasan(e.target.value)}
             placeholder="Ketik alasan atau pilih template..."
+            style={{ resize: "none" }}
           />
         </div>
 
@@ -578,4 +577,4 @@ export default function JadwalPage() {
       )}
     </>
   );
-  }
+                    }
