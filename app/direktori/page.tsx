@@ -30,13 +30,9 @@ export default function DirektoriPage() {
   const countL = students.filter((s) => s.gender === "L").length;
   const countP = students.filter((s) => s.gender === "P").length;
 
-  // Fungsi menyalin nama siswa berdasarkan filter/pencarian saat ini
   const handleCopyNames = () => {
     if (!filtered || filtered.length === 0) return;
-
-    // Gabungkan nama siswa dengan enter/line break (\n) agar pas dipaste di Wheel of Names
     const namesList = filtered.map((s) => s.nama).join("\n");
-
     navigator.clipboard.writeText(namesList).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -74,45 +70,39 @@ export default function DirektoriPage() {
         </div>
       </div>
 
-      <div className="filter-pills" style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "4px" }}>
+      {/* Filter: mobile kecil · desktop full width */}
+      <div className="direktori-filters">
         <button
           type="button"
-          className={`filter-btn ${gender === "all" ? "active" : ""}`}
+          className={`direktori-pill ${gender === "all" ? "active" : ""}`}
           onClick={() => setGender("all")}
         >
           Semua ({students.length})
         </button>
         <button
           type="button"
-          className={`filter-btn ${gender === "L" ? "active" : ""}`}
+          className={`direktori-pill ${gender === "L" ? "active" : ""}`}
           onClick={() => setGender("L")}
         >
           Laki-Laki ({countL})
         </button>
         <button
           type="button"
-          className={`filter-btn ${gender === "P" ? "active" : ""}`}
+          className={`direktori-pill ${gender === "P" ? "active" : ""}`}
           onClick={() => setGender("P")}
         >
           Perempuan ({countP})
         </button>
-
-        {/* Tombol Salin Nama Siswa untuk Wheel of Names */}
         <button
           type="button"
-          className="filter-btn"
+          className={`direktori-pill direktori-copy ${copied ? "copied" : ""}`}
           onClick={handleCopyNames}
-          style={{
-            background: copied ? "rgba(34,197,94,0.25)" : "rgba(59,130,246,0.2)",
-            color: copied ? "#4ade80" : "#60a5fa",
-            borderColor: copied ? "rgba(34,197,94,0.4)" : "rgba(96,165,250,0.35)",
-            whiteSpace: "nowrap",
-            cursor: "pointer",
-            transition: "all 0.2s ease"
-          }}
         >
-          <i className={`fa-solid ${copied ? "fa-check" : "fa-copy"}`} style={{ marginRight: 6 }} />
-          {copied ? "Nama Tersalin!" : "Salin Nama"}
+          <i
+            className={`fa-solid ${copied ? "fa-check" : "fa-copy"}`}
+            style={{ marginRight: 5 }}
+          />
+          {copied ? "Tersalin!" : "Salin Nama"}
         </button>
       </div>
 
@@ -165,4 +155,4 @@ export default function DirektoriPage() {
       </div>
     </>
   );
-}
+              }
