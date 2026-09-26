@@ -54,7 +54,7 @@ function isLessonNow(start: string, end: string) {
 
 async function uploadIzinFile(file: File): Promise<string> {
   const safe = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
-  const path = `izin/\( {Date.now()}_ \){safe}`;
+  const path = "izin/" + Date.now() + "_" + safe;
 
   const { error } = await supabase.storage
     .from("izin-files")
@@ -70,25 +70,30 @@ function formatScheduleText(
   label: string,
   data: Record<string, Lesson[]>
 ) {
-  const lines: string[] = [`*${label}*`, ""];
+  const lines: string[] = ["*" + label + "*", ""];
+
   scheduleDays.forEach((day) => {
     const items = data?.[day] || [];
-    lines.push(`*${day.toUpperCase()}*`);
+    lines.push("*" + day.toUpperCase() + "*");
+
     if (!items.length) {
       lines.push("-");
     } else {
       items.forEach((item) => {
         const isLibur = item.mapel.includes("LIBUR");
-        lines.push(
-          isLibur
-            ? `• ${item.mapel}`
-            : `• \( {item.mapel} ( \){item.start}-${item.end})`
-        );
+        if (isLibur) {
+          lines.push("• " + item.mapel);
+        } else {
+          lines.push(
+            "• " + item.mapel + " (" + item.start + "-" + item.end + ")"
+          );
+        }
       });
     }
+
     lines.push("");
   });
-  // watermark dihapus
+
   return lines.join("\n").trim();
 }
 
@@ -223,7 +228,7 @@ export default function JadwalPage() {
         >
           <div className="title-sub">
             <i
-              className={`fa-solid ${icon}`}
+              className={"fa-solid " + icon}
               style={{ color, marginRight: "6px" }}
             />
             {title}
@@ -249,7 +254,9 @@ export default function JadwalPage() {
                   }}
                 >
                   <span>{item.mapel}</span>
-                  <span>{isLibur ? "-" : `${item.start} - ${item.end}`}</span>
+                  <span>
+                    {isLibur ? "-" : item.start + " - " + item.end}
+                  </span>
                 </div>
               );
             })}
@@ -275,7 +282,7 @@ export default function JadwalPage() {
 
       {/* Dynamic Island */}
       <div
-        className={`dynamic-island-bar ${islandOpen ? "open" : ""}`}
+        className={"dynamic-island-bar" + (islandOpen ? " open" : "")}
         onClick={() => setIslandOpen((v) => !v)}
       >
         <div className="island-header">
@@ -319,7 +326,9 @@ export default function JadwalPage() {
             return (
               <div
                 key={i}
-                className={`schedule-item-live ${active ? "active-lesson" : ""}`}
+                className={
+                  "schedule-item-live" + (active ? " active-lesson" : "")
+                }
               >
                 <div>
                   <strong style={{ color: active ? "#60a5fa" : "#f8fafc" }}>
@@ -368,7 +377,12 @@ export default function JadwalPage() {
         >
           <div
             className="title-sub"
-            style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+            style={{
+              fontSize: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
           >
             <i className="fa-solid fa-file-signature" />
             DOKUMEN IZIN SISWA
@@ -429,11 +443,16 @@ export default function JadwalPage() {
                 setAlasan("");
               }}
             >
-              <i className="fa-solid fa-briefcase" style={{ marginRight: "4px" }} />{" "}
+              <i
+                className="fa-solid fa-briefcase"
+                style={{ marginRight: "4px" }}
+              />{" "}
               Keperluan
             </div>
             <div
-              className={"radio-card" + (izinType === "Sakit" ? " active" : "")}
+              className={
+                "radio-card" + (izinType === "Sakit" ? " active" : "")
+              }
               onClick={() => {
                 setIzinType("Sakit");
                 setAlasan("");
@@ -477,7 +496,8 @@ export default function JadwalPage() {
 
         <div className="form-group">
           <label className="form-label">
-            Lampirkan Foto / Surat <span style={{ color: "#f43f5e" }}>*</span>
+            Lampirkan Foto / Surat{" "}
+            <span style={{ color: "#f43f5e" }}>*</span>
           </label>
           <div className="custom-file-upload">
             <input
@@ -577,4 +597,4 @@ export default function JadwalPage() {
       )}
     </>
   );
-                    }
+            }
