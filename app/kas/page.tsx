@@ -13,48 +13,41 @@ import { useAppData } from "@/lib/AppDataContext";
 
 export default function KasPage() {
   const router = useRouter();
-  // Ambil paymentOverrides agar re-render ter-trigger saat state Supabase/Context berubah
   const { students, kasLog, isKasPaid, paymentOverrides } = useAppData();
   const list = students.length ? students : allStudents;
 
   const [query, setQuery] = useState("");
   const [showSug, setShowSug] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
-  const [monthIdx, setMonthIdx] = useState(1); // default Agustus
+  const [monthIdx, setMonthIdx] = useState(1);
 
   const logs = useMemo(
     () => kasLog.filter((t) => t.desc?.trim() || t.val),
     [kasLog]
   );
 
-  // 1. Hitung total pembayaran LUNAS dari tabel kas_paid seluruh siswa di 12 bulan
   const totalKasSiswa = useMemo(() => {
     let total = 0;
     list.forEach((s, idx) => {
       monthConfigs.forEach((_, mi) => {
-        if (isKasPaid(s.nisn, idx, mi)) {
-          total += NOMINAL_KAS; // Rp 2.000 per anak/bulan
-        }
+        if (isKasPaid(s.nisn, idx, mi)) total += NOMINAL_KAS;
       });
     });
     return total;
   }, [list, isKasPaid, paymentOverrides]);
 
-  // 2. Hitung pemasukan MURNI non-kas dari log manual
-  // PENTING: Mengecualikan log yang mengandung kata 'kas' atau 'qris' agar tidak terhitung 2 kali
   const totalMasukLog = useMemo(
     () =>
       logs
         .filter((t) => {
           if (t.type !== "masuk") return false;
-          const desc = t.desc.toLowerCase();
+          const desc = (t.desc || "").toLowerCase();
           return !desc.includes("kas") && !desc.includes("qris");
         })
         .reduce((a, t) => a + t.val, 0),
     [logs]
   );
 
-  // 3. Hitung total pengeluaran dari log manual
   const totalKeluar = useMemo(
     () =>
       logs
@@ -63,7 +56,6 @@ export default function KasPage() {
     [logs]
   );
 
-  // 4. Akumulasi real-time (Pemasukan Kas + Pemasukan Murni Non-Kas - Pengeluaran)
   const totalMasuk = totalKasSiswa + totalMasukLog;
   const lastBalance = totalMasuk - totalKeluar;
 
@@ -101,34 +93,71 @@ export default function KasPage() {
         </p>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: 8,
-        }}
-      >
-        <div className="glass-card text-center" style={{ padding: 10 }}>
-          <div className="title-sub" style={{ fontSize: 8 }}>
+      {/* Widget lebih besar (mirip absensi) */}
+      <div className="kas-summary-grid">
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
             TOTAL KAS
           </div>
-          <div className="card-val" style={{ color: "#4ade80", fontSize: 13 }}>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#4ade80",
+              fontSize: 18,
+              marginTop: 4,
+            }}
+          >
             {formatRupiah(lastBalance)}
           </div>
         </div>
-        <div className="glass-card text-center" style={{ padding: 10 }}>
-          <div className="title-sub" style={{ fontSize: 8 }}>
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
             PEMASUKAN
           </div>
-          <div className="card-val" style={{ color: "#60a5fa", fontSize: 13 }}>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#60a5fa",
+              fontSize: 18,
+              marginTop: 4,
+            }}
+          >
             {formatRupiah(totalMasuk)}
           </div>
         </div>
-        <div className="glass-card text-center" style={{ padding: 10 }}>
-          <div className="title-sub" style={{ fontSize: 8 }}>
+        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#60a5fa",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
             PENGELUARAN
           </div>
-          <div className="card-val" style={{ color: "#f43f5e", fontSize: 13 }}>
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#f43f5e",
+              fontSize: 18,
+              marginTop: 4,
+            }}
+          >
             {formatRupiah(totalKeluar)}
           </div>
         </div>
@@ -172,19 +201,38 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 — Filter Bulan Grid 4-Kolom */}
-      <div className="glass-card" style={{ padding: 10 }}>
-        <div className="flex-between" style={{ marginBottom: 8 }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
-            Tabel 1: Status Kas Bulan
+      {/* Tabel 1 — Status Pembayaran Kas Perbulan */}
+      <div className="glass-card" style={{ padding: 12 }}>
+        <div
+          className="flex-between"
+          style={{
+            marginBottom: 12,
+            paddingBottom: 8,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#60a5fa",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-calendar-check" style={{ fontSize: 15 }} />
+            Status Pembayaran Kas Perbulan
           </span>
         </div>
+
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: 8,
-            marginBottom: 10,
+            marginBottom: 12,
           }}
         >
           {monthConfigs.map((m, i) => {
@@ -219,6 +267,7 @@ export default function KasPage() {
             );
           })}
         </div>
+
         <div className="table-responsive">
           <table className="absensi-table">
             <thead>
@@ -296,11 +345,45 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 */}
-      <div className="glass-card" style={{ padding: 10 }}>
-        <div className="title-sub" style={{ marginBottom: 8 }}>
-          Tabel 2: Matriks Kas 12 Bulan
+      {/* Tabel 2 — Rekapan Kas 1 Tahun */}
+      <div className="glass-card" style={{ padding: 12 }}>
+        <div
+          className="flex-between"
+          style={{
+            marginBottom: 12,
+            paddingBottom: 8,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#60a5fa",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-table-cells" style={{ fontSize: 15 }} />
+            Rekapan Kas 1 Tahun
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              background: "rgba(34,197,94,0.15)",
+              color: "#4ade80",
+              border: "1px solid rgba(74,222,128,0.3)",
+              padding: "4px 10px",
+              borderRadius: 8,
+              fontWeight: 700,
+            }}
+          >
+            T.A 2026/2027
+          </span>
         </div>
+
         <div className="table-responsive">
           <table className="absensi-table">
             <thead>
@@ -348,11 +431,32 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Tabel 3 */}
-      <div className="glass-card" style={{ padding: 10 }}>
-        <div className="title-sub" style={{ marginBottom: 8 }}>
-          Tabel 3: Log Pemasukan & Pengeluaran
+      {/* Tabel 3 — Catatan Pengeluaran Dan Pemasukan */}
+      <div className="glass-card" style={{ padding: 12 }}>
+        <div
+          className="flex-between"
+          style={{
+            marginBottom: 12,
+            paddingBottom: 8,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#60a5fa",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-book" style={{ fontSize: 15 }} />
+            Catatan Pengeluaran Dan Pemasukan
+          </span>
         </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {logs.length === 0 && (
             <p style={{ fontSize: 11, color: "#64748b", textAlign: "center" }}>
@@ -403,4 +507,4 @@ export default function KasPage() {
       </button>
     </>
   );
-}
+                }
