@@ -97,6 +97,51 @@ function formatScheduleText(
   return lines.join("\n").trim();
 }
 
+/** Clipboard robust: API modern + fallback mobile */
+async function copyToClipboard(text: string): Promise<boolean> {
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.clipboard &&
+    typeof window !== "undefined" &&
+    window.isSecureContext
+  ) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // lanjut fallback
+    }
+  }
+
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.width = "1px";
+    ta.style.height = "1px";
+    ta.style.padding = "0";
+    ta.style.border = "none";
+    ta.style.outline = "none";
+    ta.style.boxShadow = "none";
+    ta.style.background = "transparent";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export default function JadwalPage() {
   const { students, schedule } = useAppData();
   const sched: ScheduleData = schedule?.pagi ? schedule : masterSchedule;
@@ -148,14 +193,12 @@ export default function JadwalPage() {
         ? "JADWAL SESI 1 (PAGI) - X TKJ 5"
         : "JADWAL SESI 2 (SIANG) - X TKJ 5";
     const text = formatScheduleText(label, sched[kind]);
-    try {
-      await navigator.clipboard.writeText(text);
+    const ok = await copyToClipboard(text);
+    if (ok) {
       showToast(
-        kind === "pagi"
-          ? "Jadwal pagi disalin ✓"
-          : "Jadwal siang disalin ✓"
+        kind === "pagi" ? "Jadwal pagi disalin ✓" : "Jadwal siang disalin ✓"
       );
-    } catch {
+    } else {
       showToast("Gagal menyalin jadwal");
     }
   }
@@ -597,4 +640,4 @@ export default function JadwalPage() {
       )}
     </>
   );
-            }
+                                            }
