@@ -7,12 +7,13 @@ import { formatRupiah, NOMINAL_KAS } from "@/lib/data";
 
 export default function HomePage() {
   const router = useRouter();
-  const { students, paymentOverrides, kasLog, siteContent } = useAppData();
+  const { paymentOverrides, kasLog, siteContent } = useAppData();
   const [openId, setOpenId] = useState<string | null>(null);
 
   const kasNow = useMemo(() => {
     const totalMasukPaid =
-      Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
+      Object.values(paymentOverrides || {}).filter(Boolean).length *
+      (NOMINAL_KAS || 2000);
 
     const totalLog = (kasLog || []).reduce((acc, curr) => {
       return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
@@ -25,7 +26,7 @@ export default function HomePage() {
   const news = siteContent.news || [];
 
   return (
-    <div className="w-full space-y-4">
+    <>
       {/* Header sistem */}
       <div
         className="glass-card text-center"
@@ -51,10 +52,10 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Widgets: 2 Kolom di HP (2x2), 4 Kolom di Desktop (4x1) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Widgets: HP 2×2 · Desktop 4×1 */}
+      <div className="home-widgets">
         <div
-          className="glass-card text-center"
+          className="glass-card text-center home-widget"
           style={{ cursor: "pointer" }}
           onClick={() => router.push("/direktori")}
         >
@@ -64,7 +65,7 @@ export default function HomePage() {
         </div>
 
         <div
-          className="glass-card text-center"
+          className="glass-card text-center home-widget"
           style={{ cursor: "pointer" }}
           onClick={() => router.push("/kas")}
         >
@@ -76,7 +77,7 @@ export default function HomePage() {
         </div>
 
         <div
-          className="glass-card text-center"
+          className="glass-card text-center home-widget"
           style={{ cursor: "pointer" }}
           onClick={() => router.push("/jadwal")}
         >
@@ -85,14 +86,14 @@ export default function HomePage() {
           <div className="card-val">{w.mapelSub}</div>
         </div>
 
-        <div className="glass-card text-center">
+        <div className="glass-card text-center home-widget">
           <div style={{ fontSize: 20, marginBottom: 2 }}>🏫</div>
           <div className="title-sub">{w.ruangLabel}</div>
           <div className="card-val">{w.ruangSub}</div>
         </div>
       </div>
 
-      {/* Berita dari siteContent */}
+      {/* Berita */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 14 }}
@@ -128,19 +129,18 @@ export default function HomePage() {
           </p>
         )}
 
-        {/* Berita: 1 Kolom di HP, 2 Kolom di Desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* HP 1 kolom · Desktop 2 kolom, tidak kepotong */}
+        <div className="home-news">
           {news.map((n) => {
             const expanded = openId === n.id;
             return (
               <div
                 key={n.id}
+                className="home-news-item"
                 style={{
                   display: "flex",
                   flexDirection: "column",
                   gap: 8,
-                  paddingBottom: 12,
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
                 <div
@@ -159,7 +159,8 @@ export default function HomePage() {
                       width: "100%",
                       borderRadius: 12,
                       objectFit: "cover",
-                      maxHeight: 180,
+                      maxHeight: 220,
+                      height: "auto",
                     }}
                   />
                 ) : null}
@@ -174,9 +175,7 @@ export default function HomePage() {
                       cursor: "pointer",
                       color: "#60a5fa",
                     }}
-                    onClick={() =>
-                      setOpenId(expanded ? null : n.id)
-                    }
+                    onClick={() => setOpenId(expanded ? null : n.id)}
                   >
                     {expanded ? "lihat lebih sedikit" : "lihat selengkapnya"}
                   </span>
@@ -226,6 +225,6 @@ export default function HomePage() {
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 }
