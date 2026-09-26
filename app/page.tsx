@@ -12,17 +12,13 @@ export default function HomePage() {
 
   // Kalkulasi total kas otomatis dari pembayaran murid + kasLog
   const kasNow = useMemo(() => {
-    // 1. Hitung total uang masuk dari centang bayar kas murid (kas_paid)
-    // Tiap centang dikali NOMINAL_KAS (2.000)
     const totalMasukPaid =
       Object.values(paymentOverrides || {}).filter(Boolean).length * (NOMINAL_KAS || 2000);
 
-    // 2. Hitung transaksi manual di kasLog (jika ada transaksi 'masuk' atau 'keluar')
     const totalLog = (kasLog || []).reduce((acc, curr) => {
       return curr.type === "masuk" ? acc + curr.val : acc - curr.val;
     }, 0);
 
-    // Total gabungan
     return totalMasukPaid + totalLog;
   }, [paymentOverrides, kasLog]);
 
@@ -30,7 +26,8 @@ export default function HomePage() {
   const news = siteContent.news || [];
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-4 px-2 sm:px-4 pb-12">
+    // pb-24 diberikan agar bagian bawah tidak tertutup oleh Bottom Navigation Bar
+    <div className="w-full max-w-4xl mx-auto space-y-4 px-3 pb-24">
       {/* Header sistem */}
       <div
         className="glass-card text-center"
@@ -56,7 +53,7 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Widgets: 2 kolom di HP, 4 kolom di Desktop (md:) */}
+      {/* Widgets: Pakai CSS Grid bawaan Tailwind (2 kolom di HP, 4 kolom di Laptop/Desktop) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div
           className="glass-card text-center"
@@ -97,7 +94,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Berita dari siteContent (maks 7 dari admin) */}
+      {/* Berita dari siteContent */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 14 }}
@@ -133,7 +130,7 @@ export default function HomePage() {
           </p>
         )}
 
-        {/* Berita Grid: 1 Kolom di HP, 2 Kolom di Desktop (md:) */}
+        {/* Berita: 1 kolom di HP, 2 kolom menyamping di Desktop */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {news.map((n) => {
             const expanded = openId === n.id;
@@ -164,7 +161,7 @@ export default function HomePage() {
                       width: "100%",
                       borderRadius: 12,
                       objectFit: "cover",
-                      maxHeight: 220,
+                      maxHeight: 180,
                     }}
                   />
                 ) : null}
