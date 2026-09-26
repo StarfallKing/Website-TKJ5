@@ -26,8 +26,14 @@ type NodeProps = {
 function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
   const isLg = size === "lg";
   const isSm = size === "sm";
-  const avatar = isLg ? 56 : isSm ? 40 : 48;
-  const iconPx = isLg ? 24 : isSm ? 16 : 20;
+
+  // Desktop jauh lebih besar; mobile tetap kompak
+  const avatar = isLg ? 78 : isSm ? 42 : 56;
+  const iconPx = isLg ? 30 : isSm ? 17 : 22;
+  const maxW = isLg ? 280 : isSm ? 148 : 200;
+  const nameFs = isLg ? 14 : isSm ? 10 : 12;
+  const roleFs = isLg ? 11 : isSm ? 8 : 9;
+  const pad = isLg ? "12px 14px" : isSm ? "6px 8px" : "9px 11px";
 
   return (
     <div
@@ -37,22 +43,21 @@ function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
         alignItems: "center",
         textAlign: "center",
         width: "100%",
-        maxWidth: isLg ? 220 : isSm ? 140 : 170,
+        maxWidth: maxW,
         zIndex: 2,
       }}
     >
-      {/* Icon circle */}
       <div
         style={{
           width: avatar,
           height: avatar,
           borderRadius: "50%",
-          border: `2.5px solid ${color}`,
+          border: `3px solid ${color}`,
           background: "rgba(15, 23, 42, 0.95)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: `0 0 18px ${color}66, inset 0 1px 2px rgba(255,255,255,0.25)`,
+          boxShadow: `0 0 22px ${color}66, inset 0 1px 2px rgba(255,255,255,0.25)`,
           flexShrink: 0,
         }}
       >
@@ -62,24 +67,24 @@ function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
         />
       </div>
 
-      {/* Name badge */}
       <div
         style={{
-          marginTop: 8,
+          marginTop: 10,
           width: "100%",
           background: "rgba(15, 23, 42, 0.92)",
           border: `1.5px solid ${color}66`,
-          borderRadius: 12,
-          padding: isSm ? "6px 8px" : "8px 10px",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.12)",
+          borderRadius: 14,
+          padding: pad,
+          boxShadow:
+            "0 8px 20px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.12)",
         }}
       >
         <div
           style={{
-            fontSize: isSm ? 10 : 11,
+            fontSize: nameFs,
             fontWeight: 700,
             color: "#f8fafc",
-            lineHeight: 1.25,
+            lineHeight: 1.3,
             wordBreak: "break-word",
             textAlign: "center",
           }}
@@ -88,12 +93,12 @@ function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
         </div>
         <div
           style={{
-            fontSize: isSm ? 8 : 9,
+            fontSize: roleFs,
             fontWeight: 800,
             color,
             textTransform: "uppercase",
-            letterSpacing: 0.4,
-            marginTop: 3,
+            letterSpacing: 0.5,
+            marginTop: 4,
             textAlign: "center",
           }}
         >
@@ -104,7 +109,6 @@ function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
   );
 }
 
-/** Garis vertikal pendek */
 function Spine({ h = 20 }: { h?: number }) {
   return (
     <div
@@ -120,53 +124,49 @@ function Spine({ h = 20 }: { h?: number }) {
   );
 }
 
-/**
- * Bar horizontal + 2 “kaki” ke kiri/kanan
- * Membuat garis T yang benar-benar nyambung ke node di bawahnya
- */
-function BranchBar() {
+/** Garis T — lebar menyesuaikan mode (mobile / desktop) */
+function BranchBar({ wide }: { wide?: boolean }) {
+  // wide = desktop → kaki lebih ke tepi supaya nyambung ke node yang melebar
+  const side = wide ? "8%" : "14%";
   return (
     <div
       style={{
         position: "relative",
         width: "100%",
-        maxWidth: 360,
-        height: 22,
+        maxWidth: wide ? 640 : 340,
+        height: wide ? 28 : 20,
         margin: "0 auto",
       }}
     >
-      {/* batang horizontal */}
       <div
         style={{
           position: "absolute",
           top: 0,
-          left: "12%",
-          right: "12%",
+          left: side,
+          right: side,
           height: 2,
           background: "#60a5fa",
           boxShadow: "0 0 8px rgba(96,165,250,0.5)",
         }}
       />
-      {/* kaki kiri */}
       <div
         style={{
           position: "absolute",
           top: 0,
-          left: "12%",
+          left: side,
           width: 2,
-          height: 22,
+          height: "100%",
           background: "#60a5fa",
           boxShadow: "0 0 6px rgba(96,165,250,0.4)",
         }}
       />
-      {/* kaki kanan */}
       <div
         style={{
           position: "absolute",
           top: 0,
-          right: "12%",
+          right: side,
           width: 2,
-          height: 22,
+          height: "100%",
           background: "#60a5fa",
           boxShadow: "0 0 6px rgba(96,165,250,0.4)",
         }}
@@ -189,12 +189,14 @@ function PairRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: compact ? 12 : 28,
+        // Desktop: gap besar supaya tidak dempet di tengah
+        gap: compact ? 14 : 64,
         width: "100%",
-        maxWidth: compact ? 340 : 420,
+        maxWidth: compact ? 340 : 680,
         margin: "0 auto",
         justifyItems: "center",
         alignItems: "start",
+        padding: compact ? "0 4px" : "0 12px",
       }}
     >
       <OrgNode {...left} size={compact ? "sm" : "md"} />
@@ -278,7 +280,6 @@ export default function StrukturPage() {
 
   return (
     <>
-      {/* Header */}
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 4 }}
@@ -307,7 +308,7 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      {/* ========== MOBILE ========== */}
+      {/* MOBILE — kompak */}
       <div
         className="struktur-mobile glass-card"
         style={{
@@ -335,7 +336,6 @@ export default function StrukturPage() {
           </div>
         ))}
 
-        {/* Keamanan di tengah */}
         <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
           <OrgNode
             title="Keamanan"
@@ -347,14 +347,15 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      {/* ========== DESKTOP (lebih besar, tidak mengecil) ========== */}
+      {/* DESKTOP — besar + melebar kiri-kanan */}
       <div
         className="struktur-desktop glass-card"
         style={{
           display: "none",
           flexDirection: "column",
           alignItems: "center",
-          padding: "28px 20px 32px",
+          padding: "36px 24px 40px",
+          width: "100%",
         }}
       >
         <OrgNode
@@ -364,14 +365,14 @@ export default function StrukturPage() {
           icon="fa-user-tie"
           size="lg"
         />
-        <Spine h={24} />
-        <BranchBar />
+        <Spine h={28} />
+        <BranchBar wide />
 
         {pairs.map((pair, i) => (
           <div key={i} style={{ width: "100%" }}>
             <PairRow left={pair[0]} right={pair[1]} />
-            <Spine h={24} />
-            {i < pairs.length - 1 ? <BranchBar /> : null}
+            <Spine h={28} />
+            {i < pairs.length - 1 ? <BranchBar wide /> : null}
           </div>
         ))}
 
@@ -387,4 +388,4 @@ export default function StrukturPage() {
       </div>
     </>
   );
-            }
+        }
