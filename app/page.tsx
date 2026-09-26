@@ -51,8 +51,8 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Widgets: 2 Kolom di HP, 4 Kolom di Desktop */}
-      <div className="responsive-widgets">
+      {/* Widgets: 2 Kolom di HP (2x2), 4 Kolom di Desktop (4x1) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div
           className="glass-card text-center"
           style={{ cursor: "pointer" }}
@@ -129,7 +129,7 @@ export default function HomePage() {
         )}
 
         {/* Berita: 1 Kolom di HP, 2 Kolom di Desktop */}
-        <div className="responsive-news">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {news.map((n) => {
             const expanded = openId === n.id;
             return (
