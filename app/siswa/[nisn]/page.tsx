@@ -81,33 +81,43 @@ export default function SiswaDetailPage() {
 
   return (
     <>
-      {/* Header: Kembali terpisah + label BIODATA di card pendek */}
-      <div
-        className="siswa-detail-header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-          width: "100%",
-        }}
-      >
+      {/* Mobile: Kembali + BIODATA nyambung dalam 1 card */}
+      <div className="siswa-detail-header-mobile glass-card flex-between">
         <button
           type="button"
           className="btn-action-light"
           onClick={() => router.push("/direktori")}
-          style={{ flexShrink: 0 }}
         >
           <i className="fa-solid fa-arrow-left" /> Kembali
         </button>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 800,
+            color: "#60a5fa",
+            letterSpacing: 0.6,
+            textTransform: "uppercase",
+          }}
+        >
+          BIODATA SISWA
+        </span>
+      </div>
 
+      {/* Desktop: Kembali terpisah + BIODATA di card pendek */}
+      <div className="siswa-detail-header-desktop">
+        <button
+          type="button"
+          className="btn-action-light"
+          onClick={() => router.push("/direktori")}
+        >
+          <i className="fa-solid fa-arrow-left" /> Kembali
+        </button>
         <div
           className="glass-card"
           style={{
             padding: "8px 14px",
             width: "fit-content",
             marginLeft: "auto",
-            flexShrink: 0,
           }}
         >
           <span
@@ -146,12 +156,8 @@ export default function SiswaDetailPage() {
         />
       </a>
 
-      {/* ===== PROFILE CARD =====
-          Mobile: tetap center
-          Desktop: layout TikTok (avatar kiri, bio kanan)
-      */}
+      {/* Profile: mobile center · desktop TikTok (avatar kiri) */}
       <div className="glass-card siswa-profile-card">
-        {/* Avatar */}
         <div
           className={
             "student-avatar siswa-profile-avatar" +
@@ -161,7 +167,6 @@ export default function SiswaDetailPage() {
           {getInitials(siswa.nama)}
         </div>
 
-        {/* Bio text */}
         <div className="siswa-profile-bio">
           <div className="siswa-profile-name">{siswa.nama}</div>
           <div className="siswa-profile-meta">
@@ -194,7 +199,7 @@ export default function SiswaDetailPage() {
         </div>
       </div>
 
-      {/* Persentase kehadiran — bar lebih panjang */}
+      {/* Persentase kehadiran */}
       <div className="glass-card">
         <div className="title-sub" style={{ marginBottom: 12 }}>
           <i className="fa-solid fa-chart-pie" style={{ marginRight: 6 }} />
@@ -227,7 +232,6 @@ export default function SiswaDetailPage() {
           </div>
         </div>
 
-        {/* Bar full width, lebih tinggi */}
         <div
           className="progress-bar-container"
           style={{
@@ -296,4 +300,4 @@ export default function SiswaDetailPage() {
       </div>
     </>
   );
-                       }
+      }
