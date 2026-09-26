@@ -1692,3 +1692,18 @@ body {
     max-width: 360px;
   }
 }
+
+/* Absensi: rata-rata H/I/S/A — mobile 2×2 · desktop 4×1 */
+.absensi-avg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .absensi-avg-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+}
