@@ -5,11 +5,12 @@ import {
   scheduleDays,
   type ScheduleData,
   masterSchedule,
+  type Lesson,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import { supabase } from "@/lib/supabase";
 
-const NOMOR_GURU = "628561534411"; // Pak Shendy
+const NOMOR_GURU = "628561534411";
 
 const templates = {
   Keperluan: [
@@ -53,7 +54,7 @@ function isLessonNow(start: string, end: string) {
 
 async function uploadIzinFile(file: File): Promise<string> {
   const safe = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
-  const path = `izin/${Date.now()}_${safe}`;
+  const path = `izin/\( {Date.now()}_ \){safe}`;
 
   const { error } = await supabase.storage
     .from("izin-files")
@@ -63,6 +64,32 @@ async function uploadIzinFile(file: File): Promise<string> {
 
   const { data } = supabase.storage.from("izin-files").getPublicUrl(path);
   return data.publicUrl;
+}
+
+function formatScheduleText(
+  label: string,
+  data: Record<string, Lesson[]>
+) {
+  const lines: string[] = [`*${label}*`, ""];
+  scheduleDays.forEach((day) => {
+    const items = data?.[day] || [];
+    lines.push(`*${day.toUpperCase()}*`);
+    if (!items.length) {
+      lines.push("-");
+    } else {
+      items.forEach((item) => {
+        const isLibur = item.mapel.includes("LIBUR");
+        lines.push(
+          isLibur
+            ? `• ${item.mapel}`
+            : `• \( {item.mapel} ( \){item.start}-${item.end})`
+        );
+      });
+    }
+    lines.push("");
+  });
+  lines.push("_Portal X TKJ-5_");
+  return lines.join("\n");
 }
 
 export default function JadwalPage() {
@@ -81,6 +108,7 @@ export default function JadwalPage() {
   const [session, setSession] = useState<"pagi" | "siang">("pagi");
   const [tick, setTick] = useState(0);
   const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     setSession(getRotatedSession());
@@ -105,17 +133,39 @@ export default function JadwalPage() {
       .slice(0, 8);
   }, [query, students]);
 
+  function showToast(msg: string) {
+    setToast(msg);
+  }
+
+  async function copySchedule(kind: "pagi" | "siang") {
+    const label =
+      kind === "pagi"
+        ? "JADWAL SESI 1 (PAGI) - X TKJ 5"
+        : "JADWAL SESI 2 (SIANG) - X TKJ 5";
+    const text = formatScheduleText(label, sched[kind]);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(
+        kind === "pagi"
+          ? "Jadwal pagi disalin ✓"
+          : "Jadwal siang disalin ✓"
+      );
+    } catch {
+      showToast("Gagal menyalin jadwal");
+    }
+  }
+
   async function submitWA() {
     if (!nama.trim()) {
-      alert("Pilih nama siswa dulu!");
+      showToast("Pilih nama siswa dulu!");
       return;
     }
     if (!alasan.trim()) {
-      alert("Alasan wajib diisi!");
+      showToast("Alasan wajib diisi!");
       return;
     }
     if (!file) {
-      alert("Wajib lampirkan foto/surat!");
+      showToast("Wajib lampirkan foto/surat!");
       return;
     }
 
@@ -151,7 +201,7 @@ export default function JadwalPage() {
       window.open(url, "_blank");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      alert("Gagal upload ke Storage: " + msg);
+      showToast("Gagal upload ke Storage: " + msg);
     } finally {
       setSending(false);
     }
@@ -225,6 +275,7 @@ export default function JadwalPage() {
         </p>
       </div>
 
+      {/* Dynamic Island — pil → expand (frosted) */}
       <div
         className={`dynamic-island-bar ${islandOpen ? "open" : ""}`}
         onClick={() => setIslandOpen((v) => !v)}
@@ -245,12 +296,18 @@ export default function JadwalPage() {
             color: "#94a3b8",
             display: "flex",
             justifyContent: "space-between",
+            marginTop: 4,
           }}
         >
           <span>Jam: {timeStr} WIB</span>
           <span style={{ color: "#60a5fa", fontWeight: 700 }}>
-            Tekan Ringkasan{" "}
-            <i className="fa-solid fa-chevron-down" style={{ fontSize: "9px" }} />
+            {islandOpen ? "Tutup" : "Tekan Ringkasan"}{" "}
+            <i
+              className={
+                "fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")
+              }
+              style={{ fontSize: "9px" }}
+            />
           </span>
         </div>
 
@@ -300,6 +357,7 @@ export default function JadwalPage() {
         </div>
       </div>
 
+      {/* Form izin */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -310,14 +368,14 @@ export default function JadwalPage() {
             paddingBottom: "8px",
           }}
         >
-          <div className="title-sub">
-            <i
-              className="fa-solid fa-file-signature"
-              style={{ marginRight: "6px" }}
-            />
+          <div
+            className="title-sub"
+            style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <i className="fa-solid fa-file-signature" />
             DOKUMEN IZIN SISWA
           </div>
-          <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "2px" }}>
+          <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "4px" }}>
             Pengajuan via WhatsApp Pak Shendy
           </p>
         </div>
@@ -435,7 +493,7 @@ export default function JadwalPage() {
                   return;
                 }
                 if (f.size > 20 * 1024 * 1024) {
-                  alert("Maks 20MB!");
+                  showToast("Maks 20MB!");
                   e.target.value = "";
                   setFile(null);
                   setFileName("");
@@ -470,6 +528,26 @@ export default function JadwalPage() {
         </button>
       </div>
 
+      {/* Tombol salin jadwal */}
+      <div className="jadwal-copy-row">
+        <button
+          type="button"
+          className="jadwal-copy-btn pagi"
+          onClick={() => void copySchedule("pagi")}
+        >
+          <i className="fa-solid fa-sun" />
+          Salin Jadwal Pagi
+        </button>
+        <button
+          type="button"
+          className="jadwal-copy-btn siang"
+          onClick={() => void copySchedule("siang")}
+        >
+          <i className="fa-solid fa-moon" />
+          Salin Jadwal Siang
+        </button>
+      </div>
+
       {renderScheduleBlock(
         "JADWAL SESI 1 (PAGI) - X TKJ 5",
         "fa-sun",
@@ -482,6 +560,22 @@ export default function JadwalPage() {
         "#38bdf8",
         sched.siang
       )}
+
+      {/* Popup custom */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
-}
+  }
