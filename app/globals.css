@@ -839,9 +839,40 @@ body {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   border-radius: 12px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.45) rgba(15, 23, 42, 0.4);
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.45);
+  border-radius: 999px;
+  margin: 0 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.55),
+    rgba(96, 165, 250, 0.7)
+  );
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.35);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.75),
+    rgba(96, 165, 250, 0.9)
+  );
 }
 
 .absensi-table {
@@ -1140,28 +1171,48 @@ body {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
+/* ===== Dynamic Island (pil → expand, frosted) ===== */
 .dynamic-island-bar {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1.5px solid rgba(96, 165, 250, 0.6);
-  border-top-color: rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  padding: 12px 16px;
-  box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  width: fit-content;
+  max-width: 92%;
+  margin: 0 auto;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition:
+    width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    max-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-radius 0.35s ease,
+    padding 0.35s ease;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  overflow: hidden;
+  gap: 4px;
+}
+
+.dynamic-island-bar.open {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  padding: 14px 16px;
+  border-color: rgba(96, 165, 250, 0.45);
+  box-shadow:
+    0 10px 32px rgba(96, 165, 250, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .island-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   width: 100%;
 }
 
@@ -1170,24 +1221,32 @@ body {
   font-weight: 800;
   padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(34, 197, 94, 0.25);
-  color: #4ade80;
-  border: 1px solid rgba(74, 222, 128, 0.5);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  background: rgba(96, 165, 250, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .island-expanded-content {
-  display: none;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  animation: fadeIn 0.3s ease-in-out;
+  transition:
+    max-height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.25s ease,
+    margin-top 0.25s ease;
 }
 
 .dynamic-island-bar.open .island-expanded-content {
-  display: flex;
+  max-height: 320px;
+  opacity: 1;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .schedule-item-live {
@@ -1216,6 +1275,102 @@ body {
   to {
     box-shadow: 0 0 22px rgba(96, 165, 250, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.5);
   }
+}
+
+/* Tombol salin jadwal pagi / siang */
+.jadwal-copy-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.jadwal-copy-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.5);
+  color: #e2e8f0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.jadwal-copy-btn:active {
+  transform: scale(0.97);
+}
+
+.jadwal-copy-btn.pagi {
+  border-color: rgba(250, 204, 21, 0.35);
+  color: #facc15;
+}
+
+.jadwal-copy-btn.siang {
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+@media (min-width: 768px) {
+  .jadwal-copy-btn {
+    padding: 12px 14px;
+    font-size: 12px;
+    border-radius: 14px;
+  }
+  .dynamic-island-bar.open {
+    max-width: 480px;
+  }
+}
+
+/* Popup custom (ganti alert browser) */
+.app-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.app-toast {
+  width: 100%;
+  max-width: 320px;
+  padding: 18px 16px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.app-toast-msg {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.app-toast-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
 }
 
 .form-group {
@@ -1504,6 +1659,20 @@ body {
   color: #0f172a;
 }
 
+[data-theme="light"] .dynamic-island-bar {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .app-toast {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+
+[data-theme="light"] .app-toast-msg {
+  color: #0f172a;
+}
+
 /* Struktur: HP = node ringkas · Desktop = tree avatar */
 .struktur-mobile {
   display: flex;
@@ -1582,7 +1751,6 @@ body {
   border-color: rgba(34, 197, 94, 0.4);
 }
 
-/* Desktop: lebih besar, full width */
 @media (min-width: 768px) {
   .direktori-filters {
     gap: 10px;
@@ -1708,44 +1876,6 @@ body {
   }
 }
 
-/* Custom scrollbar untuk tabel absensi / kas */
-.table-responsive {
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(96, 165, 250, 0.45) rgba(15, 23, 42, 0.4);
-}
-
-.table-responsive::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-.table-responsive::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.45);
-  border-radius: 999px;
-  margin: 0 4px;
-}
-
-.table-responsive::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    90deg,
-    rgba(37, 99, 235, 0.55),
-    rgba(96, 165, 250, 0.7)
-  );
-  border-radius: 999px;
-  border: 2px solid rgba(15, 23, 42, 0.35);
-}
-
-.table-responsive::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(37, 99, 235, 0.75),
-    rgba(96, 165, 250, 0.9)
-  );
-}
-
 /* Kas widgets — mobile kecil, desktop besar */
 .kas-summary-grid {
   display: grid;
@@ -1787,4 +1917,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-}
+  }
