@@ -80,7 +80,6 @@ export default function AbsensiPage() {
         </p>
       </div>
 
-      {/* Mobile 2×2 · Desktop 4×1 */}
       <div className="absensi-avg-grid">
         <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
           <div
@@ -262,7 +261,7 @@ export default function AbsensiPage() {
         )}
       </div>
 
-      {/* Rekap 1 tahun — judul diperbesar */}
+      {/* Rekap 1 tahun */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -424,7 +423,6 @@ export default function AbsensiPage() {
         </div>
       </div>
 
-      {/* Pilih bulan 4×3 */}
       <div
         style={{
           display: "grid",
@@ -466,7 +464,7 @@ export default function AbsensiPage() {
         })}
       </div>
 
-      {/* Tabel 1 bulan aktif — judul diperbesar */}
+      {/* Tabel bulan — judul: Absensi (bukan Presensi) */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -484,7 +482,7 @@ export default function AbsensiPage() {
               color: "#60a5fa",
             }}
           >
-            Presensi {activeMConfig.name}
+            Absensi {activeMConfig.name}
           </span>
           <span
             style={{
@@ -588,4 +586,4 @@ export default function AbsensiPage() {
       </div>
     </>
   );
-        }
+          }
