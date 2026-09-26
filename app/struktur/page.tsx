@@ -15,78 +15,87 @@ function matchRole(role: string | undefined, target: string) {
   return (role || "").trim() === target;
 }
 
-type Officer = {
-  nama?: string;
-  role: string;
-  color: string;
-  icon: string;
-};
-
-function NodeCard({
-  title,
-  name,
-  color,
-  icon,
-  size = "md",
-}: {
+type NodeProps = {
   title: string;
   name: string;
   color: string;
   icon: string;
   size?: "sm" | "md" | "lg";
-}) {
-  const avatarSize = size === "lg" ? 64 : size === "sm" ? 44 : 56;
-  const iconSize = size === "lg" ? 26 : size === "sm" ? 18 : 22;
+};
+
+function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
+  const isLg = size === "lg";
+  const isSm = size === "sm";
+  const avatar = isLg ? 56 : isSm ? 40 : 48;
+  const iconPx = isLg ? 24 : isSm ? 16 : 20;
 
   return (
     <div
-      className="struktur-node"
       style={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
         width: "100%",
-        maxWidth: size === "lg" ? 200 : 160,
+        maxWidth: isLg ? 220 : isSm ? 140 : 170,
+        zIndex: 2,
       }}
     >
+      {/* Icon circle */}
       <div
-        className="avatar-box"
         style={{
-          width: avatarSize,
-          height: avatarSize,
-          borderColor: color,
-          boxShadow: `0 0 16px ${color}66`,
+          width: avatar,
+          height: avatar,
+          borderRadius: "50%",
+          border: `2.5px solid ${color}`,
+          background: "rgba(15, 23, 42, 0.95)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: `0 0 18px ${color}66, inset 0 1px 2px rgba(255,255,255,0.25)`,
+          flexShrink: 0,
         }}
       >
         <i
           className={`fa-solid ${icon}`}
-          style={{ fontSize: iconSize, color }}
+          style={{ fontSize: iconPx, color }}
         />
       </div>
+
+      {/* Name badge */}
       <div
-        className="role-card"
         style={{
-          borderColor: `${color}55`,
-          width: "100%",
           marginTop: 8,
-          textAlign: "center",
+          width: "100%",
+          background: "rgba(15, 23, 42, 0.92)",
+          border: `1.5px solid ${color}66`,
+          borderRadius: 12,
+          padding: isSm ? "6px 8px" : "8px 10px",
+          boxShadow: "0 6px 16px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.12)",
         }}
       >
         <div
-          className="person-name"
           style={{
-            textAlign: "center",
-            width: "100%",
-            wordBreak: "break-word",
+            fontSize: isSm ? 10 : 11,
+            fontWeight: 700,
+            color: "#f8fafc",
             lineHeight: 1.25,
+            wordBreak: "break-word",
+            textAlign: "center",
           }}
         >
           {name}
         </div>
         <div
-          className="role-badge"
-          style={{ color, textAlign: "center", width: "100%" }}
+          style={{
+            fontSize: isSm ? 8 : 9,
+            fontWeight: 800,
+            color,
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+            marginTop: 3,
+            textAlign: "center",
+          }}
         >
           {title}
         </div>
@@ -95,81 +104,101 @@ function NodeCard({
   );
 }
 
-/** Node ringkas untuk HP (tanpa avatar besar) */
-function MobileNode({
-  title,
-  name,
-  color,
-}: {
-  title: string;
-  name: string;
-  color: string;
-}) {
-  return (
-    <div
-      className="glass-card"
-      style={{
-        padding: "10px 12px",
-        textAlign: "center",
-        borderColor: `${color}55`,
-        minWidth: 0,
-        flex: 1,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 9,
-          fontWeight: 800,
-          color,
-          textTransform: "uppercase",
-          letterSpacing: 0.4,
-          marginBottom: 4,
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#f8fafc",
-          lineHeight: 1.3,
-          wordBreak: "break-word",
-        }}
-      >
-        {name}
-      </div>
-    </div>
-  );
-}
-
-function VLine() {
+/** Garis vertikal pendek */
+function Spine({ h = 20 }: { h?: number }) {
   return (
     <div
       style={{
         width: 2,
-        height: 18,
-        background: "linear-gradient(180deg, #60a5fa, rgba(96,165,250,0.3))",
+        height: h,
+        background: "linear-gradient(180deg, #60a5fa, rgba(96,165,250,0.35))",
         margin: "0 auto",
-        boxShadow: "0 0 8px rgba(96,165,250,0.4)",
+        boxShadow: "0 0 8px rgba(96,165,250,0.45)",
+        flexShrink: 0,
       }}
     />
   );
 }
 
-function HPair({ left, right }: { left: React.ReactNode; right: React.ReactNode }) {
+/**
+ * Bar horizontal + 2 “kaki” ke kiri/kanan
+ * Membuat garis T yang benar-benar nyambung ke node di bawahnya
+ */
+function BranchBar() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 360,
+        height: 22,
+        margin: "0 auto",
+      }}
+    >
+      {/* batang horizontal */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "12%",
+          right: "12%",
+          height: 2,
+          background: "#60a5fa",
+          boxShadow: "0 0 8px rgba(96,165,250,0.5)",
+        }}
+      />
+      {/* kaki kiri */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "12%",
+          width: 2,
+          height: 22,
+          background: "#60a5fa",
+          boxShadow: "0 0 6px rgba(96,165,250,0.4)",
+        }}
+      />
+      {/* kaki kanan */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: "12%",
+          width: 2,
+          height: 22,
+          background: "#60a5fa",
+          boxShadow: "0 0 6px rgba(96,165,250,0.4)",
+        }}
+      />
+    </div>
+  );
+}
+
+function PairRow({
+  left,
+  right,
+  compact,
+}: {
+  left: NodeProps;
+  right: NodeProps;
+  compact?: boolean;
+}) {
   return (
     <div
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: 10,
+        gap: compact ? 12 : 28,
         width: "100%",
-        position: "relative",
+        maxWidth: compact ? 340 : 420,
+        margin: "0 auto",
+        justifyItems: "center",
+        alignItems: "start",
       }}
     >
-      {left}
-      {right}
+      <OrgNode {...left} size={compact ? "sm" : "md"} />
+      <OrgNode {...right} size={compact ? "sm" : "md"} />
     </div>
   );
 }
@@ -188,59 +217,59 @@ export default function StrukturPage() {
   const kes2 = officers.find((s) => matchRole(s.role, "Kesehatan 2"));
   const amn = officers.find((s) => matchRole(s.role, "Keamanan"));
 
-  const desktopPairs: Officer[][] = [
+  const pairs: [NodeProps, NodeProps][] = [
     [
       {
-        nama: ketua?.nama,
-        role: "Ketua Kelas",
+        title: "Ketua Kelas",
+        name: displayName(ketua?.nama),
         color: "#eab308",
         icon: "fa-crown",
       },
       {
-        nama: wakil?.nama,
-        role: "Wakil Ketua",
+        title: "Wakil Ketua",
+        name: displayName(wakil?.nama),
         color: "#38bdf8",
         icon: "fa-user-shield",
       },
     ],
     [
       {
-        nama: sek1?.nama,
-        role: "Sekretaris 1",
+        title: "Sekretaris 1",
+        name: displayName(sek1?.nama),
         color: "#c084fc",
         icon: "fa-file-pen",
       },
       {
-        nama: sek2?.nama,
-        role: "Sekretaris 2",
+        title: "Sekretaris 2",
+        name: displayName(sek2?.nama),
         color: "#c084fc",
         icon: "fa-file-pen",
       },
     ],
     [
       {
-        nama: ben1?.nama,
-        role: "Bendahara 1",
+        title: "Bendahara 1",
+        name: displayName(ben1?.nama),
         color: "#4ade80",
         icon: "fa-wallet",
       },
       {
-        nama: ben2?.nama,
-        role: "Bendahara 2",
+        title: "Bendahara 2",
+        name: displayName(ben2?.nama),
         color: "#4ade80",
         icon: "fa-wallet",
       },
     ],
     [
       {
-        nama: kes1?.nama,
-        role: "Kesehatan 1",
+        title: "Kesehatan 1",
+        name: displayName(kes1?.nama),
         color: "#f43f5e",
         icon: "fa-heart-pulse",
       },
       {
-        nama: kes2?.nama,
-        role: "Kesehatan 2",
+        title: "Kesehatan 2",
+        name: displayName(kes2?.nama),
         color: "#f43f5e",
         icon: "fa-heart-pulse",
       },
@@ -249,6 +278,7 @@ export default function StrukturPage() {
 
   return (
     <>
+      {/* Header */}
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 4 }}
@@ -277,183 +307,84 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      {/* ========== MOBILE: node ringkas (referensi bagan) ========== */}
-      <div className="struktur-mobile glass-card" style={{ padding: 14 }}>
-        {/* Wali */}
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <MobileNode
-            title="Wali Kelas"
-            name="Shendy Nuria Feriansyah, S.Pd"
-            color="#60a5fa"
-          />
-        </div>
-        <VLine />
-
-        <HPair
-          left={
-            <MobileNode
-              title="Ketua Kelas"
-              name={displayName(ketua?.nama)}
-              color="#eab308"
-            />
-          }
-          right={
-            <MobileNode
-              title="Wakil Ketua"
-              name={displayName(wakil?.nama)}
-              color="#38bdf8"
-            />
-          }
+      {/* ========== MOBILE ========== */}
+      <div
+        className="struktur-mobile glass-card"
+        style={{
+          padding: "18px 12px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <OrgNode
+          title="Wali Kelas"
+          name="Shendy Nuria Feriansyah, S.Pd"
+          color="#60a5fa"
+          icon="fa-user-tie"
+          size="md"
         />
-        <VLine />
+        <Spine h={16} />
+        <BranchBar />
 
-        <HPair
-          left={
-            <MobileNode
-              title="Sekretaris 1"
-              name={displayName(sek1?.nama)}
-              color="#c084fc"
-            />
-          }
-          right={
-            <MobileNode
-              title="Sekretaris 2"
-              name={displayName(sek2?.nama)}
-              color="#c084fc"
-            />
-          }
-        />
-        <VLine />
-
-        <HPair
-          left={
-            <MobileNode
-              title="Bendahara 1"
-              name={displayName(ben1?.nama)}
-              color="#4ade80"
-            />
-          }
-          right={
-            <MobileNode
-              title="Bendahara 2"
-              name={displayName(ben2?.nama)}
-              color="#4ade80"
-            />
-          }
-        />
-        <VLine />
-
-        <HPair
-          left={
-            <MobileNode
-              title="Kesehatan 1"
-              name={displayName(kes1?.nama)}
-              color="#f43f5e"
-            />
-          }
-          right={
-            <MobileNode
-              title="Kesehatan 2"
-              name={displayName(kes2?.nama)}
-              color="#f43f5e"
-            />
-          }
-        />
-        <VLine />
-
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <div style={{ width: "50%" }}>
-            <MobileNode
-              title="Keamanan"
-              name={displayName(amn?.nama)}
-              color="#fb923c"
-            />
+        {pairs.map((pair, i) => (
+          <div key={i} style={{ width: "100%" }}>
+            <PairRow left={pair[0]} right={pair[1]} compact />
+            <Spine h={16} />
+            {i < pairs.length - 1 ? <BranchBar /> : null}
           </div>
+        ))}
+
+        {/* Keamanan di tengah */}
+        <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <OrgNode
+            title="Keamanan"
+            name={displayName(amn?.nama)}
+            color="#fb923c"
+            icon="fa-shield-halved"
+            size="sm"
+          />
         </div>
       </div>
 
-      {/* ========== DESKTOP: tree + avatar (gambar 2, teks center) ========== */}
+      {/* ========== DESKTOP (lebih besar, tidak mengecil) ========== */}
       <div
-        className="struktur-desktop glass-card tree-wrapper"
+        className="struktur-desktop glass-card"
         style={{
           display: "none",
           flexDirection: "column",
           alignItems: "center",
-          gap: 0,
-          padding: "24px 16px",
+          padding: "28px 20px 32px",
         }}
       >
-        {/* Wali */}
-        <NodeCard
+        <OrgNode
           title="Wali Kelas"
           name="Shendy Nuria Feriansyah, S.Pd"
           color="#60a5fa"
           icon="fa-user-tie"
           size="lg"
         />
+        <Spine h={24} />
+        <BranchBar />
 
-        <div className="line-v" />
-        <div className="branch-split" style={{ maxWidth: 420, margin: "0 auto" }}>
-          <div className="branch-left" />
-          <div className="branch-right" />
-        </div>
-
-        {desktopPairs.map((pair, idx) => (
-          <div key={idx} style={{ width: "100%", maxWidth: 480 }}>
-            <div
-              className="tree-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 24,
-                justifyItems: "center",
-                width: "100%",
-              }}
-            >
-              {pair.map((o) => (
-                <NodeCard
-                  key={o.role}
-                  title={o.role}
-                  name={displayName(o.nama)}
-                  color={o.color}
-                  icon={o.icon}
-                />
-              ))}
-            </div>
-            {idx < desktopPairs.length - 1 && (
-              <>
-                <div className="line-v" style={{ margin: "0 auto" }} />
-                <div
-                  className="branch-split"
-                  style={{ maxWidth: 420, margin: "0 auto" }}
-                >
-                  <div className="branch-left" />
-                  <div className="branch-right" />
-                </div>
-              </>
-            )}
+        {pairs.map((pair, i) => (
+          <div key={i} style={{ width: "100%" }}>
+            <PairRow left={pair[0]} right={pair[1]} />
+            <Spine h={24} />
+            {i < pairs.length - 1 ? <BranchBar /> : null}
           </div>
         ))}
 
-        <div className="line-v" style={{ margin: "0 auto" }} />
-        <div
-          className="branch-split"
-          style={{ maxWidth: 420, margin: "0 auto" }}
-        >
-          <div className="branch-left" />
-          <div className="branch-right" />
-        </div>
-
-        {/* Keamanan di tengah */}
         <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <NodeCard
+          <OrgNode
             title="Keamanan"
             name={displayName(amn?.nama)}
             color="#fb923c"
             icon="fa-shield-halved"
+            size="md"
           />
         </div>
       </div>
     </>
   );
-}
+            }
