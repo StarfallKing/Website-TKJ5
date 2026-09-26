@@ -1595,7 +1595,29 @@ body {
   }
 }
 
-/* ===== Siswa detail profile (TikTok-style di desktop) ===== */
+/* Siswa detail header */
+.siswa-detail-header-mobile {
+  display: flex;
+}
+
+.siswa-detail-header-desktop {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .siswa-detail-header-mobile {
+    display: none !important;
+  }
+  .siswa-detail-header-desktop {
+    display: flex !important;
+  }
+}
+
+/* Profile TikTok-style di desktop */
 .siswa-profile-card {
   display: flex;
   flex-direction: column;
@@ -1637,7 +1659,6 @@ body {
   margin-top: 12px;
 }
 
-/* Desktop: avatar kiri, bio kanan (mirip TikTok) */
 @media (min-width: 768px) {
   .siswa-profile-card {
     flex-direction: row;
@@ -1669,9 +1690,5 @@ body {
 
   .siswa-profile-stats {
     max-width: 360px;
-  }
-
-  .siswa-detail-header {
-    gap: 12px;
   }
 }
