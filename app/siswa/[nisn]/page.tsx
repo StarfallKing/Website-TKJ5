@@ -3,32 +3,33 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
-import { formatRupiah, getInitials, NOMINAL_KAS, monthConfigs } from "@/lib/data";
+import {
+  formatRupiah,
+  getInitials,
+  NOMINAL_KAS,
+  monthConfigs,
+} from "@/lib/data";
 
 export default function SiswaDetailPage() {
   const params = useParams();
   const router = useRouter();
   const nisn = params.nisn as string;
 
-  const { students, isKasPaid, paymentOverrides } = useAppData();
+  const { students, isKasPaid } = useAppData();
 
   const sIdx = students.findIndex((s) => s.nisn === nisn);
   const siswa = sIdx >= 0 ? students[sIdx] : undefined;
 
-  // --- LOGIKA DETEKSI BULAN REAL-TIME DENGAN TAHUN AJARAN ---
   const currentMonthIdx = useMemo(() => {
     const now = new Date();
-    const curMonth = now.getMonth(); // 0 = Jan, 1 = Feb, ..., 6 = Jul, 7 = Tgt, dst.
+    const curMonth = now.getMonth();
     const curYear = now.getFullYear();
 
-    // Cari indeks bulan di monthConfigs yang cocok dengan bulan & tahun saat ini
     const foundIdx = monthConfigs.findIndex((m) => {
       const parts = m.name.split(" ");
       const monthName = parts[0];
       const yearNum = parseInt(parts[1], 10);
-
-      // Mapping nama bulan Indonesia ke indeks 0-11
-      const idMonths: { [key: string]: number } = {
+      const idMonths: Record<string, number> = {
         Juli: 6,
         Agustus: 7,
         September: 8,
@@ -42,11 +43,9 @@ export default function SiswaDetailPage() {
         Mei: 4,
         Juni: 5,
       };
-
       return idMonths[monthName] === curMonth && yearNum === curYear;
     });
 
-    // Jika ketemu gunakan indeksnya, jika tidak (misal di luar rentang) default ke 0
     return foundIdx !== -1 ? foundIdx : 0;
   }, []);
 
@@ -77,24 +76,55 @@ export default function SiswaDetailPage() {
     if (isKasPaid(siswa.nisn, sIdx, m)) paidMonths++;
   }
 
-  // Menggunakan currentMonthIdx agar otomatis sesuai bulan & tanggal real-time saat ini
   const isPaidThisMonth = isKasPaid(siswa.nisn, sIdx, currentMonthIdx);
+  const isMale = siswa.gender === "L";
 
   return (
     <>
-      <div className="glass-card flex-between">
+      {/* Header: Kembali terpisah + label BIODATA di card pendek */}
+      <div
+        className="siswa-detail-header"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          width: "100%",
+        }}
+      >
         <button
           type="button"
           className="btn-action-light"
           onClick={() => router.push("/direktori")}
+          style={{ flexShrink: 0 }}
         >
           <i className="fa-solid fa-arrow-left" /> Kembali
         </button>
-        <span style={{ fontSize: 10, fontWeight: 800, color: "#60a5fa" }}>
-          BIODATA SISWA
-        </span>
+
+        <div
+          className="glass-card"
+          style={{
+            padding: "8px 14px",
+            width: "fit-content",
+            marginLeft: "auto",
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              color: "#60a5fa",
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
+            }}
+          >
+            BIODATA SISWA
+          </span>
+        </div>
       </div>
 
+      {/* GLMS */}
       <a
         href="https://smkpgri2cbn.sch.id/glms/siswa/login.html"
         target="_blank"
@@ -116,26 +146,25 @@ export default function SiswaDetailPage() {
         />
       </a>
 
-      <div
-        className="glass-card text-center"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          alignItems: "center",
-        }}
-      >
+      {/* ===== PROFILE CARD =====
+          Mobile: tetap center
+          Desktop: layout TikTok (avatar kiri, bio kanan)
+      */}
+      <div className="glass-card siswa-profile-card">
+        {/* Avatar */}
         <div
           className={
-            "student-avatar" + (siswa.gender === "P" ? " female" : "")
+            "student-avatar siswa-profile-avatar" +
+            (siswa.gender === "P" ? " female" : "")
           }
-          style={{ width: 72, height: 72, fontSize: 24 }}
         >
           {getInitials(siswa.nama)}
         </div>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 900 }}>{siswa.nama}</div>
-          <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
+
+        {/* Bio text */}
+        <div className="siswa-profile-bio">
+          <div className="siswa-profile-name">{siswa.nama}</div>
+          <div className="siswa-profile-meta">
             NISN: {siswa.nisn}
             {siswa.nis ? ` · NIS: ${siswa.nis}` : ""}
           </div>
@@ -147,28 +176,31 @@ export default function SiswaDetailPage() {
               </div>
             </div>
           )}
-        </div>
 
-        <div className="summary-grid" style={{ width: "100%" }}>
-          <div className="summary-box">
-            <div className="summary-label">JENIS KELAMIN</div>
-            <div className="summary-val">
-              {siswa.gender === "L" ? "Laki-laki" : "Perempuan"}
+          <div className="siswa-profile-stats">
+            <div className="summary-box" style={{ flex: 1, minWidth: 0 }}>
+              <div className="summary-label">JENIS KELAMIN</div>
+              <div className="summary-val">
+                {isMale ? "Laki-laki" : "Perempuan"}
+              </div>
             </div>
-          </div>
-          <div className="summary-box">
-            <div className="summary-label">STATUS</div>
-            <div className="summary-val">Aktif</div>
+            <div className="summary-box" style={{ flex: 1, minWidth: 0 }}>
+              <div className="summary-label">STATUS</div>
+              <div className="summary-val" style={{ color: "#4ade80" }}>
+                Aktif
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Persentase kehadiran — bar lebih panjang */}
       <div className="glass-card">
         <div className="title-sub" style={{ marginBottom: 12 }}>
           <i className="fa-solid fa-chart-pie" style={{ marginRight: 6 }} />
           PERSENTASE KEHADIRAN
         </div>
-        <div className="grid-4" style={{ marginBottom: 10 }}>
+        <div className="grid-4" style={{ marginBottom: 12 }}>
           <div className="text-center">
             <div style={{ fontSize: 18, fontWeight: 900, color: "#4ade80" }}>
               {siswa.hadir}
@@ -194,9 +226,17 @@ export default function SiswaDetailPage() {
             <div style={{ fontSize: 9, color: "#94a3b8" }}>ALPA</div>
           </div>
         </div>
+
+        {/* Bar full width, lebih tinggi */}
         <div
           className="progress-bar-container"
-          style={{ width: "100%", height: 10, marginBottom: 8 }}
+          style={{
+            width: "100%",
+            maxWidth: "100%",
+            height: 14,
+            marginBottom: 10,
+            borderRadius: 999,
+          }}
         >
           <div className="progress-seg bg-hadir" style={{ width: pctH + "%" }} />
           <div className="progress-seg bg-izin" style={{ width: pctI + "%" }} />
@@ -214,6 +254,7 @@ export default function SiswaDetailPage() {
         </div>
       </div>
 
+      {/* Status kas */}
       <div className="glass-card">
         <div className="title-sub" style={{ marginBottom: 12 }}>
           <i className="fa-solid fa-wallet" style={{ marginRight: 6 }} />
@@ -222,7 +263,11 @@ export default function SiswaDetailPage() {
         <div className="summary-grid">
           <div className="summary-box">
             <div className="summary-label">
-              STATUS ({monthConfigs[currentMonthIdx]?.name.toUpperCase() || "BULAN INI"})
+              STATUS (
+              {(
+                monthConfigs[currentMonthIdx]?.name || "BULAN INI"
+              ).toUpperCase()}
+              )
             </div>
             <div
               className="summary-val"
@@ -251,4 +296,4 @@ export default function SiswaDetailPage() {
       </div>
     </>
   );
-}
+                       }
