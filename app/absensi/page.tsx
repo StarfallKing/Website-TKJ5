@@ -8,12 +8,9 @@ export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
   const list = students.length ? students : allStudents;
 
-  // Set total pembagi ke 365 hari
   const TOTAL_HARI_TAHUNAN = 365;
 
-  // State bulan aktif (Default: bulan pertama / Juli -> index 0)
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
-
   const [query, setQuery] = useState("");
   const [showSug, setShowSug] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
@@ -28,10 +25,8 @@ export default function AbsensiPage() {
     { hadir: 0, izin: 0, sakit: 0, alpa: 0 }
   );
 
-  // Total kapasitas entri kelas dalam 1 tahun (jumlah siswa * 365 hari)
   const totalEntriKelasTahunan = (list.length || 1) * TOTAL_HARI_TAHUNAN;
 
-  // Tetap simpan kalkulasi avg agar tidak error TS2304 pada Vercel Build
   const avg = useMemo(() => {
     if (!totalEntriKelasTahunan) return { h: 0, i: 0, s: 0, a: 0 };
     return {
@@ -85,13 +80,8 @@ export default function AbsensiPage() {
         </p>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 10,
-        }}
-      >
+      {/* Mobile 2×2 · Desktop 4×1 */}
+      <div className="absensi-avg-grid">
         <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
           <div
             style={{
@@ -272,7 +262,7 @@ export default function AbsensiPage() {
         )}
       </div>
 
-      {/* Rekap 1 tahun (DIBALIKIN KE KODE ASLI KAMU) */}
+      {/* Rekap 1 tahun */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div
           className="flex-between"
@@ -311,12 +301,13 @@ export default function AbsensiPage() {
                 <th style={{ color: "#60a5fa" }}>Izin</th>
                 <th style={{ color: "#facc15" }}>Sakit</th>
                 <th style={{ color: "#f43f5e" }}>Alpa</th>
-                <th style={{ textAlign: "center", minWidth: 200 }}>PERSENTASE</th>
+                <th style={{ textAlign: "center", minWidth: 200 }}>
+                  PERSENTASE
+                </th>
               </tr>
             </thead>
             <tbody>
               {list.map((s, idx) => {
-                // Hitung persentase terhadap 365 hari
                 const pctH = ((s.hadir / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
                 const pctI = ((s.izin / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
                 const pctS = ((s.sakit / TOTAL_HARI_TAHUNAN) * 100).toFixed(1);
@@ -368,8 +359,6 @@ export default function AbsensiPage() {
                         <span style={{ color: "#facc15" }}>S:{pctS}%</span>
                         <span style={{ color: "#f43f5e" }}>A:{pctA}%</span>
                       </div>
-
-                      {/* Stacked Progress Bar */}
                       <div
                         style={{
                           width: "100%",
@@ -382,28 +371,28 @@ export default function AbsensiPage() {
                       >
                         <div
                           style={{
-                            width: `${pctH}%`,
+                            width: pctH + "%",
                             background: "#4ade80",
                             height: "100%",
                           }}
                         />
                         <div
                           style={{
-                            width: `${pctI}%`,
+                            width: pctI + "%",
                             background: "#60a5fa",
                             height: "100%",
                           }}
                         />
                         <div
                           style={{
-                            width: `${pctS}%`,
+                            width: pctS + "%",
                             background: "#facc15",
                             height: "100%",
                           }}
                         />
                         <div
                           style={{
-                            width: `${pctA}%`,
+                            width: pctA + "%",
                             background: "#f43f5e",
                             height: "100%",
                           }}
@@ -420,15 +409,12 @@ export default function AbsensiPage() {
 
       <div className="section-divider">
         <div className="divider-badge">
-          <i
-            className="fa-solid fa-calendar-days"
-            style={{ marginRight: 5 }}
-          />
+          <i className="fa-solid fa-calendar-days" style={{ marginRight: 5 }} />
           Rekap Harian Per Bulan
         </div>
       </div>
 
-      {/* GRID 4 KASAMPING x 3 KEBAWAH TOMBOL PILIHAN BULAN */}
+      {/* Pilih bulan 4×3 */}
       <div
         style={{
           display: "grid",
@@ -442,6 +428,7 @@ export default function AbsensiPage() {
           return (
             <button
               key={mConfig.name}
+              type="button"
               onClick={() => setSelectedMonth(mIdx)}
               style={{
                 padding: "8px 4px",
@@ -458,7 +445,9 @@ export default function AbsensiPage() {
                   ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
                   : "rgba(15, 23, 42, 0.4)",
                 color: isActive ? "#fff" : "#94a3b8",
-                boxShadow: isActive ? "0 0 12px rgba(37,99,235,0.4)" : "none",
+                boxShadow: isActive
+                  ? "0 0 12px rgba(37,99,235,0.4)"
+                  : "none",
               }}
             >
               {mConfig.name}
@@ -467,7 +456,7 @@ export default function AbsensiPage() {
         })}
       </div>
 
-      {/* RENDER HANYA 1 BULAN YANG DIPILIH */}
+      {/* Tabel 1 bulan aktif */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div
           className="flex-between"
@@ -550,7 +539,9 @@ export default function AbsensiPage() {
 
                 return (
                   <tr
-                    key={String(siswa.nisn) + "-" + selectedMonth + "-" + sIdx}
+                    key={
+                      String(siswa.nisn) + "-" + selectedMonth + "-" + sIdx
+                    }
                     id={"m-row-" + selectedMonth + "-" + sIdx}
                     className={highlightIdx === sIdx ? "glowing-row" : ""}
                   >
@@ -567,18 +558,10 @@ export default function AbsensiPage() {
                       {siswa.nama}
                     </td>
                     {cells}
-                    <td style={{ color: "#4ade80", fontWeight: 800 }}>
-                      {mH}
-                    </td>
-                    <td style={{ color: "#60a5fa", fontWeight: 800 }}>
-                      {mI}
-                    </td>
-                    <td style={{ color: "#facc15", fontWeight: 800 }}>
-                      {mS}
-                    </td>
-                    <td style={{ color: "#f43f5e", fontWeight: 800 }}>
-                      {mA}
-                    </td>
+                    <td style={{ color: "#4ade80", fontWeight: 800 }}>{mH}</td>
+                    <td style={{ color: "#60a5fa", fontWeight: 800 }}>{mI}</td>
+                    <td style={{ color: "#facc15", fontWeight: 800 }}>{mS}</td>
+                    <td style={{ color: "#f43f5e", fontWeight: 800 }}>{mA}</td>
                   </tr>
                 );
               })}
@@ -588,4 +571,4 @@ export default function AbsensiPage() {
       </div>
     </>
   );
-}
+                }
