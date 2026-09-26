@@ -30,7 +30,7 @@ export default function HomePage() {
   const news = siteContent.news || [];
 
   return (
-    <>
+    <div className="w-full max-w-5xl mx-auto space-y-4 px-2 sm:px-4 pb-12">
       {/* Header sistem */}
       <div
         className="glass-card text-center"
@@ -56,8 +56,8 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Widgets */}
-      <div className="grid-2">
+      {/* Widgets: 2 kolom di HP, 4 kolom di Desktop (md:) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div
           className="glass-card text-center"
           style={{ cursor: "pointer" }}
@@ -133,101 +133,104 @@ export default function HomePage() {
           </p>
         )}
 
-        {news.map((n) => {
-          const expanded = openId === n.id;
-          return (
-            <div
-              key={n.id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                paddingBottom: 12,
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
+        {/* Berita Grid: 1 Kolom di HP, 2 Kolom di Desktop (md:) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {news.map((n) => {
+            const expanded = openId === n.id;
+            return (
               <div
-                style={{ fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}
+                key={n.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  paddingBottom: 12,
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}
               >
-                {n.title}
-              </div>
-
-              {n.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={n.imageUrl}
-                  alt={n.title}
-                  className="news-banner"
-                  style={{
-                    width: "100%",
-                    borderRadius: 12,
-                    objectFit: "cover",
-                    maxHeight: 180,
-                  }}
-                />
-              ) : null}
-
-              <p className={"news-desc" + (expanded ? " expanded" : "")}>
-                {n.body}
-                <span
-                  className="read-more-btn"
-                  style={{
-                    fontSize: 9.5,
-                    marginLeft: 4,
-                    cursor: "pointer",
-                    color: "#60a5fa",
-                  }}
-                  onClick={() =>
-                    setOpenId(expanded ? null : n.id)
-                  }
+                <div
+                  style={{ fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}
                 >
-                  {expanded ? "lihat lebih sedikit" : "lihat selengkapnya"}
-                </span>
-              </p>
+                  {n.title}
+                </div>
 
-              {n.source ? (
-                n.sourceUrl ? (
-                  <a
-                    href={n.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {n.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={n.imageUrl}
+                    alt={n.title}
+                    className="news-banner"
                     style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: "#93c5fd",
-                      background: "rgba(37,99,235,0.2)",
-                      border: "1px solid rgba(96,165,250,0.35)",
-                      padding: "2px 8px",
-                      borderRadius: 999,
-                      textDecoration: "none",
-                      display: "inline-block",
-                      width: "fit-content",
+                      width: "100%",
+                      borderRadius: 12,
+                      objectFit: "cover",
+                      maxHeight: 220,
                     }}
-                  >
-                    Sumber: {n.source}
-                  </a>
-                ) : (
+                  />
+                ) : null}
+
+                <p className={"news-desc" + (expanded ? " expanded" : "")}>
+                  {n.body}
                   <span
+                    className="read-more-btn"
                     style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: "#93c5fd",
-                      background: "rgba(37,99,235,0.2)",
-                      border: "1px solid rgba(96,165,250,0.35)",
-                      padding: "2px 8px",
-                      borderRadius: 999,
-                      display: "inline-block",
-                      width: "fit-content",
+                      fontSize: 9.5,
+                      marginLeft: 4,
+                      cursor: "pointer",
+                      color: "#60a5fa",
                     }}
+                    onClick={() =>
+                      setOpenId(expanded ? null : n.id)
+                    }
                   >
-                    Sumber: {n.source}
+                    {expanded ? "lihat lebih sedikit" : "lihat selengkapnya"}
                   </span>
-                )
-              ) : null}
-            </div>
-          );
-        })}
+                </p>
+
+                {n.source ? (
+                  n.sourceUrl ? (
+                    <a
+                      href={n.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: "#93c5fd",
+                        background: "rgba(37,99,235,0.2)",
+                        border: "1px solid rgba(96,165,250,0.35)",
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        textDecoration: "none",
+                        display: "inline-block",
+                        width: "fit-content",
+                      }}
+                    >
+                      Sumber: {n.source}
+                    </a>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: "#93c5fd",
+                        background: "rgba(37,99,235,0.2)",
+                        border: "1px solid rgba(96,165,250,0.35)",
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        display: "inline-block",
+                        width: "fit-content",
+                      }}
+                    >
+                      Sumber: {n.source}
+                    </span>
+                  )
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
