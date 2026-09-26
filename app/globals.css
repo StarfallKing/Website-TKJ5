@@ -2,23 +2,25 @@
   margin: 0; 
   padding: 0; 
   box-sizing: border-box; 
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
   width: 100%;
+  min-height: 100vh;
   background-color: #020617;
   color: #f8fafc;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body { 
   min-height: 100vh; 
-  padding: 16px; 
-  padding-bottom: 120px; 
+  padding: 12px; 
+  padding-bottom: 120px; /* Jarak aman agar konten bawah tidak tertutup BottomNav */
   position: relative; 
 }
 
@@ -26,10 +28,10 @@ body {
 .blob-1 { position: fixed; top: 20px; left: -50px; width: 220px; height: 220px; background: rgba(37, 99, 235, 0.45); filter: blur(65px); border-radius: 50%; pointer-events: none; z-index: 0; }
 .blob-2 { position: fixed; top: 350px; right: -50px; width: 220px; height: 220px; background: rgba(147, 51, 234, 0.45); filter: blur(65px); border-radius: 50%; pointer-events: none; z-index: 0; }
 
-/* CONTAINER UTAMA */
+/* CONTAINER UTAMA (FIXED: Fleksibel untuk Mobile & Desktop) */
 .container {
   width: 100%;
-  max-width: 380px;
+  max-width: 896px; /* Diubah dari 380px agar lebar dan bagus di Desktop */
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -49,6 +51,7 @@ body {
 
 /* GLASS CARD — EFEK 3D GLASSMORPHISM TEBAL & TIMBUL */
 .glass-card {
+  width: 100%;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12) 0%,
@@ -75,13 +78,35 @@ body {
     inset 0 -1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* UTILS */
+/* UTILS & RESPONSIVE GRIDS (FIXED) */
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .flex-row { display: flex; align-items: center; gap: 10px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .text-center { text-align: center; }
+
+/* Grid Fleksibel: Auto 2 kolom di Mobile, Menyesuaikan di Tablet/Desktop */
+.grid-2 { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 10px; 
+}
+
+.grid-3 { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 8px; 
+}
+
+.grid-4 { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 8px; 
+}
+
+@media (min-width: 640px) {
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr); /* 4 kolom jika layar > 640px */
+  }
+}
 
 .grid-2 > .glass-card,
 .grid-3 > .glass-card,
@@ -198,7 +223,7 @@ body {
 }
 
 /* STRUKTUR ORGANISASI */
-.tree-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; padding: 20px 0; }
+.tree-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; padding: 20px 0; width: 100%; overflow-x: auto; }
 .widget-side {
   background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(96, 165, 250, 0.3);
   padding: 6px 10px; border-radius: 10px; font-size: 9px; font-weight: 700; color: #93c5fd;
@@ -415,7 +440,8 @@ body {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .filter-btn {
@@ -539,9 +565,9 @@ body {
   white-space: nowrap;
 }
 
-.monthly-table { min-width: 1200px; }
-.kas-yearly-table { min-width: 950px; }
-.kas-log-table { min-width: 580px; }
+.monthly-table { min-width: 100%; }
+.kas-yearly-table { min-width: 700px; }
+.kas-log-table { min-width: 100%; }
 
 /* TABEL REKAP AKUMULASI 1 TAHUN (RINGKAS & RAPI) */
 .rekap-yearly-table {
@@ -954,13 +980,13 @@ body {
 }
 
 /* ==========================================
-   BOTTOM NAV — DENGAN STYLING ORIGINAL (RINGAN & NO DELAY)
+   BOTTOM NAV — DENGAN STYLING ORIGINAL (FIXED LAYOUT & CENTERED)
    ========================================== */
 .nav-dual-container {
   position: fixed; 
   bottom: 24px; 
-  left: 0; 
-  right: 0; 
+  left: 50%;
+  transform: translateX(-50%);
   margin: 0 auto;
   width: calc(100% - 32px); 
   max-width: 340px; 
