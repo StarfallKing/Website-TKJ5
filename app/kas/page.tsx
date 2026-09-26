@@ -93,71 +93,23 @@ export default function KasPage() {
         </p>
       </div>
 
-      {/* Widget lebih besar (mirip absensi) */}
+      {/* Widget: mobile kecil · desktop besar */}
       <div className="kas-summary-grid">
-        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
-          <div
-            style={{
-              fontSize: 9,
-              color: "#60a5fa",
-              fontWeight: 800,
-              letterSpacing: 0.5,
-            }}
-          >
-            TOTAL KAS
-          </div>
-          <div
-            style={{
-              fontWeight: 900,
-              color: "#4ade80",
-              fontSize: 18,
-              marginTop: 4,
-            }}
-          >
+        <div className="glass-card text-center kas-summary-card">
+          <div className="kas-summary-label">TOTAL KAS</div>
+          <div className="kas-summary-val" style={{ color: "#4ade80" }}>
             {formatRupiah(lastBalance)}
           </div>
         </div>
-        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
-          <div
-            style={{
-              fontSize: 9,
-              color: "#60a5fa",
-              fontWeight: 800,
-              letterSpacing: 0.5,
-            }}
-          >
-            PEMASUKAN
-          </div>
-          <div
-            style={{
-              fontWeight: 900,
-              color: "#60a5fa",
-              fontSize: 18,
-              marginTop: 4,
-            }}
-          >
+        <div className="glass-card text-center kas-summary-card">
+          <div className="kas-summary-label">PEMASUKAN</div>
+          <div className="kas-summary-val" style={{ color: "#60a5fa" }}>
             {formatRupiah(totalMasuk)}
           </div>
         </div>
-        <div className="glass-card text-center" style={{ padding: "14px 10px" }}>
-          <div
-            style={{
-              fontSize: 9,
-              color: "#60a5fa",
-              fontWeight: 800,
-              letterSpacing: 0.5,
-            }}
-          >
-            PENGELUARAN
-          </div>
-          <div
-            style={{
-              fontWeight: 900,
-              color: "#f43f5e",
-              fontSize: 18,
-              marginTop: 4,
-            }}
-          >
+        <div className="glass-card text-center kas-summary-card">
+          <div className="kas-summary-label">PENGELUARAN</div>
+          <div className="kas-summary-val" style={{ color: "#f43f5e" }}>
             {formatRupiah(totalKeluar)}
           </div>
         </div>
@@ -507,4 +459,4 @@ export default function KasPage() {
       </button>
     </>
   );
-                }
+              }
