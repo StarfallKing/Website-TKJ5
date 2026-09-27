@@ -10,7 +10,7 @@ import {
 import { useAppData } from "@/lib/AppDataContext";
 import { supabase } from "@/lib/supabase";
 
-const NOMOR_GURU = "628561534411";
+const NOMOR_GURU = "6283898071778";
 
 const templates = {
   Keperluan: [
