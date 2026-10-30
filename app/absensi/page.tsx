@@ -87,7 +87,7 @@ export default function AbsensiPage() {
     exportToExcel(data, "Rekap-Absensi-Akumulasi-1-Tahun", "Akumulasi 1 Tahun");
   };
 
-  // Handler Ekspor Excel - Bulanan Dinamis
+  // Handler Ekspor Excel - Bulanan Dinamis (Struktur 1:1 persis standar admin)
   const handleExportBulanan = () => {
     const data = list.map((siswa, sIdx) => {
       let rowData: any = {
@@ -103,18 +103,19 @@ export default function AbsensiPage() {
         else if (st === "S") mS++;
         else if (st === "A") mA++;
         
-        rowData[`Hari ${d}`] = st || "-";
+        rowData[`Hari ${d}`] = st !== "-" && st ? st : "-";
       }
 
-      rowData["Total Hadir (H)"] = mH;
-      rowData["Total Izin (I)"] = mI;
-      rowData["Total Sakit (S)"] = mS;
-      rowData["Total Alpa (A)"] = mA;
+      rowData["Hadir"] = mH;
+      rowData["Izin"] = mI;
+      rowData["Sakit"] = mS;
+      rowData["Alpa"] = mA;
 
       return rowData;
     });
 
-    exportToExcel(data, `Absensi-${activeMConfig.name}-2026`, activeMConfig.name);
+    const cleanMonthName = activeMConfig.name.replace(/\s+/g, "-");
+    exportToExcel(data, `Absensi-${cleanMonthName}`, `Absensi ${activeMConfig.name}`);
   };
 
   return (
@@ -338,17 +339,21 @@ export default function AbsensiPage() {
             <button
               onClick={handleExportTahunan}
               style={{
-                background: "#16a34a",
-                border: "none",
-                color: "#fff",
-                padding: "5px 10px",
-                borderRadius: 8,
                 fontSize: 11,
+                backgroundColor: "#22c55e",
+                color: "#ffffff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              📊 Ekspor Excel
+              <i className="fa-solid fa-file-excel" /> Ekspor Excel
             </button>
             <span
               style={{
@@ -482,89 +487,40 @@ export default function AbsensiPage() {
         </div>
       </div>
 
-      <div className="section-divider">
-        <div className="divider-badge">
-          <i className="fa-solid fa-calendar-days" style={{ marginRight: 5 }} />
-          Rekap Harian Per Bulan
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 8,
-          marginBottom: 16,
-        }}
-      >
-        {monthConfigs.map((mConfig, mIdx) => {
-          const isActive = selectedMonth === mIdx;
-          return (
-            <button
-              key={mConfig.name}
-              type="button"
-              onClick={() => setSelectedMonth(mIdx)}
-              style={{
-                padding: "8px 4px",
-                borderRadius: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
-                textAlign: "center",
-                transition: "all 0.2s ease",
-                border: isActive
-                  ? "1px solid rgba(96,165,250,0.8)"
-                  : "1px solid rgba(255,255,255,0.08)",
-                background: isActive
-                  ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
-                  : "rgba(15, 23, 42, 0.4)",
-                color: isActive ? "#fff" : "#94a3b8",
-                boxShadow: isActive
-                  ? "0 0 12px rgba(37,99,235,0.4)"
-                  : "none",
-              }}
-            >
-              {mConfig.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tabel bulan */}
+      {/* REKAP HARIAN PER BULAN (DIBUNGKUS 1 CONTAINER UTUH) */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
-          className="flex-between"
           style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             marginBottom: 12,
             paddingBottom: 8,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
-            alignItems: "center",
           }}
         >
-          <span
-            style={{
-              fontSize: 14,
-              fontWeight: 800,
-              color: "#60a5fa",
-            }}
-          >
-            Absensi {activeMConfig.name}
-          </span>
+          <div className="title-sub" style={{ fontSize: 11, margin: 0, color: "#60a5fa" }}>
+            REKAP HARIAN PER BULAN
+          </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
               onClick={handleExportBulanan}
               style={{
-                background: "#16a34a",
-                border: "none",
-                color: "#fff",
-                padding: "5px 10px",
-                borderRadius: 8,
                 fontSize: 11,
+                backgroundColor: "#22c55e",
+                color: "#ffffff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              📊 Ekspor Excel
+              <i className="fa-solid fa-file-excel" /> Ekspor Excel
             </button>
             <span
               style={{
@@ -582,8 +538,51 @@ export default function AbsensiPage() {
           </div>
         </div>
 
+        {/* Filter Bulan */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
+          {monthConfigs.map((mConfig, mIdx) => {
+            const isActive = selectedMonth === mIdx;
+            return (
+              <button
+                key={mConfig.name}
+                type="button"
+                onClick={() => setSelectedMonth(mIdx)}
+                style={{
+                  padding: "8px 4px",
+                  borderRadius: 10,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "all 0.2s ease",
+                  border: isActive
+                    ? "1px solid rgba(96,165,250,0.8)"
+                    : "1px solid rgba(255,255,255,0.08)",
+                  background: isActive
+                    ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
+                    : "rgba(15, 23, 42, 0.4)",
+                  color: isActive ? "#fff" : "#94a3b8",
+                  boxShadow: isActive
+                    ? "0 0 12px rgba(37,99,235,0.4)"
+                    : "none",
+                }}
+              >
+                {mConfig.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tabel bulan di dalam container yang sama */}
         <div className="table-responsive">
-          <table className="absensi-table monthly-table">
+          <table className="absensi-table monthly-table" style={{ width: "100%" }}>
             <thead>
               <tr>
                 <th>No</th>
@@ -669,5 +668,5 @@ export default function AbsensiPage() {
       </div>
     </>
   );
-              }
+                }
                   
