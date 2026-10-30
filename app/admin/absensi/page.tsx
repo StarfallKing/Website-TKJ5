@@ -89,7 +89,7 @@ export default function AdminAbsensiPage() {
     exportToExcel(dataToExport, "Rekap-Akumulasi-Absensi-1-Tahun", "Rekap Absensi");
   };
 
-  // Handler Export Excel Absensi Harian Per Bulan (Tanpa NISN di tabel web, tapi tetap rapi di excel)
+  // Handler Export Excel Absensi Harian Per Bulan (Struktur 1:1 persis standar gambar)
   const handleExportAbsensiBulanan = () => {
     const dataToExport = students.map((s, si) => {
       const rowData: Record<string, any> = {
@@ -108,9 +108,12 @@ export default function AdminAbsensiPage() {
         else if (st === "I") mI++;
         else if (st === "S") mS++;
         else if (st === "A") mA++;
-        rowData[`Hari ${d}`] = st !== "-" ? st : "";
+        
+        // Header kolom persis "Hari 1", "Hari 2", dst.
+        rowData[`Hari ${d}`] = st !== "-" ? st : "-";
       }
 
+      // Kolom rekap akhir persis seperti standar gambar
       rowData["Hadir"] = mH;
       rowData["Izin"] = mI;
       rowData["Sakit"] = mS;
@@ -557,5 +560,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-                                                         }
-                      
+        }
+        
