@@ -10,7 +10,7 @@ import {
   monthConfigs,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
-import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
+import { exportToExcel } from "@/utils/exportExcel";
 
 export default function KasPage() {
   const router = useRouter();
@@ -82,24 +82,7 @@ export default function KasPage() {
     }, 50);
   }
 
-  // Handler Export Excel Kas Bulanan
-  const handleExportBulanan = () => {
-    const currentMonthName = monthConfigs[monthIdx]?.name || "Bulan";
-    const dataToExport = list.map((s, idx) => {
-      const paid = isKasPaid(s.nisn, idx, monthIdx);
-      return {
-        No: idx + 1,
-        Nama: s.nama,
-        NISN: s.nisn,
-        Status: paid ? "LUNAS" : "BELUM",
-        Dibayar: paid ? NOMINAL_KAS : 0,
-        Tunggakan: paid ? 0 : NOMINAL_KAS,
-      };
-    });
-    exportToExcel(dataToExport, `Rekap-Kas-${currentMonthName.replace(/\s+/g, "-")}`, "Kas Bulanan");
-  };
-
-  // Handler Export Excel Rekap Kas 1 Tahun
+  // Handler Export Excel Rekap Kas 1 Tahun (Hanya di tabel kedua)
   const handleExportTahunan = () => {
     const dataToExport = list.map((s, idx) => {
       const rowData: Record<string, any> = {
@@ -188,7 +171,7 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 — Status Pembayaran Kas Perbulan */}
+      {/* Tabel 1 — Status Pembayaran Kas Perbulan (Tanpa Tombol Export Excel) */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -212,26 +195,6 @@ export default function KasPage() {
             <i className="fa-solid fa-calendar-check" style={{ fontSize: 15 }} />
             Status Pembayaran Kas Perbulan
           </span>
-          {/* Tombol Download Excel Bulanan */}
-          <button
-            type="button"
-            onClick={handleExportBulanan}
-            style={{
-              fontSize: 10,
-              background: "rgba(74,222,128,0.15)",
-              color: "#4ade80",
-              border: "1px solid rgba(74,222,128,0.35)",
-              padding: "5px 10px",
-              borderRadius: 8,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <i className="fa-solid fa-file-excel" /> Export Excel
-          </button>
         </div>
 
         <div
@@ -352,7 +315,7 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 — Rekapan Kas 1 Tahun */}
+      {/* Tabel 2 — Rekapan Kas 1 Tahun (Dengan Tombol Hijau Konsisten) */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -377,25 +340,26 @@ export default function KasPage() {
             Rekapan Kas 1 Tahun
           </span>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Tombol Download Excel Tahunan */}
+            {/* Tombol Export Excel Konsisten (Background Hijau Padat + Icon Grafik/Excel) */}
             <button
               type="button"
               onClick={handleExportTahunan}
               style={{
-                fontSize: 10,
-                background: "rgba(74,222,128,0.15)",
-                color: "#4ade80",
-                border: "1px solid rgba(74,222,128,0.35)",
-                padding: "5px 10px",
+                fontSize: 11,
+                backgroundColor: "#22c55e",
+                color: "#ffffff",
+                border: "none",
+                padding: "6px 12px",
                 borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 5,
+                gap: 6,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              <i className="fa-solid fa-file-excel" /> Export Excel
+              <i className="fa-solid fa-file-excel" /> Ekspor Excel
             </button>
             <span
               style={{
@@ -508,7 +472,7 @@ export default function KasPage() {
                   #{row.no} · {row.date || "-"}
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "right"}`}>
                 <div
                   style={{
                     fontWeight: 800,
@@ -536,5 +500,4 @@ export default function KasPage() {
       </button>
     </>
   );
-            }
-                                       
+}
