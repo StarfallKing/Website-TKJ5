@@ -19,7 +19,7 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   // Styling Header (Baris 1) -> Bold, Background Abu-abu, Center, Ada Border
   const headerRow = worksheet.getRow(1);
   headerRow.font = { name: "Arial", size: 10, bold: true };
-  headerRow.alignment = { horizontal: "center", vertical: "center" };
+  headerRow.alignment = { horizontal: "center", vertical: "middle" }; // <--- Ubah ke "middle"
   headerRow.eachCell((cell) => {
     cell.border = {
       top: { style: "thin", color: { argb: "000000" } },
@@ -45,7 +45,7 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
 
       cell.alignment = {
         horizontal: isTextColumn ? "left" : "center",
-        vertical: "center",
+        vertical: "middle", // <--- Ubah ke "middle" juga
       };
 
       cell.border = {
@@ -79,4 +79,4 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   a.click();
   window.URL.revokeObjectURL(url);
 };
-    
+  
