@@ -16,10 +16,18 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     worksheet.addRow(rowData);
   });
 
+  // Atur Tinggi Baris Header & Baris Data biar tidak sesak ke bawah
+  worksheet.getRow(1).height = 24; // Header sedikit lebih tinggi
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) {
+      row.height = 20; // Baris isi dibuat lebih lega ke bawah
+    }
+  });
+
   // Styling Header (Baris 1) -> Bold, Background Abu-abu, Center, Ada Border
   const headerRow = worksheet.getRow(1);
   headerRow.font = { name: "Arial", size: 10, bold: true };
-  headerRow.alignment = { horizontal: "center", vertical: "middle" }; // <--- Ubah ke "middle"
+  headerRow.alignment = { horizontal: "center", vertical: "middle" };
   headerRow.eachCell((cell) => {
     cell.border = {
       top: { style: "thin", color: { argb: "000000" } },
@@ -45,7 +53,7 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
 
       cell.alignment = {
         horizontal: isTextColumn ? "left" : "center",
-        vertical: "middle", // <--- Ubah ke "middle" juga
+        vertical: "middle",
       };
 
       cell.border = {
@@ -57,8 +65,16 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     });
   });
 
-  // Atur Lebar Kolom Otomatis (Auto-fit) biar teks tidak ketimpa
-  worksheet.columns.forEach((column) => {
+  // Atur Lebar Kolom Otomatis (Auto-fit) dengan pengecualian kolom "No"
+  worksheet.columns.forEach((column, index) => {
+    const headerName = keys[index]?.toLowerCase() || "";
+    
+    // Jika kolom pertama atau judulnya mengandung "no", buat ukurannya pas/kecil saja
+    if (index === 0 || headerName === "no") {
+      column.width = 8;
+      return;
+    }
+
     let maxLength = 10;
     column.eachCell?.({ includeEmpty: true }, (cell) => {
       const columnLength = cell.value ? String(cell.value).length : 10;
@@ -79,4 +95,3 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   a.click();
   window.URL.revokeObjectURL(url);
 };
-  
