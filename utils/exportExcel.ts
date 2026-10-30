@@ -52,7 +52,6 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   headerRow.font = { name: "Arial", size: 10, bold: true };
   headerRow.alignment = { horizontal: "center", vertical: "middle" };
   
-  // Gunakan perulangan cell manual berdasarkan jumlah kolom agar kolom pertama (No) pasti kena
   headerRow.eachCell({ includeEmpty: true }, (cell) => {
     cell.font = { name: "Arial", size: 10, bold: true };
     cell.alignment = { horizontal: "center", vertical: "middle" };
@@ -65,7 +64,7 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     cell.fill = {
       type: "pattern",
       pattern: "solid",
-      fgColor: { argb: "E0E0E0" }, // Abu-abu terang seragam untuk semua header termasuk kolom No
+      fgColor: { argb: "E0E0E0" },
     };
   });
 
@@ -96,8 +95,8 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   worksheet.columns.forEach((column, index) => {
     const headerName = keys[index]?.toLowerCase() || "";
     
-    if (index === 0 || headerName.includes("no")) {
-      column.width = 6; // Kolom No dibuat pas
+    if (index === 0 || headerName === "no") {
+      column.width = 6;
       return;
     }
 
@@ -108,7 +107,8 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
         maxLength = columnLength;
       }
     });
-    column.width = maxLength + 4;
+    // Menjamin lebar kolom minimal 12 agar kolom bulan (Nov/des/dll) & teks "BELUM"/"LUNAS" tidak terpotong
+    column.width = Math.max(maxLength + 4, 12);
   });
 
   // Generate file dan download di browser
@@ -121,4 +121,4 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   a.click();
   window.URL.revokeObjectURL(url);
 };
-  
+    
