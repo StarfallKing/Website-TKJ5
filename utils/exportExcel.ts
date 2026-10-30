@@ -1,64 +1,70 @@
-import * as XLSX from "xlsx";
-
 export const exportToExcel = (data: any[], fileName: string, sheetName: string = "Data") => {
-  // 1. Buat worksheet dari data JSON
-  const worksheet = XLSX.utils.json_to_sheet(data);
+  if (!data.length) return;
 
-  // 2. Atur Lebar Kolom Otomatis (Auto-fit width) biar gak ketimpa
-  const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-  const colWidths: { wch: number }[] = [];
+  // 1. Ambil semua kunci/kolom dari objek data pertama sebagai Header
+  const keys = Object.keys(data[0]);
 
-  for (let C = range.s.c; C <= range.e.c; ++C) {
-    let maxWidth = 10;
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-      const cellAddress = { c: C, r: R };
-      const cellRef = XLSX.utils.encode_cell(cellAddress);
-      const cell = worksheet[cellRef];
-      if (cell && cell.v !== undefined) {
-        const valueLength = String(cell.v).length;
-        if (valueLength > maxWidth) {
-          maxWidth = valueLength;
+  // 2. Buat tabel HTML lengkap dengan styling CSS inline (Border, Bold, Alignment)
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 10pt; }
+        th {
+          background-color: #f2f2f2;
+          border: 1px solid #000000;
+          font-weight: bold;
+          text-align: center;
+          padding: 8px;
         }
+        td {
+          border: 1px solid #000000;
+          padding: 6px;
+          vertical-align: middle;
+        }
+      </style>
+    </head>
+    <body>
+      <table>
+        <thead>
+          <tr>
+  `;
+
+  // Masukkan Header Horizontal
+  keys.forEach((key) => {
+    html += `<th>${key}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  // Masukkan Baris Data Isi
+  data.forEach((row, rowIndex) => {
+    html += `<tr>`;
+    keys.forEach((key, colIndex) => {
+      const val = row[key] !== undefined && row[key] !== null ? row[key] : "";
+      
+      // Atur Alignment: Kolom 0 (No) & Kolom 1 (Nama/NISN) atau angka diatur center/left
+      // Kolom Nama (biasanya index 1 atau key 'Nama') rata kiri, sisanya rata tengah
+      let align = "center";
+      if (key.toLowerCase().includes("nama") || key.toLowerCase().includes("nisn")) {
+        align = "left";
       }
-    }
-    colWidths.push({ wch: maxWidth + 5 });
-  }
-  worksheet["!cols"] = colWidths;
 
-  // 3. Iterasi tiap sel untuk menyusun Alignment, Bold Header, dan Border
-  for (let cellKey in worksheet) {
-    if (cellKey.startsWith("!")) continue;
+      html += `<td style="text-align: ${align};">${val}</td>`;
+    });
+    html += `</tr>`;
+  });
 
-    const cell = worksheet[cellKey];
-    const colLetter = cellKey.replace(/[0-9]/g, ""); // Ambil huruf kolom (A, B, C, dst)
-    const rowNumber = parseInt(cellKey.replace(/[^0-9]/g, ""), 10); // Ambil nomor baris
+  html += `</tbody></table></body></html>`;
 
-    const isHeader = rowNumber === 1; // Baris 1 (Judul Horizontal)
-    const isRowHeader = colLetter === "A" || colLetter === "B"; // Kolom No & Nama (Judul Vertikal)
-    const isTextColumn = colLetter === "B" || colLetter === "C"; // Kolom Nama & NISN rata kiri
-
-    // Format styling cell SheetJS
-    cell.s = {
-      alignment: {
-        horizontal: isTextColumn && !isHeader ? "left" : "center",
-        vertical: "center",
-      },
-      font: {
-        name: "Arial",
-        sz: 10,
-        bold: isHeader || (isRowHeader && !isHeader), // Bold untuk header & kolom utama
-      },
-      border: {
-        top: { style: "thin", color: { rgb: "A0A0A0" } },
-        bottom: { style: "thin", color: { rgb: "A0A0A0" } },
-        left: { style: "thin", color: { rgb: "A0A0A0" } },
-        right: { style: "thin", color: { rgb: "A0A0A0" } },
-      },
-    };
-  }
-
-  // 4. Buat Workbook dan Unduh File
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+  // 3. Ubah string HTML menjadi Blob file Excel (.xls) dan trigger download
+  const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${fileName}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
