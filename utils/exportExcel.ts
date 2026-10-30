@@ -4,12 +4,12 @@ export const exportToExcel = (data: any[], fileName: string, sheetName: string =
   // 1. Buat worksheet dari data JSON
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // 2. Atur Lebar Kolom Otomatis (Auto-fit width) biar teks gak ketimpa
+  // 2. Atur Lebar Kolom Otomatis (Auto-fit width) biar gak ketimpa
   const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
   const colWidths: { wch: number }[] = [];
 
   for (let C = range.s.c; C <= range.e.c; ++C) {
-    let maxWidth = 10; // Lebar minimal
+    let maxWidth = 10;
     for (let R = range.s.r; R <= range.e.r; ++R) {
       const cellAddress = { c: C, r: R };
       const cellRef = XLSX.utils.encode_cell(cellAddress);
@@ -21,40 +21,44 @@ export const exportToExcel = (data: any[], fileName: string, sheetName: string =
         }
       }
     }
-    colWidths.push({ wch: maxWidth + 4 }); // Tambah padding dikit biar longgar
+    colWidths.push({ wch: maxWidth + 5 });
   }
   worksheet["!cols"] = colWidths;
 
-  // 3. Styling Border, Alignment Center, dan Bold untuk Header
+  // 3. Iterasi tiap sel untuk menyusun Alignment, Bold Header, dan Border
   for (let cellKey in worksheet) {
     if (cellKey.startsWith("!")) continue;
 
     const cell = worksheet[cellKey];
-    const isHeader = cellKey.match(/[0-9]+/)?.[0] === "1"; // Baris pertama (Header horizontal)
-    const isRowHeader = cellKey.startsWith("A") || cellKey.startsWith("B"); // Kolom No & Nama (Vertikal utama)
+    const colLetter = cellKey.replace(/[0-9]/g, ""); // Ambil huruf kolom (A, B, C, dst)
+    const rowNumber = parseInt(cellKey.replace(/[^0-9]/g, ""), 10); // Ambil nomor baris
 
+    const isHeader = rowNumber === 1; // Baris 1 (Judul Horizontal)
+    const isRowHeader = colLetter === "A" || colLetter === "B"; // Kolom No & Nama (Judul Vertikal)
+    const isTextColumn = colLetter === "B" || colLetter === "C"; // Kolom Nama & NISN rata kiri
+
+    // Format styling cell SheetJS
     cell.s = {
       alignment: {
-        horizontal: "center",
+        horizontal: isTextColumn && !isHeader ? "left" : "center",
         vertical: "center",
       },
       font: {
         name: "Arial",
         sz: 10,
-        bold: isHeader || (isRowHeader && !cellKey.startsWith("A1")), // Bold header & kolom nama/no
+        bold: isHeader || (isRowHeader && !isHeader), // Bold untuk header & kolom utama
       },
       border: {
-        top: { style: "thin", color: { rgb: "D3D3D3" } },
-        bottom: { style: "thin", color: { rgb: "D3D3D3" } },
-        left: { style: "thin", color: { rgb: "D3D3D3" } },
-        right: { style: "thin", color: { rgb: "D3D3D3" } },
+        top: { style: "thin", color: { rgb: "A0A0A0" } },
+        bottom: { style: "thin", color: { rgb: "A0A0A0" } },
+        left: { style: "thin", color: { rgb: "A0A0A0" } },
+        right: { style: "thin", color: { rgb: "A0A0A0" } },
       },
     };
   }
 
-  // 4. Buat Workbook dan Export File
+  // 4. Buat Workbook dan Unduh File
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   XLSX.writeFile(workbook, `${fileName}.xlsx`);
 };
-      
