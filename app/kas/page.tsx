@@ -10,6 +10,7 @@ import {
   monthConfigs,
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
 
 export default function KasPage() {
   const router = useRouter();
@@ -80,6 +81,40 @@ export default function KasPage() {
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
   }
+
+  // Handler Export Excel Kas Bulanan
+  const handleExportBulanan = () => {
+    const currentMonthName = monthConfigs[monthIdx]?.name || "Bulan";
+    const dataToExport = list.map((s, idx) => {
+      const paid = isKasPaid(s.nisn, idx, monthIdx);
+      return {
+        No: idx + 1,
+        Nama: s.nama,
+        NISN: s.nisn,
+        Status: paid ? "LUNAS" : "BELUM",
+        Dibayar: paid ? NOMINAL_KAS : 0,
+        Tunggakan: paid ? 0 : NOMINAL_KAS,
+      };
+    });
+    exportToExcel(dataToExport, `Rekap-Kas-${currentMonthName.replace(/\s+/g, "-")}`, "Kas Bulanan");
+  };
+
+  // Handler Export Excel Rekap Kas 1 Tahun
+  const handleExportTahunan = () => {
+    const dataToExport = list.map((s, idx) => {
+      const rowData: Record<string, any> = {
+        No: idx + 1,
+        Nama: s.nama,
+        NISN: s.nisn,
+      };
+      monthShort.forEach((m, mi) => {
+        const paid = isKasPaid(s.nisn, idx, mi);
+        rowData[m] = paid ? "LUNAS" : "BELUM";
+      });
+      return rowData;
+    });
+    exportToExcel(dataToExport, "Rekap-Kas-1-Tahun-TKJ5", "Rekap Tahunan");
+  };
 
   return (
     <>
@@ -177,6 +212,26 @@ export default function KasPage() {
             <i className="fa-solid fa-calendar-check" style={{ fontSize: 15 }} />
             Status Pembayaran Kas Perbulan
           </span>
+          {/* Tombol Download Excel Bulanan */}
+          <button
+            type="button"
+            onClick={handleExportBulanan}
+            style={{
+              fontSize: 10,
+              background: "rgba(74,222,128,0.15)",
+              color: "#4ade80",
+              border: "1px solid rgba(74,222,128,0.35)",
+              padding: "5px 10px",
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <i className="fa-solid fa-file-excel" /> Export Excel
+          </button>
         </div>
 
         <div
@@ -321,19 +376,41 @@ export default function KasPage() {
             <i className="fa-solid fa-table-cells" style={{ fontSize: 15 }} />
             Rekapan Kas 1 Tahun
           </span>
-          <span
-            style={{
-              fontSize: 11,
-              background: "rgba(34,197,94,0.15)",
-              color: "#4ade80",
-              border: "1px solid rgba(74,222,128,0.3)",
-              padding: "4px 10px",
-              borderRadius: 8,
-              fontWeight: 700,
-            }}
-          >
-            T.A 2026/2027
-          </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Tombol Download Excel Tahunan */}
+            <button
+              type="button"
+              onClick={handleExportTahunan}
+              style={{
+                fontSize: 10,
+                background: "rgba(74,222,128,0.15)",
+                color: "#4ade80",
+                border: "1px solid rgba(74,222,128,0.35)",
+                padding: "5px 10px",
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <i className="fa-solid fa-file-excel" /> Export Excel
+            </button>
+            <span
+              style={{
+                fontSize: 11,
+                background: "rgba(34,197,94,0.15)",
+                color: "#4ade80",
+                border: "1px solid rgba(74,222,128,0.3)",
+                padding: "4px 10px",
+                borderRadius: 8,
+                fontWeight: 700,
+              }}
+            >
+              T.A 2026/2027
+            </span>
+          </div>
         </div>
 
         <div className="table-responsive">
@@ -459,4 +536,5 @@ export default function KasPage() {
       </button>
     </>
   );
-              }
+            }
+                                       
