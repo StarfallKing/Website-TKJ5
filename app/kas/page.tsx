@@ -171,7 +171,7 @@ export default function KasPage() {
         )}
       </div>
 
-      {/* Tabel 1 — Status Pembayaran Kas Perbulan (Tanpa Tombol Export Excel) */}
+      {/* Tabel 1 — Status Pembayaran Kas Perbulan */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -315,7 +315,7 @@ export default function KasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 — Rekapan Kas 1 Tahun (Dengan Tombol Hijau Konsisten) */}
+      {/* Tabel 2 — Rekapan Kas 1 Tahun */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -340,7 +340,6 @@ export default function KasPage() {
             Rekapan Kas 1 Tahun
           </span>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Tombol Export Excel Konsisten (Background Hijau Padat + Icon Grafik/Excel) */}
             <button
               type="button"
               onClick={handleExportTahunan}
@@ -472,7 +471,7 @@ export default function KasPage() {
                   #{row.no} · {row.date || "-"}
                 </div>
               </div>
-              <div style={{ textAlign: "right"}`}>
+              <div style={{ textAlign: "right" }}>
                 <div
                   style={{
                     fontWeight: 800,
@@ -500,4 +499,5 @@ export default function KasPage() {
       </button>
     </>
   );
-}
+                                }
+                        
