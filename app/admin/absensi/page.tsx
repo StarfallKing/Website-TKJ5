@@ -9,6 +9,7 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
+import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
 
 const CYCLE: StatusHarian[] = ["H", "I", "S", "A", "-"];
 const DAYS = schoolYearDays(2026);
@@ -56,6 +57,38 @@ export default function AdminAbsensiPage() {
     const next = CYCLE[(i < 0 ? 0 : i + 1) % CYCLE.length];
     void setAttendanceCell(si, monthIdx, day, next);
   }
+
+  // Handler Export Excel Rekap Akumulasi Absensi 1 Tahun
+  const handleExportAbsensi = () => {
+    const dataToExport = students.map((s, i) => {
+      const h = s.hadir || 0;
+      const iz = s.izin || 0;
+      const sk = s.sakit || 0;
+      const al = s.alpa || 0;
+
+      const pctH = ((h / DAYS) * 100).toFixed(1) + "%";
+      const pctI = ((iz / DAYS) * 100).toFixed(1) + "%";
+      const pctS = ((sk / DAYS) * 100).toFixed(1) + "%";
+      const pctA = ((al / DAYS) * 100).toFixed(1) + "%";
+
+      return {
+        No: i + 1,
+        Nama: s.nama,
+        NISN: s.nisn,
+        "Total Hadir": h,
+        "Total Izin": iz,
+        "Total Sakit": sk,
+        "Total Alpa": al,
+        // Kolom ringkasan persentase otomatis digabung rapi oleh helper exportExcel kita
+        "Persentase Hadir": pctH,
+        "Persentase Izin": pctI,
+        "Persentase Sakit": pctS,
+        "Persentase Alpa": pctA,
+      };
+    });
+
+    exportToExcel(dataToExport, "Rekap-Akumulasi-Absensi-1-Tahun", "Rekap Absensi");
+  };
 
   // Tampilkan loading screen jika sesi belum siap
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
@@ -185,19 +218,42 @@ export default function AdminAbsensiPage() {
           <div className="title-sub" style={{ fontSize: 11 }}>
             REKAP 1 TAHUN (ANGKA + % DARI {DAYS} HARI)
           </div>
-          <span
-            style={{
-              fontSize: 9,
-              background: "rgba(74, 222, 128, 0.15)",
-              color: "#4ade80",
-              padding: "2px 8px",
-              borderRadius: 12,
-              fontWeight: 700,
-              border: "1px solid rgba(74, 222, 128, 0.3)",
-            }}
-          >
-            T.A 2026/2027
-          </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Tombol Ekspor Excel Konsisten dengan halaman Kas */}
+            <button
+              type="button"
+              onClick={handleExportAbsensi}
+              style={{
+                fontSize: 11,
+                backgroundColor: "#22c55e",
+                color: "#ffffff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              <i className="fa-solid fa-file-excel" /> Ekspor Excel
+            </button>
+            <span
+              style={{
+                fontSize: 9,
+                background: "rgba(74, 222, 128, 0.15)",
+                color: "#4ade80",
+                padding: "4px 10px",
+                borderRadius: 12,
+                fontWeight: 700,
+                border: "1px solid rgba(74, 222, 128, 0.3)",
+              }}
+            >
+              T.A 2026/2027
+            </span>
+          </div>
         </div>
 
         <div className="table-responsive">
@@ -436,4 +492,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-}
+                }
+                  
