@@ -10,6 +10,7 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
+import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
 
 export default function AdminKasPage() {
   const router = useRouter();
@@ -139,6 +140,23 @@ export default function AdminKasPage() {
       setDeleting(false);
     }
   }
+
+  // Handler Export Excel Matriks Kas 1 Tahun (Sama persis formatnya dengan halaman publik)
+  const handleExportTahunan = () => {
+    const dataToExport = students.map((s, idx) => {
+      const rowData: Record<string, any> = {
+        No: idx + 1,
+        Nama: s.nama,
+        NISN: s.nisn,
+      };
+      monthShort.forEach((m, mi) => {
+        const paid = isKasPaid(s.nisn, idx, mi);
+        rowData[m] = paid ? "LUNAS" : "BELUM";
+      });
+      return rowData;
+    });
+    exportToExcel(dataToExport, "Rekap-Kas-1-Tahun-TKJ5", "Rekap Tahunan");
+  };
 
   // Prevent render jika status auth belum siap
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
@@ -288,11 +306,41 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 — matriks 12 bulan */}
+      {/* Tabel 2 — matriks 12 bulan (Dilengkapi Tombol Ekspor Excel Hijau Solid) */}
       <div className="glass-card" style={{ padding: 10 }}>
-        <div className="title-sub" style={{ marginBottom: 8 }}>
-          Tabel 2: Matriks ✓ / ✕ 12 Bulan
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <div className="title-sub" style={{ margin: 0 }}>
+            Tabel 2: Matriks ✓ / ✕ 12 Bulan
+          </div>
+          <button
+            type="button"
+            onClick={handleExportTahunan}
+            style={{
+              fontSize: 11,
+              backgroundColor: "#22c55e",
+              color: "#ffffff",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            }}
+          >
+            <i className="fa-solid fa-file-excel" /> Ekspor Excel
+          </button>
         </div>
+
         <div className="table-responsive">
           <table className="absensi-table">
             <thead>
@@ -500,4 +548,5 @@ export default function AdminKasPage() {
       </div>
     </div>
   );
-}
+                                }
+                        
