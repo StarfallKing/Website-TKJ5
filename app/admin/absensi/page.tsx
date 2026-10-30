@@ -395,7 +395,7 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* CONTAINER PILIHAN BULAN & EDIT ABSENSI HARIAN (DIBUNGKUS RAPI KAYA DI HALAMAN PUBLIK) */}
+      {/* REKAP HARIAN PER BULAN & TABEL HARIAN DIJADIIN 1 CONTAINER UTUH */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           style={{
@@ -442,7 +442,7 @@ export default function AdminAbsensiPage() {
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: 8,
-            marginBottom: 12,
+            marginBottom: 16,
           }}
         >
           {monthConfigs.map((mc, i) => {
@@ -474,12 +474,10 @@ export default function AdminAbsensiPage() {
             );
           })}
         </div>
-      </div>
 
-      {/* Tabel Harian */}
-      <div className="glass-card" style={{ padding: 10 }}>
+        {/* Tabel Harian di dalam Container yang Sama */}
         <div className="table-responsive">
-          <table className="absensi-table monthly-table">
+          <table className="absensi-table monthly-table" style={{ width: "100%" }}>
             <thead>
               <tr>
                 <th>No</th>
@@ -561,4 +559,4 @@ export default function AdminAbsensiPage() {
     </div>
   );
                   }
-                  
+              
