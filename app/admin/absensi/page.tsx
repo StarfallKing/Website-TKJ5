@@ -89,13 +89,12 @@ export default function AdminAbsensiPage() {
     exportToExcel(dataToExport, "Rekap-Akumulasi-Absensi-1-Tahun", "Rekap Absensi");
   };
 
-  // Handler Export Excel Absensi Harian Per Bulan
+  // Handler Export Excel Absensi Harian Per Bulan (Tanpa NISN di tabel web, tapi tetap rapi di excel)
   const handleExportAbsensiBulanan = () => {
     const dataToExport = students.map((s, si) => {
       const rowData: Record<string, any> = {
         No: si + 1,
         Nama: s.nama,
-        NISN: s.nisn,
       };
 
       let mH = 0;
@@ -395,7 +394,7 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* REKAP HARIAN PER BULAN & TABEL HARIAN DIJADIIN 1 CONTAINER UTUH */}
+      {/* REKAP HARIAN PER BULAN & TABEL HARIAN (TANPA NISN DI WEB) */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           style={{
@@ -475,7 +474,7 @@ export default function AdminAbsensiPage() {
           })}
         </div>
 
-        {/* Tabel Harian di dalam Container yang Sama */}
+        {/* Tabel Harian (Tanpa Kolom NISN agar 1:1 persis dengan publik) */}
         <div className="table-responsive">
           <table className="absensi-table monthly-table" style={{ width: "100%" }}>
             <thead>
@@ -558,5 +557,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-                  }
-              
+                                                         }
+                      
