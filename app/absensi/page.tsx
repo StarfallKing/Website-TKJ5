@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { allStudents, monthConfigs } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
+import { exportToExcel } from "@/utils/exportExcel";
 
 export default function AbsensiPage() {
   const { students, getAttendanceCell } = useAppData();
@@ -67,6 +68,54 @@ export default function AbsensiPage() {
   }
 
   const activeMConfig = monthConfigs[selectedMonth] || monthConfigs[0];
+
+  // Handler Ekspor Excel - Rekap 1 Tahun
+  const handleExportTahunan = () => {
+    const data = list.map((s, idx) => ({
+      No: idx + 1,
+      Nama: s.nama,
+      NISN: s.nisn,
+      Hadir: s.hadir,
+      Izin: s.izin,
+      Sakit: s.sakit,
+      Alpa: s.alpa,
+      "Persentase Hadir": `${((s.hadir / TOTAL_HARI_TAHUNAN) * 100).toFixed(1)}%`,
+      "Persentase Izin": `${((s.izin / TOTAL_HARI_TAHUNAN) * 100).toFixed(1)}%`,
+      "Persentase Sakit": `${((s.sakit / TOTAL_HARI_TAHUNAN) * 100).toFixed(1)}%`,
+      "Persentase Alpa": `${((s.alpa / TOTAL_HARI_TAHUNAN) * 100).toFixed(1)}%`,
+    }));
+    exportToExcel(data, "Rekap-Absensi-Akumulasi-1-Tahun", "Akumulasi 1 Tahun");
+  };
+
+  // Handler Ekspor Excel - Bulanan Dinamis
+  const handleExportBulanan = () => {
+    const data = list.map((siswa, sIdx) => {
+      let rowData: any = {
+        No: sIdx + 1,
+        Nama: siswa.nama,
+      };
+
+      let mH = 0, mI = 0, mS = 0, mA = 0;
+      for (let d = 1; d <= activeMConfig.days; d++) {
+        const st = getAttendanceCell(sIdx, selectedMonth, d);
+        if (st === "H") mH++;
+        else if (st === "I") mI++;
+        else if (st === "S") mS++;
+        else if (st === "A") mA++;
+        
+        rowData[`Hari ${d}`] = st || "-";
+      }
+
+      rowData["Total Hadir (H)"] = mH;
+      rowData["Total Izin (I)"] = mI;
+      rowData["Total Sakit (S)"] = mS;
+      rowData["Total Alpa (A)"] = mA;
+
+      return rowData;
+    });
+
+    exportToExcel(data, `Absensi-${activeMConfig.name}-2026`, activeMConfig.name);
+  };
 
   return (
     <>
@@ -285,19 +334,36 @@ export default function AbsensiPage() {
             <i className="fa-solid fa-chart-pie" style={{ fontSize: 15 }} />
             Rekap Akumulasi 1 Tahun
           </span>
-          <span
-            style={{
-              fontSize: 11,
-              background: "rgba(34,197,94,0.15)",
-              color: "#4ade80",
-              border: "1px solid rgba(74,222,128,0.3)",
-              padding: "4px 10px",
-              borderRadius: 8,
-              fontWeight: 700,
-            }}
-          >
-            T.A 2026/2027
-          </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={handleExportTahunan}
+              style={{
+                background: "#16a34a",
+                border: "none",
+                color: "#fff",
+                padding: "5px 10px",
+                borderRadius: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              📊 Ekspor Excel
+            </button>
+            <span
+              style={{
+                fontSize: 11,
+                background: "rgba(34,197,94,0.15)",
+                color: "#4ade80",
+                border: "1px solid rgba(74,222,128,0.3)",
+                padding: "4px 10px",
+                borderRadius: 8,
+                fontWeight: 700,
+              }}
+            >
+              T.A 2026/2027
+            </span>
+          </div>
         </div>
 
         <div className="table-responsive">
@@ -464,7 +530,7 @@ export default function AbsensiPage() {
         })}
       </div>
 
-      {/* Tabel bulan — judul: Absensi (bukan Presensi) */}
+      {/* Tabel bulan */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           className="flex-between"
@@ -484,19 +550,36 @@ export default function AbsensiPage() {
           >
             Absensi {activeMConfig.name}
           </span>
-          <span
-            style={{
-              fontSize: 11,
-              background: "rgba(96,165,250,0.15)",
-              color: "#60a5fa",
-              border: "1px solid rgba(96,165,250,0.3)",
-              padding: "4px 10px",
-              borderRadius: 8,
-              fontWeight: 700,
-            }}
-          >
-            {activeMConfig.days} Hari
-          </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={handleExportBulanan}
+              style={{
+                background: "#16a34a",
+                border: "none",
+                color: "#fff",
+                padding: "5px 10px",
+                borderRadius: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              📊 Ekspor Excel
+            </button>
+            <span
+              style={{
+                fontSize: 11,
+                background: "rgba(96,165,250,0.15)",
+                color: "#60a5fa",
+                border: "1px solid rgba(96,165,250,0.3)",
+                padding: "4px 10px",
+                borderRadius: 8,
+                fontWeight: 700,
+              }}
+            >
+              {activeMConfig.days} Hari
+            </span>
+          </div>
         </div>
 
         <div className="table-responsive">
@@ -586,4 +669,5 @@ export default function AbsensiPage() {
       </div>
     </>
   );
-          }
+              }
+                  
