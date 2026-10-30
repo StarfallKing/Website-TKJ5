@@ -9,7 +9,7 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
-import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
+import { exportToExcel } from "@/utils/exportExcel";
 
 const CYCLE: StatusHarian[] = ["H", "I", "S", "A", "-"];
 const DAYS = schoolYearDays(2026);
@@ -59,7 +59,7 @@ export default function AdminAbsensiPage() {
   }
 
   // Handler Export Excel Rekap Akumulasi Absensi 1 Tahun
-  const handleExportAbsensi = () => {
+  const handleExportAbsensiTahunan = () => {
     const dataToExport = students.map((s, i) => {
       const h = s.hadir || 0;
       const iz = s.izin || 0;
@@ -79,7 +79,6 @@ export default function AdminAbsensiPage() {
         "Total Izin": iz,
         "Total Sakit": sk,
         "Total Alpa": al,
-        // Kolom ringkasan persentase otomatis digabung rapi oleh helper exportExcel kita
         "Persentase Hadir": pctH,
         "Persentase Izin": pctI,
         "Persentase Sakit": pctS,
@@ -88,6 +87,41 @@ export default function AdminAbsensiPage() {
     });
 
     exportToExcel(dataToExport, "Rekap-Akumulasi-Absensi-1-Tahun", "Rekap Absensi");
+  };
+
+  // Handler Export Excel Absensi Harian Per Bulan
+  const handleExportAbsensiBulanan = () => {
+    const dataToExport = students.map((s, si) => {
+      const rowData: Record<string, any> = {
+        No: si + 1,
+        Nama: s.nama,
+        NISN: s.nisn,
+      };
+
+      let mH = 0;
+      let mI = 0;
+      let mS = 0;
+      let mA = 0;
+
+      for (let d = 1; d <= m.days; d++) {
+        const st = getAttendanceCell(si, monthIdx, d);
+        if (st === "H") mH++;
+        else if (st === "I") mI++;
+        else if (st === "S") mS++;
+        else if (st === "A") mA++;
+        rowData[`Hari ${d}`] = st !== "-" ? st : "";
+      }
+
+      rowData["Hadir"] = mH;
+      rowData["Izin"] = mI;
+      rowData["Sakit"] = mS;
+      rowData["Alpa"] = mA;
+
+      return rowData;
+    });
+
+    const cleanMonthName = m.name.replace(/\s+/g, "-");
+    exportToExcel(dataToExport, `Absensi-${cleanMonthName}`, `Absensi ${m.name}`);
   };
 
   // Tampilkan loading screen jika sesi belum siap
@@ -219,10 +253,9 @@ export default function AdminAbsensiPage() {
             REKAP 1 TAHUN (ANGKA + % DARI {DAYS} HARI)
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Tombol Ekspor Excel Konsisten dengan halaman Kas */}
             <button
               type="button"
-              onClick={handleExportAbsensi}
+              onClick={handleExportAbsensiTahunan}
               style={{
                 fontSize: 11,
                 backgroundColor: "#22c55e",
@@ -362,50 +395,85 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* EDIT ABSENSI HARIAN */}
-      <div className="glass-card text-center">
-        <div className="title-sub">EDIT ABSENSI HARIAN</div>
-        <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Ketuk sel: H → I → S → A → -
-        </p>
-      </div>
+      {/* CONTAINER PILIHAN BULAN & EDIT ABSENSI HARIAN (DIBUNGKUS RAPI KAYA DI HALAMAN PUBLIK) */}
+      <div className="glass-card" style={{ padding: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+            paddingBottom: 8,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <div className="title-sub" style={{ fontSize: 11, margin: 0 }}>
+            REKAP HARIAN PER BULAN
+          </div>
+          <button
+            type="button"
+            onClick={handleExportAbsensiBulanan}
+            style={{
+              fontSize: 11,
+              backgroundColor: "#22c55e",
+              color: "#ffffff",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: 8,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            }}
+          >
+            <i className="fa-solid fa-file-excel" /> Ekspor Excel
+          </button>
+        </div>
 
-      {/* Filter Bulan */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 8,
-        }}
-      >
-        {monthConfigs.map((mc, i) => {
-          const isActive = monthIdx === i;
-          return (
-            <button
-              key={mc.name}
-              type="button"
-              onClick={() => setMonthIdx(i)}
-              style={{
-                padding: "10px 4px",
-                borderRadius: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
-                textAlign: "center",
-                border: isActive
-                  ? "1px solid rgba(96,165,250,0.8)"
-                  : "1px solid rgba(255,255,255,0.08)",
-                background: isActive
-                  ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
-                  : "rgba(15, 23, 42, 0.4)",
-                color: isActive ? "#fff" : "#94a3b8",
-                boxShadow: isActive ? "0 0 12px rgba(37,99,235,0.4)" : "none",
-              }}
-            >
-              {mc.name}
-            </button>
-          );
-        })}
+        <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 10, textAlign: "center" }}>
+          Ketuk sel absensi: H → I → S → A → -
+        </p>
+
+        {/* Filter Bulan */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          {monthConfigs.map((mc, i) => {
+            const isActive = monthIdx === i;
+            return (
+              <button
+                key={mc.name}
+                type="button"
+                onClick={() => setMonthIdx(i)}
+                style={{
+                  padding: "10px 4px",
+                  borderRadius: 10,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  textAlign: "center",
+                  border: isActive
+                    ? "1px solid rgba(96,165,250,0.8)"
+                    : "1px solid rgba(255,255,255,0.08)",
+                  background: isActive
+                    ? "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(29,78,216,0.6))"
+                    : "rgba(15, 23, 42, 0.4)",
+                  color: isActive ? "#fff" : "#94a3b8",
+                  boxShadow: isActive ? "0 0 12px rgba(37,99,235,0.4)" : "none",
+                }}
+              >
+                {mc.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tabel Harian */}
@@ -492,5 +560,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-                }
+                  }
                   
