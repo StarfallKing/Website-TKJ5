@@ -6,12 +6,35 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetName);
 
-  // Ambil keys dari data sebagai Header Kolom
-  const keys = Object.keys(data[0]);
+  // 1. Transformasi Data: Gabungkan 4 kolom persentase menjadi 1 kolom ringkasan jika datanya ada
+  const processedData = data.map((item) => {
+    const newItem = { ...item };
+    
+    // Jika data memiliki atribut persentase terpisah, kita gabung jadi satu string rapi
+    if ("Persentase Hadir" in newItem || "Persentase Izin" in newItem) {
+      const h = newItem["Persentase Hadir"] ?? "0%";
+      const i = newItem["Persentase Izin"] ?? "0%";
+      const s = newItem["Persentase Sakit"] ?? "0%";
+      const a = newItem["Persentase Alpa"] ?? "0%";
+
+      // Hapus kolom terpisahnya agar tidak menumpuk
+      delete newItem["Persentase Hadir"];
+      delete newItem["Persentase Izin"];
+      delete newItem["Persentase Sakit"];
+      delete newItem["Persentase Alpa"];
+
+      // Buat kolom gabungan baru
+      newItem["Ringkasan Persentase"] = `H: ${h} | I: ${i} | S: ${s} | A: ${a}`;
+    }
+    return newItem;
+  });
+
+  // Ambil keys dari data yang sudah diproses sebagai Header Kolom
+  const keys = Object.keys(processedData[0]);
   worksheet.addRow(keys);
 
   // Masukkan Baris Data
-  data.forEach((item) => {
+  processedData.forEach((item) => {
     const rowData = keys.map((key) => item[key]);
     worksheet.addRow(rowData);
   });
@@ -24,11 +47,15 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     }
   });
 
-  // Styling Header (Baris 1) -> SEMUA kolom header (termasuk "No") jadi Bold, Abu-abu, Center, dan Border
+  // 2. STYLING HEADER (BARIS 1) - PASTIKAN SEMUA KOLOM TERKENA BACKGROUND ABU-ABU & BOLD
   const headerRow = worksheet.getRow(1);
   headerRow.font = { name: "Arial", size: 10, bold: true };
   headerRow.alignment = { horizontal: "center", vertical: "middle" };
-  headerRow.eachCell((cell) => {
+  
+  // Gunakan perulangan cell manual berdasarkan jumlah kolom agar kolom pertama (No) pasti kena
+  headerRow.eachCell({ includeEmpty: true }, (cell) => {
+    cell.font = { name: "Arial", size: 10, bold: true };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
     cell.border = {
       top: { style: "thin", color: { argb: "000000" } },
       left: { style: "thin", color: { argb: "000000" } },
@@ -38,21 +65,21 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     cell.fill = {
       type: "pattern",
       pattern: "solid",
-      fgColor: { argb: "E0E0E0" }, // Warna abu-abu seragam untuk semua header
+      fgColor: { argb: "E0E0E0" }, // Abu-abu terang seragam untuk semua header termasuk kolom No
     };
   });
 
-  // Styling Isi Tabel (Baris 2 ke bawah)
+  // 3. STYLING ISI TABEL (BARIS 2 KE BAWAH)
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
 
     row.font = { name: "Arial", size: 10 };
-    row.eachCell((cell, colNumber) => {
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       const headerName = keys[colNumber - 1]?.toLowerCase() || "";
-      const isTextColumn = headerName.includes("nama") || headerName.includes("nisn");
+      const isTextColumn = headerName.includes("nama") || headerName.includes("nisn") || headerName.includes("ringkasan");
 
       cell.alignment = {
-        horizontal: isTextColumn ? "left" : "center",
+        horizontal: isTextColumn && !headerName.includes("no") ? "left" : "center",
         vertical: "middle",
       };
 
@@ -65,12 +92,12 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     });
   });
 
-  // Atur Lebar Kolom Otomatis (Auto-fit) dengan pengecualian kolom "No"
+  // 4. ATUR LEBAR KOLOM OTOMATIS (AUTO-FIT)
   worksheet.columns.forEach((column, index) => {
     const headerName = keys[index]?.toLowerCase() || "";
     
-    if (index === 0 || headerName === "no") {
-      column.width = 8;
+    if (index === 0 || headerName.includes("no")) {
+      column.width = 6; // Kolom No dibuat pas
       return;
     }
 
@@ -81,7 +108,7 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
         maxLength = columnLength;
       }
     });
-    column.width = maxLength + 5;
+    column.width = maxLength + 4;
   });
 
   // Generate file dan download di browser
@@ -94,3 +121,4 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   a.click();
   window.URL.revokeObjectURL(url);
 };
+  
