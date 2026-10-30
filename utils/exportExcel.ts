@@ -16,15 +16,15 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     worksheet.addRow(rowData);
   });
 
-  // Atur Tinggi Baris Header & Baris Data biar tidak sesak ke bawah
-  worksheet.getRow(1).height = 24; // Header sedikit lebih tinggi
+  // Atur Tinggi Baris Header & Baris Data
+  worksheet.getRow(1).height = 24;
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber > 1) {
-      row.height = 20; // Baris isi dibuat lebih lega ke bawah
+      row.height = 20;
     }
   });
 
-  // Styling Header (Baris 1) -> Bold, Background Abu-abu, Center, Ada Border
+  // Styling Header (Baris 1) -> SEMUA kolom header (termasuk "No") jadi Bold, Abu-abu, Center, dan Border
   const headerRow = worksheet.getRow(1);
   headerRow.font = { name: "Arial", size: 10, bold: true };
   headerRow.alignment = { horizontal: "center", vertical: "middle" };
@@ -38,11 +38,11 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
     cell.fill = {
       type: "pattern",
       pattern: "solid",
-      fgColor: { argb: "E0E0E0" },
+      fgColor: { argb: "E0E0E0" }, // Warna abu-abu seragam untuk semua header
     };
   });
 
-  // Styling Isi Tabel (Baris 2 ke bawah) -> Border & Alignment (Nama/NISN rata kiri, sisanya rata tengah)
+  // Styling Isi Tabel (Baris 2 ke bawah)
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
 
@@ -69,7 +69,6 @@ export const exportToExcel = async (data: any[], fileName: string, sheetName: st
   worksheet.columns.forEach((column, index) => {
     const headerName = keys[index]?.toLowerCase() || "";
     
-    // Jika kolom pertama atau judulnya mengandung "no", buat ukurannya pas/kecil saja
     if (index === 0 || headerName === "no") {
       column.width = 8;
       return;
