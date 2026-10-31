@@ -26,12 +26,15 @@ export default function AdminEditSiswaPage() {
     updateStudent,
     removeStudent,
     pushLog,
+    refreshFromDb,
     currentUser,
     authInitialized,
   } = useAppData();
 
   const found = students.find((s) => s.nisn === nisn);
   const [form, setForm] = useState<Student | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
@@ -50,15 +53,12 @@ export default function AdminEditSiswaPage() {
     if (!form) return;
     const role = (form.role || "").trim();
 
-    // Role unik: boleh kosong, tapi tidak boleh sama dengan siswa lain
     if (role) {
       const dup = students.find(
         (s) => s.nisn !== form.nisn && (s.role || "").trim() === role
       );
       if (dup) {
-        alert(
-          'Role "' + role + '" sudah dipakai oleh ' + dup.nama + ". Pilih role lain."
-        );
+        setToast(`Role "${role}" sudah dipakai oleh ${dup.nama}. Pilih role lain.`);
         return;
       }
     }
@@ -71,6 +71,18 @@ export default function AdminEditSiswaPage() {
         : undefined,
     });
     pushLog("Edit siswa " + form.nama + (role ? " → " + role : ""));
+    if (typeof refreshFromDb === "function") {
+      await refreshFromDb();
+    }
+    router.push("/admin/siswa");
+  }
+
+  async function confirmDeleteStudent() {
+    if (!form) return;
+    await removeStudent(form.nisn);
+    if (typeof refreshFromDb === "function") {
+      await refreshFromDb();
+    }
     router.push("/admin/siswa");
   }
 
@@ -99,18 +111,19 @@ export default function AdminEditSiswaPage() {
   }
 
   return (
-    <>
+    <div style={{ paddingBottom: 100 }}>
       <button
         type="button"
         className="btn-action-light"
         onClick={() => router.back()}
+        style={{ marginBottom: 10 }}
       >
         ← Kembali
       </button>
 
       <div
         className="glass-card"
-        style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}
+        style={{ display: "flex", flexDirection: "column", gap: 10 }}
       >
         <div className="title-sub">EDIT SISWA</div>
 
@@ -210,16 +223,56 @@ export default function AdminEditSiswaPage() {
           type="button"
           className="btn-action-light"
           style={{ color: "#f43f5e" }}
-          onClick={() => {
-            if (confirm("Hapus siswa?")) {
-              removeStudent(form.nisn);
-              router.push("/admin/siswa");
-            }
-          }}
+          onClick={() => setShowDeleteConfirm(true)}
         >
           Hapus siswa
         </button>
       </div>
-    </>
+
+      {/* MODAL KONFIRMASI HAPUS */}
+      {showDeleteConfirm && (
+        <div className="app-toast-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()} style={{ gap: 14 }}>
+            <div className="app-toast-msg" style={{ fontSize: 13 }}>
+              Yakin ingin menghapus siswa <strong>{form.nama}</strong>?
+            </div>
+            <div style={{ display: "flex", gap: 8, width: "100%" }}>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#334155", color: "#fff" }}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#f43f5e", color: "#fff" }}
+                onClick={confirmDeleteStudent}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST / NOTIFIKASI KUSTOM */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
-}
+                }
