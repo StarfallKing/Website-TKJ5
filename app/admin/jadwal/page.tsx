@@ -264,68 +264,86 @@ export default function AdminJadwalPage() {
         </div>
       </div>
 
-      {/* Switcher Shift */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <button type="button" className={"filter-btn" + (shift === "pagi" ? " active" : "")} onClick={() => setShift("pagi")}>
-          Shift Pagi
+      {/* KONTINER UTAMA (Digabung Menjadi 1 Kontainer Bersama Switcher & Jadwal) */}
+      <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        
+        {/* Switcher Shift Memanjang ke Samping */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <button 
+            type="button" 
+            className={"filter-btn" + (shift === "pagi" ? " active" : "")} 
+            onClick={() => setShift("pagi")}
+            style={{ width: "100%", textAlign: "center", justifyContent: "center" }}
+          >
+            ☀️ Shift Pagi
+          </button>
+          <button 
+            type="button" 
+            className={"filter-btn" + (shift === "siang" ? " active" : "")} 
+            onClick={() => setShift("siang")}
+            style={{ width: "100%", textAlign: "center", justifyContent: "center" }}
+          >
+            🌙 Shift Siang
+          </button>
+        </div>
+
+        <hr style={{ border: "0", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "2px 0" }} />
+
+        {/* Render Hari di Dalam Kontainer Utama (Masing-masing Hari Punya Kotak Pembatas) */}
+        {scheduleDays.map((day) => {
+          const daySlots = currentShiftData[day] || [];
+          return (
+            <div key={day} style={{ background: "rgba(15, 23, 42, 0.5)", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: 12, padding: 12 }}>
+              <div className="title-sub" style={{ marginBottom: 8, fontWeight: "bold" }}>{day}</div>
+              {daySlots.length === 0 ? (
+                <div style={{ fontSize: 12, opacity: 0.6 }}>Belum ada mata pelajaran</div>
+              ) : (
+                daySlots.map((slot, i) => (
+                  <div key={i} style={{ display: "flex", gap: 4, marginTop: 6, alignItems: "center", width: "100%" }}>
+                    <input
+                      type="text"
+                      placeholder="Nama Mapel"
+                      value={slot.mapel || ""}
+                      onChange={(e) => updateSlot(day, i, "mapel", e.target.value)}
+                      style={{ flex: 1, minWidth: 0, padding: "8px 6px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Mulai"
+                      value={slot.start || ""}
+                      onChange={(e) => updateSlot(day, i, "start", e.target.value)}
+                      style={{ width: 52, padding: "8px 2px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, textAlign: "center" }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Selesai"
+                      value={slot.end || ""}
+                      onChange={(e) => updateSlot(day, i, "end", e.target.value)}
+                      style={{ width: 52, padding: "8px 2px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, textAlign: "center" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSlot(day, i)}
+                      style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "8px 8px", cursor: "pointer", fontSize: 11, flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))
+              )}
+              <button type="button" className="btn-action-light" style={{ marginTop: 10, fontSize: 11, cursor: "pointer", width: "100%" }} onClick={() => addSlot(day)}>
+                + Tambah Slot {day}
+              </button>
+            </div>
+          );
+        })}
+
+        {/* Tombol Simpan Database di dalam kontainer yang sama */}
+        <button type="button" className="btn-pay-qris" disabled={saving} onClick={() => void handleSave()} style={{ width: "100%", marginTop: 4 }}>
+          {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
         </button>
-        <button type="button" className={"filter-btn" + (shift === "siang" ? " active" : "")} onClick={() => setShift("siang")}>
-          Shift Siang
-        </button>
+
       </div>
-
-      {/* Render Hari */}
-      {scheduleDays.map((day) => {
-        const daySlots = currentShiftData[day] || [];
-        return (
-          <div key={day} className="glass-card" style={{ padding: 12 }}>
-            <div className="title-sub" style={{ marginBottom: 8, fontWeight: "bold" }}>{day}</div>
-            {daySlots.length === 0 ? (
-              <div style={{ fontSize: 12, opacity: 0.6 }}>Belum ada mata pelajaran</div>
-            ) : (
-              daySlots.map((slot, i) => (
-                <div key={i} style={{ display: "flex", gap: 4, marginTop: 6, alignItems: "center", width: "100%" }}>
-                  <input
-                    type="text"
-                    placeholder="Nama Mapel"
-                    value={slot.mapel || ""}
-                    onChange={(e) => updateSlot(day, i, "mapel", e.target.value)}
-                    style={{ flex: 1, minWidth: 0, padding: "8px 6px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11 }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Mulai"
-                    value={slot.start || ""}
-                    onChange={(e) => updateSlot(day, i, "start", e.target.value)}
-                    style={{ width: 52, padding: "8px 2px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, textAlign: "center" }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Selesai"
-                    value={slot.end || ""}
-                    onChange={(e) => updateSlot(day, i, "end", e.target.value)}
-                    style={{ width: 52, padding: "8px 2px", borderRadius: 8, background: "#0f172a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, textAlign: "center" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeSlot(day, i)}
-                    style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 8, padding: "8px 8px", cursor: "pointer", fontSize: 11, flexShrink: 0 }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))
-            )}
-            <button type="button" className="btn-action-light" style={{ marginTop: 10, fontSize: 11, cursor: "pointer" }} onClick={() => addSlot(day)}>
-              + Tambah Slot {day}
-            </button>
-          </div>
-        );
-      })}
-
-      <button type="button" className="btn-pay-qris" disabled={saving} onClick={() => void handleSave()}>
-        {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
-      </button>
 
       {toast && (
         <div className="app-toast-overlay" onClick={() => setToast(null)}>
@@ -337,4 +355,5 @@ export default function AdminJadwalPage() {
       )}
     </div>
   );
-}
+                       }
+      
