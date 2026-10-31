@@ -152,13 +152,12 @@ export default function AdminDashboardPage() {
 
   const [draft, setDraft] = useState<SiteContent>(siteContent);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   // --- CEK SESI LOGIN DENGAN SAFE GUARD ---
   useEffect(() => {
-    // Tunggu pembacaan localStorage selesai 100%
     if (!authInitialized) return;
 
-    // Jika tidak ada user login dan penanda sessionStorage kosong, kembalikan ke login
     if (!currentUser && sessionStorage.getItem("admin-ok") !== "1") {
       router.replace("/admin");
     }
@@ -181,15 +180,14 @@ export default function AdminDashboardPage() {
     return totalMasukPaid + totalLog;
   }, [paymentOverrides, kasLog]);
 
-  const countL = students.filter((s) => s.gender === "L").length;
-  const countP = students.filter((s) => s.gender === "P").length;
-
   async function save() {
     setSaving(true);
     try {
       const news = draft.news.slice(0, MAX_NEWS);
       await setSiteContent({ ...draft, news });
-      alert("Homepage tersimpan!");
+      setToast("Homepage publik berhasil disimpan! ✓");
+    } catch (e: any) {
+      setToast("Gagal menyimpan: " + (e.message || e));
     } finally {
       setSaving(false);
     }
@@ -211,7 +209,7 @@ export default function AdminDashboardPage() {
 
   function addNews() {
     if (draft.news.length >= MAX_NEWS) {
-      alert("Maksimal " + MAX_NEWS + " berita");
+      setToast(`Maksimal ${MAX_NEWS} berita tercapai! Tidak dapat menambah lagi.`);
       return;
     }
     setDraft((d) => ({
@@ -238,7 +236,6 @@ export default function AdminDashboardPage() {
     }));
   }
 
-  // Tampilkan layar memuat sementara jika status auth belum siap
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div
@@ -255,7 +252,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 100 }}>
       <AdminHeader />
 
       <div
@@ -473,8 +470,25 @@ export default function AdminDashboardPage() {
         onClick={() => void save()}
         disabled={saving}
       >
-        {saving ? "Menyimpan..." : "Simpan ke homepage publik"}
+        {saving ? "Menyimpan..." : "Simpan Ke Homepage"}
       </button>
+
+      {/* MODAL / TOAST KUSTOM */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+            }
+                  
