@@ -278,7 +278,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (attRes.data) {
         const map: Record<string, StatusHarian> = {};
         for (const row of attRes.data) {
-          // PERBAIKAN PENTING: PENGUBAHAN SAMAKAN TIPE DATA NISN STRING & TRIM
           const cleanRowNisn = String(row.nisn ?? "").trim();
           const idx = ordered.findIndex((s) => String(s.nisn).trim() === cleanRowNisn);
           if (idx < 0) continue;
@@ -323,6 +322,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             (siteRes.data.widgets as SiteContent["widgets"]) ||
             defaultSiteContent.widgets,
           news: (siteRes.data.news as SiteContent["news"]) || [],
+          // --- DIPERBAIKI: AMBIL DATA STRUKTUR DARI DB ---
+          strukturPeriode: siteRes.data.strukturPeriode || defaultSiteContent.strukturPeriode,
+          strukturAnggota: siteRes.data.strukturAnggota || defaultSiteContent.strukturAnggota,
         });
       }
 
@@ -477,6 +479,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       tagline: c.tagline,
       widgets: c.widgets,
       news: c.news,
+      // --- DIPERBAIKI: SIMPAN DATA STRUKTUR KE DB ---
+      strukturPeriode: c.strukturPeriode,
+      strukturAnggota: c.strukturAnggota,
       updated_at: new Date().toISOString(),
     });
     if (error) {
@@ -752,7 +757,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const mIdx = Number(monthIndex);
         const dNum = Number(day);
         
-        // Optimistic UI Update
         setAttendanceMap((prev) => ({
           ...prev,
           [studentIndex + "-" + mIdx + "-" + dNum]: status,
@@ -805,4 +809,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
+        }
+        
