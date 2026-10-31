@@ -24,6 +24,7 @@ export default function AdminSiswaPage() {
     addStudent,
     updateStudent,
     removeStudent,
+    refreshFromDb,
     currentUser,
     authInitialized,
   } = useAppData();
@@ -31,6 +32,9 @@ export default function AdminSiswaPage() {
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Student | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
@@ -51,18 +55,47 @@ export default function AdminSiswaPage() {
     );
   }, [students, q]);
 
-  function save() {
-    if (!edit || !edit.nama.trim()) return;
-    if (isNew) {
-      addStudent({
-        ...edit,
-        nisn: edit.nisn || "TMP" + Date.now(),
-      });
-    } else {
-      updateStudent(edit.nisn, edit);
+  async function save() {
+    if (!edit || !edit.nama.trim()) {
+      setToast("Nama siswa tidak boleh kosong!");
+      return;
     }
-    setEdit(null);
-    setIsNew(false);
+    setSaving(true);
+    try {
+      if (isNew) {
+        await addStudent({
+          ...edit,
+          nisn: edit.nisn.trim() || "TMP" + Date.now(),
+        });
+        setToast("Siswa baru berhasil ditambahkan & disinkronkan! ✓");
+      } else {
+        await updateStudent(edit.nisn, edit);
+        setToast("Data siswa berhasil diperbarui! ✓");
+      }
+      setEdit(null);
+      setIsNew(false);
+      if (typeof refreshFromDb === "function") {
+        await refreshFromDb();
+      }
+    } catch (e: any) {
+      setToast("Gagal menyimpan data: " + (e.message || e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    try {
+      await removeStudent(deleteTarget.nisn);
+      setToast(`Siswa ${deleteTarget.nama} berhasil dihapus.`);
+      setDeleteTarget(null);
+      if (typeof refreshFromDb === "function") {
+        await refreshFromDb();
+      }
+    } catch (e: any) {
+      setToast("Gagal menghapus siswa: " + (e.message || e));
+    }
   }
 
   // Prevent render jika status auth belum siap
@@ -75,7 +108,7 @@ export default function AdminSiswaPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 100 }}>
       <AdminHeader />
 
       <div className="glass-card text-center">
@@ -116,11 +149,11 @@ export default function AdminSiswaPage() {
           className="glass-card"
           style={{ display: "flex", flexDirection: "column", gap: 8 }}
         >
-          <div className="title-sub">{isNew ? "TAMBAH" : "EDIT CEPAT"}</div>
+          <div className="title-sub">{isNew ? "TAMBAH SISWA BARU" : "EDIT CEPAT"}</div>
           <input
             className="search-box expanded"
             style={{ width: "100%", padding: 10 }}
-            placeholder="Nama"
+            placeholder="Nama Lengkap"
             value={edit.nama}
             onChange={(e) => setEdit({ ...edit, nama: e.target.value })}
           />
@@ -151,21 +184,16 @@ export default function AdminSiswaPage() {
               borderRadius: 10,
               background: "#0f172a",
               color: "#fff",
+              border: "1px solid rgba(255,255,255,0.12)",
             }}
           >
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
           </select>
-          <input
-            className="search-box expanded"
-            style={{ width: "100%", padding: 10 }}
-            placeholder="Role (opsional)"
-            value={edit.role || ""}
-            onChange={(e) => setEdit({ ...edit, role: e.target.value })}
-          />
+
           <div style={{ display: "flex", gap: 8 }}>
-            <button type="button" className="btn-pay-qris" onClick={save}>
-              Simpan
+            <button type="button" className="btn-pay-qris" onClick={save} disabled={saving}>
+              {saving ? "Menyimpan..." : "Simpan"}
             </button>
             <button
               type="button"
@@ -205,7 +233,6 @@ export default function AdminSiswaPage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-              {/* Sub-page edit lengkap */}
               <button
                 type="button"
                 className="btn-action-light"
@@ -218,11 +245,7 @@ export default function AdminSiswaPage() {
                 type="button"
                 className="btn-action-light"
                 style={{ fontSize: 10, color: "#f43f5e" }}
-                onClick={() => {
-                  if (confirm("Hapus " + s.nama + "?")) {
-                    removeStudent(s.nisn);
-                  }
-                }}
+                onClick={() => setDeleteTarget(s)}
               >
                 Hapus
               </button>
@@ -230,6 +253,52 @@ export default function AdminSiswaPage() {
           </div>
         ))}
       </div>
+
+      {/* MODAL KONFIRMASI HAPUS SISWA */}
+      {deleteTarget && (
+        <div className="app-toast-overlay" onClick={() => setDeleteTarget(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()} style={{ gap: 14 }}>
+            <div className="app-toast-msg" style={{ fontSize: 13 }}>
+              Yakin ingin menghapus siswa <strong>{deleteTarget.nama}</strong>?
+            </div>
+            <div style={{ display: "flex", gap: 8, width: "100%" }}>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#334155", color: "#fff" }}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#f43f5e", color: "#fff" }}
+                onClick={confirmDelete}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST / NOTIFIKASI KUSTOM */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+            }
+                         
