@@ -58,50 +58,57 @@ export default function AdminStrukturPage() {
   }, [siteContent]);
 
   function whoHas(role: string) {
+    const cleanRole = role.trim().toLowerCase();
     return (
-      students.find((s) => (s.role || "").trim() === role)?.nisn || ""
+      students.find((s) => (s.role || "").trim().toLowerCase() === cleanRole)?.nisn || ""
     );
   }
 
-  // --- LOGIKA PERGANTIAN ROLE BARU ---
+  // --- LOGIKA PERGANTIAN ROLE YANG BERSIH & ANTI-DOBEL ---
   async function assignRole(role: string, nisn: string) {
     setBusy(true);
     setopenDropdownRole(null); // Tutup dropdown setelah dipilih
     try {
+      const cleanRole = role.trim().toLowerCase();
+
       if (!nisn) {
-        // Jika opsi dikosongkan
-        const currentHolder = students.find((s) => (s.role || "").trim() === role);
-        if (currentHolder) {
-          await updateStudent(currentHolder.nisn, {
+        // Jika opsi dikosongkan, hapus role dari semua siswa yang memegang role ini
+        const holders = students.filter((s) => (s.role || "").trim().toLowerCase() === cleanRole);
+        for (const h of holders) {
+          await updateStudent(h.nisn, {
             role: undefined,
             roleClass: undefined,
             icon: undefined,
           });
-          pushLog("Struktur: Kosongkan " + role);
         }
+        pushLog("Struktur: Kosongkan " + role);
+        alert(`Posisi ${role} berhasil dikosongkan.`);
         return;
       }
 
       const targetStudent = students.find((s) => s.nisn === nisn);
       if (!targetStudent) return;
 
-      // Cek apakah siswa ini sudah punya role lain di tempat berbeda
-      if (targetStudent.role && targetStudent.role.trim() !== role) {
-        alert(`${targetStudent.nama} sudah menjabat sebagai "${targetStudent.role}". Cabut atau kosongkan posisinya terlebih dahulu jika ingin memindahkannya.`);
-        return;
-      }
-
-      // Cari siapa yang tadinya megang role ini, lalu hapus rolenya
-      const previousHolder = students.find((s) => (s.role || "").trim() === role);
-      if (previousHolder && previousHolder.nisn !== nisn) {
-        await updateStudent(previousHolder.nisn, {
+      // 1. Bersihkan dulu SEMUA siswa lain yang mungkin memegang role ini (mencegah dobel role)
+      const existingHolders = students.filter((s) => (s.role || "").trim().toLowerCase() === cleanRole && s.nisn !== nisn);
+      for (const h of existingHolders) {
+        await updateStudent(h.nisn, {
           role: undefined,
           roleClass: undefined,
           icon: undefined,
         });
       }
 
-      // Berikan role ke siswa yang baru dipilih
+      // 2. Jika siswa yang dipilih ini punya role lain di tempat berbeda, lepaskan role lamanya dulu
+      if (targetStudent.role && targetStudent.role.trim().toLowerCase() !== cleanRole) {
+        await updateStudent(nisn, {
+          role: undefined,
+          roleClass: undefined,
+          icon: undefined,
+        });
+      }
+
+      // 3. Berikan role baru ke siswa yang dipilih
       await updateStudent(nisn, {
         role,
         roleClass: role.toLowerCase().replace(/\s+/g, "-"),
@@ -339,7 +346,7 @@ export default function AdminStrukturPage() {
                       }}
                     >
                       <span>{s.nama}</span>
-                      {s.role && s.role !== role && (
+                      {s.role && s.role.trim().toLowerCase() !== role.trim().toLowerCase() && (
                         <span style={{ fontSize: 9, color: "#fb923c", fontStyle: "italic" }}>
                           (Jabat: {s.role})
                         </span>
@@ -354,5 +361,5 @@ export default function AdminStrukturPage() {
       })}
     </div>
   );
-              }
-                
+      }
+    
