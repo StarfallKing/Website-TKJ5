@@ -281,9 +281,6 @@ export default function AdminDashboardPage() {
           }}
           placeholder="Tagline di bawah judul..."
         />
-        <p style={{ fontSize: 9, color: "#64748b" }}>
-          Edit tagline · tampil di homepage publik
-        </p>
       </div>
 
       <div
