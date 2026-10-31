@@ -417,20 +417,41 @@ export default function AdminKasPage() {
           className="search-box expanded"
           style={{ width: "100%", padding: 10 }}
         />
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as "masuk" | "keluar")}
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            background: "#0f172a",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.12)",
-          }}
-        >
-          <option value="masuk">Pemasukan</option>
-          <option value="keluar">Pengeluaran</option>
-        </select>
+
+        {/* Pilihan Jenis Transaksi Menggunakan Style Filter Button Kustom */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <button
+            type="button"
+            className={"filter-btn" + (type === "masuk" ? " active" : "")}
+            onClick={() => setType("masuk")}
+            style={{
+              padding: "10px",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 10,
+              justifyContent: "center",
+              color: type === "masuk" ? "#ffffff" : "#94a3b8",
+            }}
+          >
+            🟢 Pemasukan
+          </button>
+          <button
+            type="button"
+            className={"filter-btn" + (type === "keluar" ? " active" : "")}
+            onClick={() => setType("keluar")}
+            style={{
+              padding: "10px",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 10,
+              justifyContent: "center",
+              color: type === "keluar" ? "#ffffff" : "#94a3b8",
+            }}
+          >
+            🔴 Pengeluaran
+          </button>
+        </div>
+
         <input
           value={val}
           onChange={(e) => setVal(e.target.value)}
@@ -607,5 +628,4 @@ export default function AdminKasPage() {
       )}
     </div>
   );
-          }
-            
+}
