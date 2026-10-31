@@ -27,7 +27,6 @@ function OrgNode({ title, name, color, icon, size = "md" }: NodeProps) {
   const isLg = size === "lg";
   const isSm = size === "sm";
 
-  // Desktop jauh lebih besar; mobile tetap kompak
   const avatar = isLg ? 78 : isSm ? 42 : 56;
   const iconPx = isLg ? 30 : isSm ? 17 : 22;
   const maxW = isLg ? 280 : isSm ? 148 : 200;
@@ -124,7 +123,6 @@ function Spine({ h = 20 }: { h?: number }) {
   );
 }
 
-/** Garis T — lebar menyesuaikan mode (mobile / desktop) */
 function BranchBar({ wide }: { wide?: boolean }) {
   const side = wide ? "8%" : "14%";
   return (
@@ -276,6 +274,8 @@ export default function StrukturPage() {
     ],
   ];
 
+  const currentWali = siteContent.waliKelas || "Shendy Nuria Feriansyah, S.Pd";
+
   return (
     <>
       <div
@@ -306,7 +306,7 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      {/* MOBILE — kompak */}
+      {/* MOBILE */}
       <div
         className="struktur-mobile glass-card"
         style={{
@@ -318,7 +318,7 @@ export default function StrukturPage() {
       >
         <OrgNode
           title="Wali Kelas"
-          name="Shendy Nuria Feriansyah, S.Pd"
+          name={currentWali}
           color="#60a5fa"
           icon="fa-user-tie"
           size="md"
@@ -345,7 +345,7 @@ export default function StrukturPage() {
         </div>
       </div>
 
-      {/* DESKTOP — besar + melebar kiri-kanan */}
+      {/* DESKTOP */}
       <div
         className="struktur-desktop glass-card"
         style={{
@@ -358,7 +358,7 @@ export default function StrukturPage() {
       >
         <OrgNode
           title="Wali Kelas"
-          name="Shendy Nuria Feriansyah, S.Pd"
+          name={currentWali}
           color="#60a5fa"
           icon="fa-user-tie"
           size="lg"
@@ -386,4 +386,5 @@ export default function StrukturPage() {
       </div>
     </>
   );
-                                                                   }
+        }
+              
