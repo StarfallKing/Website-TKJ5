@@ -30,7 +30,7 @@ const inp: CSSProperties = {
   fontSize: 12,
 };
 
-// --- KOMPONEN KHUSUS UPLOAD / PASTE URL GAMBAR ---
+// --- KOMPONEN KHUSUS UPLOAD / PASTE URL GAMBAR DENGAN GAYA TOMBOL KUSTOM ---
 function NewsImageInput({
   value,
   onChange,
@@ -77,37 +77,36 @@ function NewsImageInput({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ display: "flex", gap: 6 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {/* Tombol Tab Pilihan Mode */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         <button
           type="button"
           onClick={() => setMode("url")}
+          className={"filter-btn" + (mode === "url" ? " active" : "")}
           style={{
-            padding: "4px 8px",
-            fontSize: 10,
-            borderRadius: 6,
-            border: "none",
-            background: mode === "url" ? "#2563eb" : "#334155",
-            color: "#fff",
-            cursor: "pointer",
+            padding: "6px 8px",
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: 8,
+            justifyContent: "center",
           }}
         >
-          Paste URL Link
+          <i className="fa-solid fa-link" style={{ fontSize: 10 }} /> Paste URL Link
         </button>
         <button
           type="button"
           onClick={() => setMode("upload")}
+          className={"filter-btn" + (mode === "upload" ? " active" : "")}
           style={{
-            padding: "4px 8px",
-            fontSize: 10,
-            borderRadius: 6,
-            border: "none",
-            background: mode === "upload" ? "#2563eb" : "#334155",
-            color: "#fff",
-            cursor: "pointer",
+            padding: "6px 8px",
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: 8,
+            justifyContent: "center",
           }}
         >
-          Upload File (Maks 2MB)
+          <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: 10 }} /> Upload File (Maks 2MB)
         </button>
       </div>
 
@@ -119,13 +118,38 @@ function NewsImageInput({
           style={inp}
         />
       ) : (
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          disabled={uploading}
-          style={{ ...inp, padding: 6 }}
-        />
+        <div className="custom-file-upload">
+          <input
+            type="file"
+            id={`newsFile-${value}`}
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={uploading}
+            style={{ display: "none" }}
+          />
+          <label
+            htmlFor={`newsFile-${value}`}
+            className="file-upload-btn has-file"
+            style={{
+              padding: "10px",
+              borderRadius: 10,
+              background: "#0f172a",
+              border: "1px dashed rgba(96,165,250,0.4)",
+              color: "#60a5fa",
+              fontSize: 11,
+              fontWeight: 700,
+              textAlign: "center",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-image" />
+            <span>{uploading ? "Mengunggah..." : "Pilih Gambar dari Perangkat"}</span>
+          </label>
+        </div>
       )}
 
       {uploading && (
@@ -153,6 +177,9 @@ export default function AdminDashboardPage() {
   const [draft, setDraft] = useState<SiteContent>(siteContent);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // State untuk modal konfirmasi hapus berita (menggantikan confirm() bawaan browser)
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
   // --- CEK SESI LOGIN DENGAN SAFE GUARD ---
   useEffect(() => {
@@ -228,12 +255,14 @@ export default function AdminDashboardPage() {
     }));
   }
 
-  function removeNews(i: number) {
-    if (!confirm("Hapus berita ini?")) return;
+  function confirmDeleteNews() {
+    if (deleteIndex === null) return;
     setDraft((d) => ({
       ...d,
-      news: d.news.filter((_, idx) => idx !== i),
+      news: d.news.filter((_, idx) => idx !== deleteIndex),
     }));
+    setDeleteIndex(null);
+    setToast("Berita berhasil dihapus.");
   }
 
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
@@ -408,7 +437,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   className="btn-action-light"
                   style={{ fontSize: 10, color: "#f43f5e" }}
-                  onClick={() => removeNews(i)}
+                  onClick={() => setDeleteIndex(i)}
                 >
                   Hapus
                 </button>
@@ -473,7 +502,36 @@ export default function AdminDashboardPage() {
         {saving ? "Menyimpan..." : "Simpan Ke Homepage"}
       </button>
 
-      {/* MODAL / TOAST KUSTOM */}
+      {/* MODAL KONFIRMASI HAPUS BERITA */}
+      {deleteIndex !== null && (
+        <div className="app-toast-overlay" onClick={() => setDeleteIndex(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()} style={{ gap: 14 }}>
+            <div className="app-toast-msg" style={{ fontSize: 13 }}>
+              Yakin ingin menghapus Berita #{deleteIndex + 1}?
+            </div>
+            <div style={{ display: "flex", gap: 8, width: "100%" }}>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#334155", color: "#fff" }}
+                onClick={() => setDeleteIndex(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#f43f5e", color: "#fff" }}
+                onClick={confirmDeleteNews}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL / TOAST NOTIFIKASI KUSTOM */}
       {toast && (
         <div className="app-toast-overlay" onClick={() => setToast(null)}>
           <div className="app-toast" onClick={(e) => e.stopPropagation()}>
@@ -490,5 +548,5 @@ export default function AdminDashboardPage() {
       )}
     </div>
   );
-            }
-                  
+      }
+    
