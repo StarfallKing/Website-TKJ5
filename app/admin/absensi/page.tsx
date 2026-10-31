@@ -261,18 +261,19 @@ export default function AdminAbsensiPage() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: 10,
-            gap: 10,
-            flexWrap: "wrap",
+            gap: 12,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 160 }}>
-            <i className="fa-solid fa-chart-pie" style={{ color: "#60a5fa", fontSize: 16 }} />
-            <div className="title-sub" style={{ fontSize: 11, margin: 0, lineHeight: 1.3 }}>
+          {/* Teks di Kiri (Jika panjang turun ke bawah secara natural) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+            <i className="fa-solid fa-chart-pie" style={{ color: "#60a5fa", fontSize: 16, flexShrink: 0 }} />
+            <div className="title-sub" style={{ fontSize: 11, margin: 0, lineHeight: 1.3, wordBreak: "break-word" }}>
               Rekap Akumulasi Absen 1 Tahun
             </div>
           </div>
           
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Tombol & Badge di Kanan */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             <button
               type="button"
               onClick={handleExportAbsensiTahunan}
@@ -281,7 +282,7 @@ export default function AdminAbsensiPage() {
                 backgroundColor: "#22c55e",
                 color: "#ffffff",
                 border: "none",
-                padding: "8px 14px",
+                padding: "8px 12px",
                 borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -289,6 +290,7 @@ export default function AdminAbsensiPage() {
                 alignItems: "center",
                 gap: 6,
                 boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                whiteSpace: "nowrap",
               }}
             >
               <i className="fa-solid fa-file-excel" /> Ekspor Excel
@@ -303,14 +305,10 @@ export default function AdminAbsensiPage() {
                 borderRadius: 8,
                 fontWeight: 800,
                 textAlign: "center",
-                lineHeight: 1.2,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
+                whiteSpace: "nowrap",
               }}
             >
-              <span>T.A</span>
-              <span>2026/2027</span>
+              T.A 2026/2027
             </div>
           </div>
         </div>
@@ -431,16 +429,16 @@ export default function AdminAbsensiPage() {
             marginBottom: 12,
             paddingBottom: 8,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
-            gap: 10,
-            flexWrap: "wrap",
+            gap: 12,
           }}
         >
-          <div className="title-sub" style={{ fontSize: 11, margin: 0 }}>
+          {/* Teks di Kiri */}
+          <div className="title-sub" style={{ fontSize: 11, margin: 0, wordBreak: "break-word", flex: 1, minWidth: 0 }}>
             REKAP HARIAN PER BULAN
           </div>
           
-          {/* TOMBOL EKSPOR & BADGE JUMLAH HARI (DISAMAKAN PROPORSIONAL DENGAN PUBLIC) */}
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Tombol & Badge di Kanan */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             <button
               type="button"
               onClick={handleExportAbsensiBulanan}
@@ -449,7 +447,7 @@ export default function AdminAbsensiPage() {
                 backgroundColor: "#22c55e",
                 color: "#ffffff",
                 border: "none",
-                padding: "8px 14px",
+                padding: "8px 12px",
                 borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -457,6 +455,7 @@ export default function AdminAbsensiPage() {
                 alignItems: "center",
                 gap: 6,
                 boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                whiteSpace: "nowrap",
               }}
             >
               <i className="fa-solid fa-file-excel" /> Ekspor Excel
@@ -471,9 +470,6 @@ export default function AdminAbsensiPage() {
                 borderRadius: 8,
                 fontWeight: 800,
                 textAlign: "center",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
                 whiteSpace: "nowrap",
               }}
             >
@@ -604,5 +600,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-                  }
-                      
+}
+  
