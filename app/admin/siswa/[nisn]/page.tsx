@@ -5,19 +5,6 @@ import { useEffect, useState } from "react";
 import { useAppData } from "@/lib/AppDataContext";
 import type { Student } from "@/lib/data";
 
-const ROLE_OPTIONS = [
-  "",
-  "Ketua Kelas",
-  "Wakil Ketua",
-  "Sekretaris 1",
-  "Sekretaris 2",
-  "Bendahara 1",
-  "Bendahara 2",
-  "Keamanan",
-  "Kesehatan 1",
-  "Kesehatan 2",
-];
-
 export default function AdminEditSiswaPage() {
   const { nisn } = useParams<{ nisn: string }>();
   const router = useRouter();
@@ -51,26 +38,11 @@ export default function AdminEditSiswaPage() {
 
   async function save() {
     if (!form) return;
-    const role = (form.role || "").trim();
-
-    if (role) {
-      const dup = students.find(
-        (s) => s.nisn !== form.nisn && (s.role || "").trim() === role
-      );
-      if (dup) {
-        setToast(`Role "${role}" sudah dipakai oleh ${dup.nama}. Pilih role lain.`);
-        return;
-      }
-    }
 
     await updateStudent(form.nisn, {
       ...form,
-      role: role || undefined,
-      roleClass: role
-        ? role.toLowerCase().replace(/\s+/g, "-")
-        : undefined,
     });
-    pushLog("Edit siswa " + form.nama + (role ? " → " + role : ""));
+    pushLog("Edit siswa " + form.nama);
     if (typeof refreshFromDb === "function") {
       await refreshFromDb();
     }
@@ -169,27 +141,6 @@ export default function AdminEditSiswaPage() {
           <option value="P">Perempuan</option>
         </select>
 
-        <label style={{ fontSize: 10, color: "#94a3b8" }}>
-          Role (unik — 1 role = 1 orang)
-        </label>
-        <select
-          value={form.role || ""}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-          style={{
-            padding: 12,
-            borderRadius: 10,
-            background: "#0f172a",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.12)",
-          }}
-        >
-          {ROLE_OPTIONS.map((r) => (
-            <option key={r || "none"} value={r}>
-              {r || "— Tanpa role —"}
-            </option>
-          ))}
-        </select>
-
         <div
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}
         >
@@ -275,4 +226,4 @@ export default function AdminEditSiswaPage() {
       )}
     </div>
   );
-                }
+              }
