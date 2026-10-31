@@ -25,7 +25,6 @@ import {
 } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
-// --- TYPE DEFINITIONS MULTI-AKUN & SESI 6 BULAN ---
 export type UserRole = "admin" | "ketua" | "sekretaris" | "bendahara" | "superadmin" | string;
 
 export type UserAccount = {
@@ -40,7 +39,7 @@ export type UserAccount = {
 };
 
 export type UserSession = UserAccount & {
-  expiresAt: number; // Timestamp kedaluwarsa 6 bulan
+  expiresAt: number;
 };
 
 export type ActivityLogItem = {
@@ -61,13 +60,11 @@ type AppData = {
   siteContent: SiteContent;
   schedule: ScheduleData;
   loading: boolean;
-  // --- AUTH STATES & METHODS ---
   authInitialized: boolean;
   currentUser: UserSession | null;
   setCurrentUser: (user: UserAccount | null) => void;
   login: (account: UserAccount) => void;
   logout: () => void;
-  // --- ACTION METHODS ---
   setSiteContent: (c: SiteContent) => Promise<void>;
   setMaintenanceMode: (value: boolean) => Promise<void>;
   setSchedule: (s: ScheduleData) => Promise<void>;
@@ -161,7 +158,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [schedule, setScheduleState] = useState<ScheduleData>(defaultSchedule);
   const [loading, setLoading] = useState(true);
 
-  // --- STATE AKUN LOGIN (PERSISTENT 6 BULAN) ---
   const [currentUser, setCurrentUserSession] = useState<UserSession | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
 
@@ -257,9 +253,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         supabase.from("schedule").select("*").eq("id", 1).maybeSingle(),
       ]);
 
-      if (logRes.error) console.error("kas_log load", logRes.error);
-      if (actRes.error) console.error("activity_log load", actRes.error);
-
       let ordered: Student[] = seedStudents;
       if (stRes.data?.length) {
         const byNisn = new Map(
@@ -315,16 +308,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      if (siteRes.data) {
+      const waliDb = (setRes.data as { wali_nama?: string } | null)?.wali_nama;
+
+      if (siteRes.data || waliDb) {
         setSiteContentState({
-          tagline: siteRes.data.tagline || defaultSiteContent.tagline,
+          tagline: siteRes.data?.tagline || defaultSiteContent.tagline,
           widgets:
-            (siteRes.data.widgets as SiteContent["widgets"]) ||
+            (siteRes.data?.widgets as SiteContent["widgets"]) ||
             defaultSiteContent.widgets,
-          news: (siteRes.data.news as SiteContent["news"]) || [],
-          // --- DIPERBAIKI: AMBIL DATA STRUKTUR DARI DB ---
-          strukturPeriode: siteRes.data.strukturPeriode || defaultSiteContent.strukturPeriode,
-          strukturAnggota: siteRes.data.strukturAnggota || defaultSiteContent.strukturAnggota,
+          news: (siteRes.data?.news as SiteContent["news"]) || [],
+          strukturPeriode: siteRes.data?.strukturPeriode || defaultSiteContent.strukturPeriode,
+          strukturAnggota: siteRes.data?.strukturAnggota || defaultSiteContent.strukturAnggota,
+          waliKelas: waliDb || defaultSiteContent.waliKelas,
         });
       }
 
@@ -450,59 +445,40 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         at: item.at,
         user_name: item.user,
         action: item.action,
-      })
-      .then(({ error }) => {
-        if (error) {
-          console.error("Gagal insert activity_log ke Supabase:", error);
-        }
       });
   }
 
   async function setMaintenanceMode(value: boolean) {
     setMaintenanceModeState(value);
-    const { error } = await supabase.from("app_settings").upsert({
+    await supabase.from("app_settings").upsert({
       id: 1,
       maintenance: value,
       updated_at: new Date().toISOString(),
     });
-    if (error) {
-      alert("Gagal maintenance: " + error.message);
-      return;
-    }
     pushLog(value ? "Maintenance ON" : "Maintenance OFF");
   }
 
   async function setSiteContent(c: SiteContent) {
     setSiteContentState(c);
-    const { error } = await supabase.from("site_content").upsert({
+    await supabase.from("site_content").upsert({
       id: 1,
       tagline: c.tagline,
       widgets: c.widgets,
       news: c.news,
-      // --- DIPERBAIKI: SIMPAN DATA STRUKTUR KE DB ---
       strukturPeriode: c.strukturPeriode,
       strukturAnggota: c.strukturAnggota,
       updated_at: new Date().toISOString(),
     });
-    if (error) {
-      alert("Gagal homepage: " + error.message);
-      return;
-    }
     pushLog("Update konten homepage");
   }
 
   async function setSchedule(s: ScheduleData) {
     setScheduleState(s);
-    const { error } = await supabase.from("schedule").upsert({
+    await supabase.from("schedule").upsert({
       id: 1,
       data: s,
       updated_at: new Date().toISOString(),
     });
-    if (error) {
-      alert("Gagal simpan jadwal: " + error.message);
-      return;
-    }
-    alert("Jadwal berhasil diperbarui ke database!");
     pushLog("Update jadwal pelajaran");
   }
 
@@ -513,10 +489,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   ) {
     const clean = desc.trim();
     const amount = Number(val);
-    if (!clean || !amount || amount <= 0) {
-      alert("Isi keterangan dan nominal > 0");
-      return;
-    }
+    if (!clean || !amount || amount <= 0) return;
 
     const lastBalance =
       kasLog.length > 0 ? kasLog[kasLog.length - 1].balance : 0;
@@ -539,8 +512,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
 
     setKasLog((prev) => [...prev, row]);
-
-    const { error } = await supabase.from("kas_log").insert({
+    await supabase.from("kas_log").insert({
       no: row.no,
       date: row.date,
       desc: row.desc,
@@ -548,40 +520,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       val: row.val,
       balance: row.balance,
     });
-
-    if (error) {
-      console.error("kas_log insert", error);
-      alert("Gagal simpan log kas: " + error.message);
-      setKasLog((prev) => prev.filter((r) => r !== row));
-      return;
-    }
-
-    pushLog("Log kas " + type + ": " + clean + " (" + amount + ")");
+    pushLog("Log kas " + type + ": " + clean);
   }
 
   async function deleteKasTransactions(keys: string[]) {
     if (!keys.length) return;
-
     const nosToDelete = keys
       .map((k) => Number(k.split("-")[0]))
       .filter((n) => !isNaN(n));
 
     if (!nosToDelete.length) return;
-
     setKasLog((prev) => prev.filter((row) => !nosToDelete.includes(row.no)));
-
-    const { error } = await supabase
-      .from("kas_log")
-      .delete()
-      .in("no", nosToDelete);
-
-    if (error) {
-      console.error("kas_log delete", error);
-      alert("Gagal menghapus log kas: " + error.message);
-      void refreshFromDb();
-      return;
-    }
-
+    await supabase.from("kas_log").delete().in("no", nosToDelete);
     pushLog("Hapus log kas sebanyak " + nosToDelete.length + " item");
   }
 
@@ -616,29 +566,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setStudents((prev) =>
           prev.map((s) => (String(s.nisn).trim() === cleanNisn ? { ...s, ...patch } : s))
         );
-        const p = patch;
-        const { error } = await supabase
+        await supabase
           .from("students")
           .update({
-            ...(p.nama !== undefined ? { nama: p.nama } : {}),
-            ...(p.nis !== undefined ? { nis: p.nis } : {}),
-            ...(p.gender !== undefined ? { gender: p.gender } : {}),
-            ...(p.role !== undefined ? { role: p.role || null } : {}),
-            ...(p.roleClass !== undefined
-              ? { role_class: p.roleClass || null }
+            ...(patch.nama !== undefined ? { nama: patch.nama } : {}),
+            ...(patch.nis !== undefined ? { nis: patch.nis } : {}),
+            ...(patch.gender !== undefined ? { gender: patch.gender } : {}),
+            ...(patch.role !== undefined ? { role: patch.role || null } : {}),
+            ...(patch.roleClass !== undefined
+              ? { role_class: patch.roleClass || null }
               : {}),
-            ...(p.icon !== undefined ? { icon: p.icon || null } : {}),
-            ...(p.hadir !== undefined ? { hadir: p.hadir } : {}),
-            ...(p.izin !== undefined ? { izin: p.izin } : {}),
-            ...(p.sakit !== undefined ? { sakit: p.sakit } : {}),
-            ...(p.alpa !== undefined ? { alpa: p.alpa } : {}),
+            ...(patch.icon !== undefined ? { icon: patch.icon || null } : {}),
+            ...(patch.hadir !== undefined ? { hadir: patch.hadir } : {}),
+            ...(patch.izin !== undefined ? { izin: patch.izin } : {}),
+            ...(patch.sakit !== undefined ? { sakit: patch.sakit } : {}),
+            ...(patch.alpa !== undefined ? { alpa: patch.alpa } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("nisn", cleanNisn);
-        if (error) {
-          alert("Gagal siswa: " + error.message);
-          return;
-        }
         pushLog("Update siswa " + cleanNisn);
       },
 
@@ -677,108 +622,37 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const cleanNisn = String(nisn ?? "").trim();
         const mIdx = Number(monthIndex);
         const key = `${cleanNisn}-${mIdx}`;
-        const wasPaid = paymentOverrides[key] === true;
-
-        if (paid === wasPaid) return;
-
-        setPaymentOverrides((prev) => ({
-          ...prev,
-          [key]: paid,
-        }));
-
-        const { error } = await supabase.from("kas_paid").upsert(
+        setPaymentOverrides((prev) => ({ ...prev, [key]: paid }));
+        await supabase.from("kas_paid").upsert(
           { nisn: cleanNisn, month_index: mIdx, paid },
           { onConflict: "nisn,month_index" }
         );
-
-        if (error) {
-          alert("Gagal simpan kas ke DB: " + error.message);
-          setPaymentOverrides((prev) => ({
-            ...prev,
-            [key]: wasPaid,
-          }));
-          return;
-        }
-
-        const siswa = students.find((s) => String(s.nisn).trim() === cleanNisn);
-        const nama = siswa?.nama || cleanNisn;
-        const bulan = monthConfigs[mIdx]?.name || "bulan#" + mIdx;
-
-        pushLog((paid ? "LUNAS " : "BELUM ") + nama + " · " + bulan);
       },
 
       markKasPaid: async (nama, nisn, monthIndex = 1) => {
         const cleanNisn = String(nisn ?? "").trim();
         const mIdx = Number(monthIndex);
         const key = `${cleanNisn}-${mIdx}`;
-        const wasPaid = paymentOverrides[key] === true;
-
-        setPaymentOverrides((prev) => ({
-          ...prev,
-          [key]: true,
-        }));
-
-        const { error: e1 } = await supabase.from("kas_paid").upsert(
+        setPaymentOverrides((prev) => ({ ...prev, [key]: true }));
+        await supabase.from("kas_paid").upsert(
           { nisn: cleanNisn, month_index: mIdx, paid: true },
           { onConflict: "nisn,month_index" }
         );
-
-        if (e1) {
-          alert(e1.message);
-          setPaymentOverrides((prev) => ({
-            ...prev,
-            [key]: wasPaid,
-          }));
-          return;
-        }
-
-        const now = new Date();
-        const pay = {
-          name: nama,
-          date:
-            now.toLocaleDateString("id-ID") +
-            " - " +
-            now.getHours().toString().padStart(2, "0") +
-            ":" +
-            now.getMinutes().toString().padStart(2, "0") +
-            " WIB",
-          code:
-            "Kas-TKJ5-" + cleanNisn.substring(0, 5) + "-" + String(Date.now()),
-          status: "LUNAS",
-          amount: NOMINAL_KAS,
-        };
-        setPayments((prev) => [pay, ...prev]);
-        void supabase.from("payments").insert(pay);
-
-        pushLog("QRIS LUNAS " + nama);
       },
 
       setAttendanceCell: async (studentIndex, monthIndex, day, status) => {
         const mIdx = Number(monthIndex);
         const dNum = Number(day);
-        
         setAttendanceMap((prev) => ({
           ...prev,
           [studentIndex + "-" + mIdx + "-" + dNum]: status,
         }));
-
         const rawNisn = students[studentIndex]?.nisn;
         if (!rawNisn) return;
-        const cleanNisn = String(rawNisn).trim();
-
-        const { error } = await supabase.from("attendance").upsert(
-          { nisn: cleanNisn, month_index: mIdx, day: dNum, status },
+        await supabase.from("attendance").upsert(
+          { nisn: String(rawNisn).trim(), month_index: mIdx, day: dNum, status },
           { onConflict: "nisn,month_index,day" }
         );
-
-        if (error) {
-          console.error("Gagal simpan absensi:", error);
-          alert("Gagal absensi: " + error.message);
-          void refreshFromDb();
-          return;
-        }
-
-        pushLog("Absensi " + cleanNisn + " → " + status);
       },
 
       getAttendanceCell: (studentIndex, monthIndex, day) => {
@@ -809,5 +683,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-        }
+                                  }
         
