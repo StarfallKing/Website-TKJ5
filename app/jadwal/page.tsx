@@ -97,7 +97,6 @@ function formatScheduleText(
   return lines.join("\n").trim();
 }
 
-/** Clipboard robust: API modern + fallback mobile */
 async function copyToClipboard(text: string): Promise<boolean> {
   if (
     typeof navigator !== "undefined" &&
@@ -108,9 +107,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
     try {
       await navigator.clipboard.writeText(text);
       return true;
-    } catch {
-      // lanjut fallback
-    }
+    } catch {}
   }
 
   try {
@@ -122,18 +119,10 @@ async function copyToClipboard(text: string): Promise<boolean> {
     ta.style.left = "0";
     ta.style.width = "1px";
     ta.style.height = "1px";
-    ta.style.padding = "0";
-    ta.style.border = "none";
-    ta.style.outline = "none";
-    ta.style.boxShadow = "none";
-    ta.style.background = "transparent";
     ta.style.opacity = "0";
     document.body.appendChild(ta);
-
     ta.focus();
     ta.select();
-    ta.setSelectionRange(0, text.length);
-
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     return ok;
@@ -155,24 +144,56 @@ export default function JadwalPage() {
   const [showSug, setShowSug] = useState(false);
   const [timeStr, setTimeStr] = useState("");
   const [islandOpen, setIslandOpen] = useState(false);
-  const [session, setSession] = useState<"pagi" | "siang">("pagi");
+  const [forcedSession, setForcedSession] = useState<"pagi" | "siang" | null>(null);
+  const [holidayDays, setHolidayDays] = useState<Record<string, boolean>>({});
   const [tick, setTick] = useState(0);
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Ambil data pengaturan sesi paksa & tanggal merah dari Supabase secara realtime
   useEffect(() => {
-    setSession(getRotatedSession());
+    async function fetchAppSettings() {
+      const { data } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
+      if (data) {
+        setForcedSession(data.forced_session || null);
+        setHolidayDays(data.holiday_days || {});
+      }
+    }
+    void fetchAppSettings();
+
+    const channel = supabase
+      .channel("public-app-settings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "app_settings" },
+        (payload: any) => {
+          if (payload.new) {
+            setForcedSession(payload.new.forced_session || null);
+            setHolidayDays(payload.new.holiday_days || {});
+          }
+        }
+      )
+      .subscribe();
+
     const t = setInterval(() => {
       setTimeStr(new Date().toLocaleTimeString("id-ID"));
-      setSession(getRotatedSession());
       setTick((v) => v + 1);
     }, 1000);
-    return () => clearInterval(t);
+
+    return () => {
+      clearInterval(t);
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const dayName = days[new Date().getDay()];
-  const todayLessons = sched[session]?.[dayName] || [];
+  const session = forcedSession || getRotatedSession();
+  const isTodayHoliday = holidayDays[dayName] === true;
+
+  const todayLessons = isTodayHoliday
+    ? [{ mapel: "📅 HARI LIBUR / TANGGAL MERAH", start: "00:00", end: "23:59" }]
+    : (sched[session]?.[dayName] || masterSchedule[session]?.[dayName] || []);
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -195,9 +216,7 @@ export default function JadwalPage() {
     const text = formatScheduleText(label, sched[kind]);
     const ok = await copyToClipboard(text);
     if (ok) {
-      showToast(
-        kind === "pagi" ? "Jadwal pagi disalin ✓" : "Jadwal siang disalin ✓"
-      );
+      showToast(kind === "pagi" ? "Jadwal pagi disalin ✓" : "Jadwal siang disalin ✓");
     } else {
       showToast("Gagal menyalin jadwal");
     }
@@ -220,30 +239,15 @@ export default function JadwalPage() {
     setSending(true);
     try {
       const linkFile = await uploadIzinFile(file);
-
       const message =
         "*SURAT PERMOHONAN IZIN SISWA X TKJ-5*\n\n" +
-        "*Nama Siswa:* " +
-        nama +
-        "\n" +
-        "*Jenis Izin:* " +
-        izinType +
-        "\n" +
-        "*Tanggal:* " +
-        new Date().toLocaleDateString("id-ID") +
-        "\n\n" +
-        "*Keterangan / Alasan:*\n" +
-        alasan +
-        "\n\n" +
-        "*Lampiran (buka / unduh):*\n" +
-        linkFile;
+        "*Nama Siswa:* " + nama + "\n" +
+        "*Jenis Izin:* " + izinType + "\n" +
+        "*Tanggal:* " + new Date().toLocaleDateString("id-ID") + "\n\n" +
+        "*Keterangan / Alasan:*\n" + alasan + "\n\n" +
+        "*Lampiran (buka / unduh):*\n" + linkFile;
 
-      const url =
-        "https://wa.me/" +
-        NOMOR_GURU +
-        "?text=" +
-        encodeURIComponent(message);
-
+      const url = "https://wa.me/" + NOMOR_GURU + "?text=" + encodeURIComponent(message);
       window.open(url, "_blank");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -270,10 +274,7 @@ export default function JadwalPage() {
           }}
         >
           <div className="title-sub">
-            <i
-              className={"fa-solid " + icon}
-              style={{ color, marginRight: "6px" }}
-            />
+            <i className={"fa-solid " + icon} style={{ color, marginRight: "6px" }} />
             {title}
           </div>
           <span style={{ fontSize: "9px", fontWeight: 800, color }}>
@@ -297,9 +298,7 @@ export default function JadwalPage() {
                   }}
                 >
                   <span>{item.mapel}</span>
-                  <span>
-                    {isLibur ? "-" : item.start + " - " + item.end}
-                  </span>
+                  <span>{isLibur ? "-" : item.start + " - " + item.end}</span>
                 </div>
               );
             })}
@@ -323,7 +322,7 @@ export default function JadwalPage() {
         </p>
       </div>
 
-      {/* Dynamic Island */}
+      {/* Dynamic Island Publik */}
       <div
         className={"dynamic-island-bar" + (islandOpen ? " open" : "")}
         onClick={() => setIslandOpen((v) => !v)}
@@ -333,6 +332,7 @@ export default function JadwalPage() {
             <i className="fa-solid fa-clock" style={{ color: "#60a5fa" }} />
             <span style={{ fontSize: "11px", fontWeight: 800 }}>
               {dayName.toUpperCase()} • {session.toUpperCase()}
+              {isTodayHoliday ? " (LIBUR)" : ""}
             </span>
           </div>
           <span className="island-badge">{session.toUpperCase()}</span>
@@ -351,9 +351,7 @@ export default function JadwalPage() {
           <span style={{ color: "#60a5fa", fontWeight: 700 }}>
             {islandOpen ? "Tutup" : "Tekan Ringkasan"}{" "}
             <i
-              className={
-                "fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")
-              }
+              className={"fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")}
               style={{ fontSize: "9px" }}
             />
           </span>
@@ -361,7 +359,7 @@ export default function JadwalPage() {
 
         <div className="island-expanded-content">
           <div style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa" }}>
-            Jadwal Real-Time ({dayName} - Sesi {session})
+            Jadwal Real-Time ({dayName} - Sesi {session}) {isTodayHoliday ? "[LIBUR]" : ""}
           </div>
 
           {todayLessons.map((item, i) => {
@@ -369,15 +367,13 @@ export default function JadwalPage() {
             return (
               <div
                 key={i}
-                className={
-                  "schedule-item-live" + (active ? " active-lesson" : "")
-                }
+                className={"schedule-item-live" + (active ? " active-lesson" : "")}
               >
                 <div>
                   <strong style={{ color: active ? "#60a5fa" : "#f8fafc" }}>
                     {item.mapel}
                   </strong>
-                  {active && (
+                  {active && !isTodayHoliday && (
                     <span
                       style={{
                         fontSize: "8px",
@@ -407,7 +403,7 @@ export default function JadwalPage() {
         </div>
       </div>
 
-      {/* Form izin */}
+      {/* Form Izin */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -478,34 +474,22 @@ export default function JadwalPage() {
           <label className="form-label">Jenis Izin</label>
           <div className="radio-group">
             <div
-              className={
-                "radio-card" + (izinType === "Keperluan" ? " active" : "")
-              }
+              className={"radio-card" + (izinType === "Keperluan" ? " active" : "")}
               onClick={() => {
                 setIzinType("Keperluan");
                 setAlasan("");
               }}
             >
-              <i
-                className="fa-solid fa-briefcase"
-                style={{ marginRight: "4px" }}
-              />{" "}
-              Keperluan
+              <i className="fa-solid fa-briefcase" style={{ marginRight: "4px" }} /> Keperluan
             </div>
             <div
-              className={
-                "radio-card" + (izinType === "Sakit" ? " active" : "")
-              }
+              className={"radio-card" + (izinType === "Sakit" ? " active" : "")}
               onClick={() => {
                 setIzinType("Sakit");
                 setAlasan("");
               }}
             >
-              <i
-                className="fa-solid fa-notes-medical"
-                style={{ marginRight: "4px" }}
-              />{" "}
-              Sakit
+              <i className="fa-solid fa-notes-medical" style={{ marginRight: "4px" }} /> Sakit
             </div>
           </div>
         </div>
@@ -539,8 +523,7 @@ export default function JadwalPage() {
 
         <div className="form-group">
           <label className="form-label">
-            Lampirkan Foto / Surat{" "}
-            <span style={{ color: "#f43f5e" }}>*</span>
+            Lampirkan Foto / Surat <span style={{ color: "#f43f5e" }}>*</span>
           </label>
           <div className="custom-file-upload">
             <input
@@ -582,15 +565,10 @@ export default function JadwalPage() {
           onClick={() => void submitWA()}
         >
           <i className="fa-brands fa-whatsapp" style={{ fontSize: "18px" }} />
-          <span>
-            {sending
-              ? "Mengunggah lampiran..."
-              : "Kirim Dokumen Izin ke Pak Shendy"}
-          </span>
+          <span>{sending ? "Mengunggah lampiran..." : "Kirim Dokumen Izin ke Pak Shendy"}</span>
         </button>
       </div>
 
-      {/* Tombol salin jadwal */}
       <div className="jadwal-copy-row">
         <button
           type="button"
@@ -623,16 +601,11 @@ export default function JadwalPage() {
         sched.siang
       )}
 
-      {/* Popup custom */}
       {toast && (
         <div className="app-toast-overlay" onClick={() => setToast(null)}>
           <div className="app-toast" onClick={(e) => e.stopPropagation()}>
             <div className="app-toast-msg">{toast}</div>
-            <button
-              type="button"
-              className="app-toast-btn"
-              onClick={() => setToast(null)}
-            >
+            <button type="button" className="app-toast-btn" onClick={() => setToast(null)}>
               OK
             </button>
           </div>
@@ -640,4 +613,5 @@ export default function JadwalPage() {
       )}
     </>
   );
-                                            }
+          }
+    
