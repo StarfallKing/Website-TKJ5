@@ -36,6 +36,10 @@ export default function AdminKasPage() {
   const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
 
+  // State untuk Toast Notifikasi & Modal Konfirmasi Hapus Kustom
+  const [toast, setToast] = useState<string | null>(null);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+
   // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
     if (!authInitialized) return;
@@ -92,7 +96,7 @@ export default function AdminKasPage() {
   async function submitLog() {
     const n = Number(val);
     if (!desc.trim() || !n) {
-      alert("Isi keterangan dan nominal");
+      setToast("Harap isi keterangan dan nominal transaksi dengan benar!");
       return;
     }
     setSaving(true);
@@ -100,6 +104,9 @@ export default function AdminKasPage() {
       await addKasTransaction(desc.trim(), type, n);
       setDesc("");
       setVal("");
+      setToast("Log transaksi berhasil disimpan! ✓");
+    } catch (e: any) {
+      setToast("Gagal menyimpan log: " + (e.message || e));
     } finally {
       setSaving(false);
     }
@@ -123,19 +130,25 @@ export default function AdminKasPage() {
     }
   }
 
-  // Eksekusi Hapus
-  async function handleDeleteSelected() {
+  // Eksekusi Hapus Terpilih (Memicu Modal Kustom)
+  function promptDeleteSelected() {
     if (selectedLogs.length === 0) return;
-    if (!confirm(`Yakin ingin menghapus ${selectedLogs.length} log terpilih?`)) return;
+    setShowConfirmDelete(true);
+  }
 
+  async function confirmDeleteSelected() {
+    setShowConfirmDelete(false);
     setDeleting(true);
     try {
       if (deleteKasTransactions) {
         await deleteKasTransactions(selectedLogs);
+        setToast(`Berhasil menghapus ${selectedLogs.length} log terpilih.`);
       } else {
-        alert("Fungsi deleteKasTransactions belum di-bind di AppDataContext");
+        setToast("Fungsi deleteKasTransactions belum di-bind.");
       }
       setSelectedLogs([]);
+    } catch (e: any) {
+      setToast("Gagal menghapus log: " + (e.message || e));
     } finally {
       setDeleting(false);
     }
@@ -156,6 +169,7 @@ export default function AdminKasPage() {
       return rowData;
     });
     exportToExcel(dataToExport, "Rekap-Kas-1-Tahun-TKJ5", "Rekap Tahunan");
+    setToast("Rekap Kas 1 Tahun berhasil diexport ke Excel! ✓");
   };
 
   // Prevent render jika status auth belum siap
@@ -168,12 +182,11 @@ export default function AdminKasPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 100 }}>
       <AdminHeader />
 
       <div className="glass-card text-center">
         <div className="title-sub">TRANSPARANSI KAS KELAS</div>
-        {/* Teks putih sudah dibuat bold di sini */}
         <p style={{ fontSize: 11, color: "#ffffff", fontWeight: 800, marginTop: 4 }}>
           Rekap Uang Kas, Pemasukan & Pengeluaran X TKJ–5
         </p>
@@ -307,7 +320,7 @@ export default function AdminKasPage() {
         </div>
       </div>
 
-      {/* Tabel 2 — matriks 12 bulan (Dilengkapi Tombol Ekspor Excel Hijau Solid) */}
+      {/* Tabel 2 — matriks 12 bulan */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div
           style={{
@@ -466,7 +479,7 @@ export default function AdminKasPage() {
               <button
                 type="button"
                 disabled={deleting}
-                onClick={handleDeleteSelected}
+                onClick={promptDeleteSelected}
                 style={{
                   fontSize: 10,
                   background: "#f43f5e",
@@ -547,7 +560,52 @@ export default function AdminKasPage() {
           })}
         </div>
       </div>
+
+      {/* MODAL KONFIRMASI HAPUS LOG */}
+      {showConfirmDelete && (
+        <div className="app-toast-overlay" onClick={() => setShowConfirmDelete(false)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()} style={{ gap: 14 }}>
+            <div className="app-toast-msg" style={{ fontSize: 13 }}>
+              Yakin ingin menghapus {selectedLogs.length} log transaksi terpilih?
+            </div>
+            <div style={{ display: "flex", gap: 8, width: "100%" }}>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#334155", color: "#fff" }}
+                onClick={() => setShowConfirmDelete(false)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="app-toast-btn"
+                style={{ background: "#f43f5e", color: "#fff" }}
+                onClick={confirmDeleteSelected}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL / TOAST NOTIFIKASI KUSTOM */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-    }
-                       
+          }
+            
