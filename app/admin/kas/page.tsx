@@ -172,9 +172,9 @@ export default function AdminKasPage() {
       <AdminHeader />
 
       <div className="glass-card text-center">
-        <div className="title-sub">EDIT KAS</div>
-        <p style={{ fontSize: 11, color: "#94a3b8" }}>
-          Nominal / bulan: {formatRupiah(NOMINAL_KAS)} · sinkron publik
+        <div className="title-sub">TRANSPARANSI KAS KELAS</div>
+        <p style={{ fontSize: 11, color: "#ffffff" }}>
+          Rekap Uang Kas, Pemasukan & Pengeluaran X TKJ–5
         </p>
       </div>
 
@@ -215,7 +215,7 @@ export default function AdminKasPage() {
       {/* Tabel 1 — status per bulan (pilih bulan) */}
       <div className="glass-card" style={{ padding: 10 }}>
         <div className="title-sub" style={{ marginBottom: 8 }}>
-          TABEL 1: STATUS KAS BULAN
+          Status Pembayaran Kas Perbulan
         </div>
         <div
           style={{
@@ -317,7 +317,7 @@ export default function AdminKasPage() {
           }}
         >
           <div className="title-sub" style={{ margin: 0 }}>
-            Tabel 2: Matriks ✓ / ✕ 12 Bulan
+            Rekapan Kas 1 Tahun
           </div>
           <button
             type="button"
@@ -395,7 +395,7 @@ export default function AdminKasPage() {
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 10 }}
       >
-        <div className="title-sub">Tabel 3: Tambah Log Kas</div>
+        <div className="title-sub">Catatan Pengeluaran Dan Pemasukan</div>
         <input
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
