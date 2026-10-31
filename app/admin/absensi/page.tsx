@@ -137,7 +137,7 @@ export default function AdminAbsensiPage() {
       {/* 1. ADMIN HEADER */}
       <AdminHeader />
 
-      {/* 2. KARTU JUDUL UTAMA (SESUAI GAMBAR REFERENSI) */}
+      {/* 2. KARTU JUDUL UTAMA */}
       <div className="glass-card text-center" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <div className="title-sub">DATA KEHADIRAN & ABSENSI</div>
         <p
@@ -148,7 +148,7 @@ export default function AdminAbsensiPage() {
             lineHeight: 1.4,
           }}
         >
-          Rekapan Kehadiran Kelas TKJ–5
+          Rekapan Kehadiran Kelas X TKJ–5
         </p>
       </div>
 
@@ -424,26 +424,43 @@ export default function AdminAbsensiPage() {
           <div className="title-sub" style={{ fontSize: 11, margin: 0 }}>
             REKAP HARIAN PER BULAN
           </div>
-          <button
-            type="button"
-            onClick={handleExportAbsensiBulanan}
-            style={{
-              fontSize: 11,
-              backgroundColor: "#22c55e",
-              color: "#ffffff",
-              border: "none",
-              padding: "6px 12px",
-              borderRadius: 8,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-            }}
-          >
-            <i className="fa-solid fa-file-excel" /> Ekspor Excel
-          </button>
+          
+          {/* TOMBOL EKSPOR & BADGE JUMLAH HARI */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={handleExportAbsensiBulanan}
+              style={{
+                fontSize: 11,
+                backgroundColor: "#22c55e",
+                color: "#ffffff",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: 8,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              <i className="fa-solid fa-file-excel" /> Ekspor Excel
+            </button>
+            <div
+              style={{
+                fontSize: 11,
+                padding: "6px 12px",
+                background: "rgba(15, 23, 42, 0.7)",
+                color: "#60a5fa",
+                border: "1.5px solid rgba(96, 165, 250, 0.35)",
+                borderRadius: 8,
+                fontWeight: 800,
+              }}
+            >
+              {m.days} Hari
+            </div>
+          </div>
         </div>
 
         {/* Filter Bulan */}
@@ -568,5 +585,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-                }
+        }
           
