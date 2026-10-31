@@ -75,8 +75,8 @@ type AppData = {
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
   updateStudent: (nisn: string, patch: Partial<Student>) => Promise<void>;
-  addStudent: (s: Student) => void;
-  removeStudent: (nisn: string) => void;
+  addStudent: (s: Student) => Promise<void>;
+  removeStudent: (nisn: string) => Promise<void>;
   addKasTransaction: (
     desc: string,
     type: "masuk" | "keluar",
@@ -648,9 +648,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         pushLog("Update siswa " + cleanNisn);
       },
 
-      addStudent: (s) => {
+      addStudent: async (s) => {
         setStudents((prev) => [...prev, s]);
-        void supabase.from("students").upsert({
+        const { error } = await supabase.from("students").upsert({
           nisn: String(s.nisn).trim(),
           nis: s.nis || "",
           nama: s.nama,
@@ -663,13 +663,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           sakit: s.sakit,
           alpa: s.alpa,
         });
+        if (error) {
+          console.error("Gagal menambah siswa ke DB:", error.message);
+        }
         pushLog("Tambah siswa " + s.nama);
       },
 
-      removeStudent: (nisn) => {
+      removeStudent: async (nisn) => {
         const cleanNisn = String(nisn).trim();
         setStudents((prev) => prev.filter((s) => String(s.nisn).trim() !== cleanNisn));
-        void supabase.from("students").delete().eq("nisn", cleanNisn);
+        const { error } = await supabase.from("students").delete().eq("nisn", cleanNisn);
+        if (error) {
+          console.error("Gagal menghapus siswa dari DB:", error.message);
+        }
         pushLog("Hapus siswa " + cleanNisn);
       },
 
@@ -747,5 +753,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-}
-  
+  }
+    
