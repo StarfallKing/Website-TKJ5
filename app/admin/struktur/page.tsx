@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
 import { supabase } from "@/lib/supabase";
 import AdminHeader from "@/components/layout/AdminHeader";
-import { PERIODE_STRUKTUR, JUMLAH_ANGGOTA_STRUKTUR } from "@/lib/data";
 
 const ROLES = [
   "Ketua Kelas",
@@ -33,8 +32,11 @@ const roleIcon: Record<string, string> = {
 
 export default function AdminStrukturPage() {
   const router = useRouter();
-  const { students, updateStudent, pushLog, currentUser, authInitialized } = useAppData();
+  const { students, updateStudent, pushLog, currentUser, authInitialized, siteContent, setSiteContent } = useAppData();
+  
   const [wali, setWali] = useState("Shendy Nuria Feriansyah, S.Pd");
+  const [periode, setPeriode] = useState("PERIODE 2026/2027");
+  const [jumlahAnggota, setJumlahAnggota] = useState("9 ANGGOTA INTI");
   const [busy, setBusy] = useState(false);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
@@ -46,6 +48,7 @@ export default function AdminStrukturPage() {
       return;
     }
 
+    // Ambil data wali kelas dari supabase app_settings
     void supabase
       .from("app_settings")
       .select("*")
@@ -56,6 +59,12 @@ export default function AdminStrukturPage() {
         if (w) setWali(w);
       });
   }, [authInitialized, currentUser, router]);
+
+  // Sinkronisasi data dari siteContent (yang nempel di state global / database)
+  useEffect(() => {
+    if (siteContent.strukturPeriode) setPeriode(siteContent.strukturPeriode);
+    if (siteContent.strukturAnggota) setJumlahAnggota(siteContent.strukturAnggota);
+  }, [siteContent]);
 
   function whoHas(role: string) {
     return (
@@ -111,6 +120,21 @@ export default function AdminStrukturPage() {
     alert("Wali kelas berhasil disimpan!");
   }
 
+  async function saveStrukturInfo() {
+    setBusy(true);
+    try {
+      await setSiteContent({
+        ...siteContent,
+        strukturPeriode: periode.trim(),
+        strukturAnggota: jumlahAnggota.trim(),
+      });
+      pushLog("Update Periode & Jumlah Anggota Struktur");
+      alert("Informasi Periode & Jumlah Anggota berhasil disimpan & langsung sinkron ke publik!");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
@@ -128,54 +152,51 @@ export default function AdminStrukturPage() {
         <p style={{ fontSize: 12, fontWeight: 700, color: "#FFFFFF", marginTop: 4 }}>
           Penggerak & Pengurus Utama Kelas TKJ-5 
         </p>
+      </div>
 
-        {/* Display Badge Informasi Fleksibel dari lib/data.ts */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 12,
-            paddingTop: 8,
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 10,
-              background: "rgba(96,165,250,0.15)",
-              color: "#60a5fa",
-              border: "1px solid rgba(96,165,250,0.3)",
-              padding: "4px 10px",
-              borderRadius: 12,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <i className="fa-solid fa-calendar-check" />
-            {PERIODE_STRUKTUR}
-          </span>
-
-          <span
-            style={{
-              fontSize: 10,
-              background: "rgba(96,165,250,0.15)",
-              color: "#60a5fa",
-              border: "1px solid rgba(96,165,250,0.3)",
-              padding: "4px 10px",
-              borderRadius: 12,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <i className="fa-solid fa-users-gear" />
-            {JUMLAH_ANGGOTA_STRUKTUR}
-          </span>
+      {/* PENGATURAN PERIODE & JUMLAH ANGGOTA (Bisa diketik & disimpan fleksibel) */}
+      <div
+        className="glass-card"
+        style={{ display: "flex", flexDirection: "column", gap: 10 }}
+      >
+        <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 800 }}>
+          PENGATURAN PERIODE & JUMLAH ANGGOTA
         </div>
+
+        <div>
+          <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+            TULISAN PERIODE (Badge Kiri)
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            value={periode}
+            onChange={(e) => setPeriode(e.target.value)}
+            placeholder="Contoh: PERIODE 2026/2027"
+          />
+        </div>
+
+        <div>
+          <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+            TULISAN JUMLAH ANGGOTA (Badge Kanan)
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            value={jumlahAnggota}
+            onChange={(e) => setJumlahAnggota(e.target.value)}
+            placeholder="Contoh: 9 ANGGOTA INTI"
+          />
+        </div>
+
+        <button
+          type="button"
+          className="btn-pay-qris"
+          disabled={busy}
+          onClick={() => void saveStrukturInfo()}
+        >
+          {busy ? "Menyimpan..." : "Simpan Periode & Anggota"}
+        </button>
       </div>
 
       {/* Wali Kelas */}
@@ -246,4 +267,4 @@ export default function AdminStrukturPage() {
       ))}
     </div>
   );
-                }
+}
