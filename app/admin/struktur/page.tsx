@@ -39,7 +39,6 @@ export default function AdminStrukturPage() {
   const [jumlahAnggota, setJumlahAnggota] = useState("9 ANGGOTA INTI");
   const [busy, setBusy] = useState(false);
 
-  // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
     if (!authInitialized) return;
 
@@ -47,23 +46,12 @@ export default function AdminStrukturPage() {
       router.replace("/admin");
       return;
     }
-
-    // Ambil data wali kelas dari supabase app_settings
-    void supabase
-      .from("app_settings")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle()
-      .then(({ data }) => {
-        const w = (data as { wali_nama?: string } | null)?.wali_nama;
-        if (w) setWali(w);
-      });
   }, [authInitialized, currentUser, router]);
 
-  // Sinkronisasi data dari siteContent (yang nempel di state global / database)
   useEffect(() => {
     if (siteContent.strukturPeriode) setPeriode(siteContent.strukturPeriode);
     if (siteContent.strukturAnggota) setJumlahAnggota(siteContent.strukturAnggota);
+    if (siteContent.waliKelas) setWali(siteContent.waliKelas);
   }, [siteContent]);
 
   function whoHas(role: string) {
@@ -106,18 +94,26 @@ export default function AdminStrukturPage() {
 
   async function saveWali() {
     setBusy(true);
-    const { error } = await supabase.from("app_settings").upsert({
-      id: 1,
-      wali_nama: wali.trim(),
-      updated_at: new Date().toISOString(),
-    });
-    setBusy(false);
-    if (error) {
-      alert(error.message);
-      return;
+    try {
+      const { error } = await supabase.from("app_settings").upsert({
+        id: 1,
+        wali_nama: wali.trim(),
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      
+      await setSiteContent({
+        ...siteContent,
+        waliKelas: wali.trim(),
+      });
+      
+      pushLog("Update wali kelas: " + wali);
+      alert("Wali kelas berhasil disimpan & langsung sinkron!");
+    } catch (err: any) {
+      alert("Gagal simpan wali kelas: " + (err.message || err));
+    } finally {
+      setBusy(false);
     }
-    pushLog("Update wali kelas: " + wali);
-    alert("Wali kelas berhasil disimpan!");
   }
 
   async function saveStrukturInfo() {
@@ -154,7 +150,6 @@ export default function AdminStrukturPage() {
         </p>
       </div>
 
-      {/* PENGATURAN PERIODE & JUMLAH ANGGOTA (Bisa diketik & disimpan fleksibel) */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 10 }}
@@ -199,7 +194,6 @@ export default function AdminStrukturPage() {
         </button>
       </div>
 
-      {/* Wali Kelas */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 8 }}
@@ -223,7 +217,6 @@ export default function AdminStrukturPage() {
         </button>
       </div>
 
-      {/* Role selects */}
       {ROLES.map((role) => (
         <div key={role} className="glass-card" style={{ marginBottom: 4 }}>
           <div
@@ -267,4 +260,4 @@ export default function AdminStrukturPage() {
       ))}
     </div>
   );
-}
+          }
