@@ -129,7 +129,6 @@ export type KasTransaction = {
   balance: number;
 };
 
-/** 30 baris tetap ada, data kosong */
 export const kasTransactionsLog: KasTransaction[] = Array.from(
   { length: 30 },
   (_, i) => ({
@@ -250,13 +249,13 @@ export const masterSchedule: {
     Minggu: [{ mapel: "LIBUR AKHIR PEKAN", start: "00:00", end: "23:59" }],
   },
 };
+
 export type ScheduleSlot = Lesson;
 export type ScheduleData = {
   pagi: Record<string, ScheduleSlot[]>;
   siang: Record<string, ScheduleSlot[]>;
 };
 
-/** Seed jadwal = masterSchedule */
 export const defaultSchedule: ScheduleData = masterSchedule;
 
 export const scheduleDays = [
@@ -282,7 +281,6 @@ export const monthConfigs = [
   { name: "Juni 2027", days: 30 },
 ];
 
-/** Jumlah hari tahun ajaran: 1 Jul startYear s/d 30 Jun startYear+1 */
 export function schoolYearDays(startYear = 2026): number {
   const a = new Date(startYear, 6, 1).getTime();
   const b = new Date(startYear + 1, 5, 30).getTime();
@@ -319,8 +317,8 @@ export type SiteContent = {
   };
   news: NewsItem[];
   waliKelas?: string;
-  strukturPeriode?: string;    // Ditambahkan untuk mengatasi error TypeScript
-  strukturAnggota?: string;    // Ditambahkan untuk mengatasi error TypeScript
+  strukturPeriode?: string;
+  strukturAnggota?: string;
 };
 
 export const defaultSiteContent: SiteContent = {
@@ -337,23 +335,17 @@ export const defaultSiteContent: SiteContent = {
   news: [
     {
       id: "1",
-      title:
-        "Pelantikan Kepala Sekolah SMK PGRI 2 Cibinong Periode 2026 – 2030",
-      body:
-        "Selamat atas dilantiknya Dr. Andi Hermawan, M.Pd sebagai Kepala SMK PGRI 2 Cibinong. Semoga amanah ini menjadi ladang...",
+      title: "Pelantikan Kepala Sekolah SMK PGRI 2 Cibinong Periode 2026 – 2030",
+      body: "Selamat atas dilantiknya Dr. Andi Hermawan, M.Pd sebagai Kepala SMK PGRI 2 Cibinong...",
       imageUrl: "",
       source: "SMK PGRI 2 Cibinong",
       sourceUrl: "",
     },
   ],
+  waliKelas: "Shendy Nuria Feriansyah, S.Pd",
   strukturPeriode: "PERIODE 2026/2027",
   strukturAnggota: "9 ANGGOTA INTI",
 };
 
-/** Histori QRIS kosong */
 export const paymentHistoryLogs: PaymentHistory[] = [];
-
-// Informasi Fleksibel Struktur Kepengurusan Kelas
-export const PERIODE_STRUKTUR = "PERIODE 2026/2027";
-export const JUMLAH_ANGGOTA_STRUKTUR = "9 ANGGOTA INTI";
    
