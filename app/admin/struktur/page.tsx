@@ -39,6 +39,9 @@ export default function AdminStrukturPage() {
   const [jumlahAnggota, setJumlahAnggota] = useState("9 ANGGOTA INTI");
   const [busy, setBusy] = useState(false);
 
+  // State untuk melacak dropdown mana yang sedang terbuka (berdasarkan role name)
+  const [openDropdownRole, setopenDropdownRole] = useState<string | null>(null);
+
   useEffect(() => {
     if (!authInitialized) return;
 
@@ -60,33 +63,55 @@ export default function AdminStrukturPage() {
     );
   }
 
+  // --- LOGIKA PERGANTIAN ROLE BARU ---
   async function assignRole(role: string, nisn: string) {
     setBusy(true);
+    setopenDropdownRole(null); // Tutup dropdown setelah dipilih
     try {
-      const prev = students.find((s) => (s.role || "").trim() === role);
-      if (prev && prev.nisn !== nisn) {
-        await updateStudent(prev.nisn, {
+      if (!nisn) {
+        // Jika opsi dikosongkan
+        const currentHolder = students.find((s) => (s.role || "").trim() === role);
+        if (currentHolder) {
+          await updateStudent(currentHolder.nisn, {
+            role: undefined,
+            roleClass: undefined,
+            icon: undefined,
+          });
+          pushLog("Struktur: Kosongkan " + role);
+        }
+        return;
+      }
+
+      const targetStudent = students.find((s) => s.nisn === nisn);
+      if (!targetStudent) return;
+
+      // Cek apakah siswa ini sudah punya role lain di tempat berbeda
+      if (targetStudent.role && targetStudent.role.trim() !== role) {
+        alert(`${targetStudent.nama} sudah menjabat sebagai "${targetStudent.role}". Cabut atau kosongkan posisinya terlebih dahulu jika ingin memindahkannya.`);
+        return;
+      }
+
+      // Cari siapa yang tadinya megang role ini, lalu hapus rolenya
+      const previousHolder = students.find((s) => (s.role || "").trim() === role);
+      if (previousHolder && previousHolder.nisn !== nisn) {
+        await updateStudent(previousHolder.nisn, {
           role: undefined,
           roleClass: undefined,
           icon: undefined,
         });
       }
-      if (nisn) {
-        const target = students.find((s) => s.nisn === nisn);
-        if (target?.role && target.role !== role) {
-          await updateStudent(nisn, {
-            role: undefined,
-            roleClass: undefined,
-            icon: undefined,
-          });
-        }
-        await updateStudent(nisn, {
-          role,
-          roleClass: role.toLowerCase().replace(/\s+/g, "-"),
-          icon: roleIcon[role] || "fa-user",
-        });
-        pushLog("Struktur: " + role + " → " + (target?.nama || nisn));
-      }
+
+      // Berikan role ke siswa yang baru dipilih
+      await updateStudent(nisn, {
+        role,
+        roleClass: role.toLowerCase().replace(/\s+/g, "-"),
+        icon: roleIcon[role] || "fa-user",
+      });
+
+      pushLog("Struktur: " + role + " → " + targetStudent.nama);
+      alert(`Berhasil menetapkan ${targetStudent.nama} sebagai ${role}!`);
+    } catch (err: any) {
+      alert("Gagal memperbarui struktur: " + (err.message || err));
     } finally {
       setBusy(false);
     }
@@ -217,47 +242,117 @@ export default function AdminStrukturPage() {
         </button>
       </div>
 
-      {ROLES.map((role) => (
-        <div key={role} className="glass-card" style={{ marginBottom: 4 }}>
-          <div
-            style={{
-              fontWeight: 800,
-              fontSize: 12,
-              marginBottom: 8,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <i className={"fa-solid " + (roleIcon[role] || "fa-user")} />
-            {role}
+      {/* CUSTOM DROPDOWN SELECTOR UNTUK SISWA PENGURUS */}
+      {ROLES.map((role) => {
+        const currentNisn = whoHas(role);
+        const currentStudent = students.find((s) => s.nisn === currentNisn);
+        const isOpen = openDropdownRole === role;
+
+        return (
+          <div key={role} className="glass-card" style={{ marginBottom: 4, position: "relative" }}>
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 12,
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <i className={"fa-solid " + (roleIcon[role] || "fa-user")} />
+              {role}
+            </div>
+
+            {/* Kotak Trigger Custom */}
+            <div
+              onClick={() => !busy && setopenDropdownRole(isOpen ? null : role)}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "rgba(15, 23, 42, 0.95)",
+                color: "#f8fafc",
+                border: "1.5px solid rgba(96, 165, 250, 0.35)",
+                fontSize: 12,
+                fontWeight: 700,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+                boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08)",
+              }}
+            >
+              <span>{currentStudent ? currentStudent.nama : "— Kosongkan —"}</span>
+              <i className={`fa-solid fa-chevron-${isOpen ? "up" : "down"}`} style={{ color: "#60a5fa", fontSize: 10 }} />
+            </div>
+
+            {/* Dropdown Menu Kustom (Gaya Glassmorphism) */}
+            {isOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  left: 0,
+                  right: 0,
+                  marginTop: 6,
+                  maxHeight: 240,
+                  overflowY: "auto",
+                  background: "#0b0f19",
+                  border: "1.5px solid rgba(96, 165, 250, 0.4)",
+                  borderRadius: 12,
+                  zIndex: 99,
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
+                }}
+              >
+                <div
+                  onClick={() => void assignRole(role, "")}
+                  style={{
+                    padding: "10px 14px",
+                    fontSize: 12,
+                    color: "#f87171",
+                    fontWeight: 700,
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    cursor: "pointer",
+                  }}
+                >
+                  — Kosongkan / Lepas Jabatan —
+                </div>
+
+                {students.map((s) => {
+                  const isSelected = s.nisn === currentNisn;
+                  return (
+                    <div
+                      key={s.nisn}
+                      onClick={() => void assignRole(role, s.nisn)}
+                      style={{
+                        padding: "10px 14px",
+                        fontSize: 12,
+                        color: isSelected ? "#38bdf8" : "#e2e8f0",
+                        fontWeight: isSelected ? 800 : 600,
+                        background: isSelected ? "rgba(56, 189, 248, 0.15)" : "transparent",
+                        borderBottom: "1px solid rgba(255,255,255,0.05)",
+                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>{s.nama}</span>
+                      {s.role && s.role !== role && (
+                        <span style={{ fontSize: 9, color: "#fb923c", fontStyle: "italic" }}>
+                          (Jabat: {s.role})
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          <select
-            disabled={busy}
-            value={whoHas(role)}
-            onChange={(e) => void assignRole(role, e.target.value)}
-            style={{
-              width: "100%",
-              padding: 10,
-              borderRadius: 10,
-              background: "#0f172a",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.12)",
-              fontSize: 12,
-            }}
-          >
-            <option value="">— Kosongkan —</option>
-            {students.map((s) => (
-              <option key={s.nisn} value={s.nisn}>
-                {s.nama}
-                {s.role && s.role !== role
-                  ? " (sekarang: " + s.role + ")"
-                  : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
-          }
+              }
+                
