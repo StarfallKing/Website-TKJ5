@@ -57,7 +57,10 @@ async function uploadIzinFile(file: File): Promise<string> {
   return data.publicUrl;
 }
 
-function formatScheduleText(label: string, data: Record<string, Lesson[]>) {
+function formatScheduleText(
+  label: string,
+  data: Record<string, Lesson[]>
+) {
   const lines: string[] = ["*" + label + "*", ""];
 
   scheduleDays.forEach((day) => {
@@ -72,7 +75,9 @@ function formatScheduleText(label: string, data: Record<string, Lesson[]>) {
         if (isLibur) {
           lines.push("• " + item.mapel);
         } else {
-          lines.push("• " + item.mapel + " (" + item.start + "-" + item.end + ")");
+          lines.push(
+            "• " + item.mapel + " (" + item.start + "-" + item.end + ")"
+          );
         }
       });
     }
@@ -84,7 +89,12 @@ function formatScheduleText(label: string, data: Record<string, Lesson[]>) {
 }
 
 async function copyToClipboard(text: string): Promise<boolean> {
-  if (typeof navigator !== "undefined" && navigator.clipboard && typeof window !== "undefined" && window.isSecureContext) {
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.clipboard &&
+    typeof window !== "undefined" &&
+    window.isSecureContext
+  ) {
     try {
       await navigator.clipboard.writeText(text);
       return true;
@@ -162,7 +172,10 @@ export default function JadwalPage() {
   }
 
   async function copySchedule(kind: "pagi" | "siang") {
-    const label = kind === "pagi" ? "JADWAL SESI 1 (PAGI) - X TKJ 5" : "JADWAL SESI 2 (SIANG) - X TKJ 5";
+    const label =
+      kind === "pagi"
+        ? "JADWAL SESI 1 (PAGI) - X TKJ 5"
+        : "JADWAL SESI 2 (SIANG) - X TKJ 5";
     const text = formatScheduleText(label, sched[kind]);
     const ok = await copyToClipboard(text);
     if (ok) {
@@ -207,10 +220,22 @@ export default function JadwalPage() {
     }
   }
 
-  function renderScheduleBlock(title: string, icon: string, color: string, data: ScheduleData["pagi"]) {
+  function renderScheduleBlock(
+    title: string,
+    icon: string,
+    color: string,
+    data: ScheduleData["pagi"]
+  ) {
     return (
       <div className="glass-card">
-        <div className="flex-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "6px", marginBottom: "12px" }}>
+        <div
+          className="flex-between"
+          style={{
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            paddingBottom: "6px",
+            marginBottom: "12px",
+          }}
+        >
           <div className="title-sub">
             <i className={"fa-solid " + icon} style={{ color, marginRight: "6px" }} />
             {title}
@@ -227,7 +252,14 @@ export default function JadwalPage() {
               const isBreak = item.mapel.includes("ISTIRAHAT");
               const isLibur = item.mapel.includes("LIBUR");
               return (
-                <div key={i} className="schedule-row" style={{ color: isLibur ? "#f43f5e" : isBreak ? "#eab308" : undefined, fontWeight: isLibur ? 800 : undefined }}>
+                <div
+                  key={i}
+                  className="schedule-row"
+                  style={{
+                    color: isLibur ? "#f43f5e" : isBreak ? "#eab308" : undefined,
+                    fontWeight: isLibur ? 800 : undefined,
+                  }}
+                >
                   <span>{item.mapel}</span>
                   <span>{isLibur ? "-" : item.start + " - " + item.end}</span>
                 </div>
@@ -243,7 +275,10 @@ export default function JadwalPage() {
 
   return (
     <>
-      <div className="glass-card text-center" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      <div
+        className="glass-card text-center"
+        style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+      >
         <div className="title-sub">DATA JADWAL & SURAT DOKUMEN IZIN</div>
         <p style={{ fontSize: "12px", color: "#fff", fontWeight: 700 }}>
           Jadwal Real-Time & Pengajuan Izin Siswa X TKJ-5
@@ -251,7 +286,10 @@ export default function JadwalPage() {
       </div>
 
       {/* Dynamic Island Publik */}
-      <div className={"dynamic-island-bar" + (islandOpen ? " open" : "")} onClick={() => setIslandOpen((v) => !v)}>
+      <div
+        className={"dynamic-island-bar" + (islandOpen ? " open" : "")}
+        onClick={() => setIslandOpen((v) => !v)}
+      >
         <div className="island-header">
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <i className="fa-solid fa-clock" style={{ color: "#60a5fa" }} />
@@ -263,11 +301,22 @@ export default function JadwalPage() {
           <span className="island-badge">{session.toUpperCase()}</span>
         </div>
 
-        <div style={{ fontSize: "10px", color: "#94a3b8", display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+        <div
+          style={{
+            fontSize: "10px",
+            color: "#94a3b8",
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 4,
+          }}
+        >
           <span>Jam: {timeStr} WIB</span>
           <span style={{ color: "#60a5fa", fontWeight: 700 }}>
             {islandOpen ? "Tutup" : "Tekan Ringkasan"}{" "}
-            <i className={"fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")} style={{ fontSize: "9px" }} />
+            <i
+              className={"fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")}
+              style={{ fontSize: "9px" }}
+            />
           </span>
         </div>
 
@@ -279,16 +328,36 @@ export default function JadwalPage() {
           {todayLessons.map((item, i) => {
             const active = isLessonNow(item.start, item.end);
             return (
-              <div key={i} className={"schedule-item-live" + (active ? " active-lesson" : "")}>
+              <div
+                key={i}
+                className={"schedule-item-live" + (active ? " active-lesson" : "")}
+              >
                 <div>
-                  <strong style={{ color: active ? "#60a5fa" : "#f8fafc" }}>{item.mapel}</strong>
+                  <strong style={{ color: active ? "#60a5fa" : "#f8fafc" }}>
+                    {item.mapel}
+                  </strong>
                   {active && !isTodayHoliday && (
-                    <span style={{ fontSize: "8px", background: "#2563eb", color: "#fff", padding: "2px 5px", borderRadius: "4px", fontWeight: 800, marginLeft: "4px" }}>
+                    <span
+                      style={{
+                        fontSize: "8px",
+                        background: "#2563eb",
+                        color: "#fff",
+                        padding: "2px 5px",
+                        borderRadius: "4px",
+                        fontWeight: 800,
+                        marginLeft: "4px",
+                      }}
+                    >
                       SEDANG BERLANGSUNG
                     </span>
                   )}
                 </div>
-                <span style={{ fontWeight: 700, color: active ? "#60a5fa" : "#94a3b8" }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: active ? "#60a5fa" : "#94a3b8",
+                  }}
+                >
                   {item.start} - {item.end}
                 </span>
               </div>
@@ -298,20 +367,40 @@ export default function JadwalPage() {
       </div>
 
       {/* Form Izin */}
-      <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "8px" }}>
-          <div className="title-sub" style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        className="glass-card"
+        style={{ display: "flex", flexDirection: "column", gap: "14px" }}
+      >
+        <div
+          style={{
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            paddingBottom: "8px",
+          }}
+        >
+          <div
+            className="title-sub"
+            style={{
+              fontSize: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             <i className="fa-solid fa-file-signature" />
             DOKUMEN IZIN SISWA
           </div>
-          <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "4px" }}>Pengajuan via WhatsApp Pak Shendy</p>
+          <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "4px" }}>
+            Pengajuan via WhatsApp Pak Shendy
+          </p>
         </div>
 
         <div className="form-group">
           <label className="form-label">Nama Siswa</label>
           <div className="search-wrapper" style={{ marginBottom: 0 }}>
             <div className="search-box expanded" style={{ width: "100%" }}>
-              <div className="search-icon"><i className="fa-solid fa-magnifying-glass" /></div>
+              <div className="search-icon">
+                <i className="fa-solid fa-magnifying-glass" />
+              </div>
               <input
                 type="text"
                 placeholder="Ketik nama siswa..."
@@ -327,7 +416,15 @@ export default function JadwalPage() {
             {showSug && matches.length > 0 && (
               <div className="search-suggestions show">
                 {matches.map((n) => (
-                  <div key={n} className="suggestion-item" onClick={() => { setNama(n); setQuery(n); setShowSug(false); }}>
+                  <div
+                    key={n}
+                    className="suggestion-item"
+                    onClick={() => {
+                      setNama(n);
+                      setQuery(n);
+                      setShowSug(false);
+                    }}
+                  >
                     <span>{n}</span>
                   </div>
                 ))}
@@ -339,10 +436,22 @@ export default function JadwalPage() {
         <div className="form-group">
           <label className="form-label">Jenis Izin</label>
           <div className="radio-group">
-            <div className={"radio-card" + (izinType === "Keperluan" ? " active" : "")} onClick={() => { setIzinType("Keperluan"); setAlasan(""); }}>
+            <div
+              className={"radio-card" + (izinType === "Keperluan" ? " active" : "")}
+              onClick={() => {
+                setIzinType("Keperluan");
+                setAlasan("");
+              }}
+            >
               <i className="fa-solid fa-briefcase" style={{ marginRight: "4px" }} /> Keperluan
             </div>
-            <div className={"radio-card" + (izinType === "Sakit" ? " active" : "")} onClick={() => { setIzinType("Sakit"); setAlasan(""); }}>
+            <div
+              className={"radio-card" + (izinType === "Sakit" ? " active" : "")}
+              onClick={() => {
+                setIzinType("Sakit");
+                setAlasan("");
+              }}
+            >
               <i className="fa-solid fa-notes-medical" style={{ marginRight: "4px" }} /> Sakit
             </div>
           </div>
@@ -351,8 +460,14 @@ export default function JadwalPage() {
         <div className="form-group">
           <label className="form-label">Template</label>
           {templates[izinType].map((t) => (
-            <div key={t.id} className="template-card" onClick={() => setAlasan(t.text)}>
-              <strong style={{ color: "#60a5fa" }}>{t.title}:</strong><br />{t.text}
+            <div
+              key={t.id}
+              className="template-card"
+              onClick={() => setAlasan(t.text)}
+            >
+              <strong style={{ color: "#60a5fa" }}>{t.title}:</strong>
+              <br />
+              {t.text}
             </div>
           ))}
         </div>
@@ -370,7 +485,9 @@ export default function JadwalPage() {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Lampirkan Foto / Surat <span style={{ color: "#f43f5e" }}>*</span></label>
+          <label className="form-label">
+            Lampirkan Foto / Surat <span style={{ color: "#f43f5e" }}>*</span>
+          </label>
           <div className="custom-file-upload">
             <input
               type="file"
@@ -378,44 +495,86 @@ export default function JadwalPage() {
               accept="image/*,application/pdf"
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (!f) { setFile(null); setFileName(""); return; }
-                if (f.size > 20 * 1024 * 1024) { showToast("Maks 20MB!"); e.target.value = ""; setFile(null); setFileName(""); return; }
-                setFile(f); setFileName(f.name);
+                if (!f) {
+                  setFile(null);
+                  setFileName("");
+                  return;
+                }
+                if (f.size > 20 * 1024 * 1024) {
+                  showToast("Maks 20MB!");
+                  e.target.value = "";
+                  setFile(null);
+                  setFileName("");
+                  return;
+                }
+                setFile(f);
+                setFileName(f.name);
               }}
             />
-            <label htmlFor="izinFile" className={"file-upload-btn" + (fileName ? " has-file" : "")}>
+            <label
+              htmlFor="izinFile"
+              className={"file-upload-btn" + (fileName ? " has-file" : "")}
+            >
               <i className="fa-solid fa-cloud-arrow-up" />
               <span>{fileName || "Pilih Foto / Surat Izin"}</span>
             </label>
           </div>
         </div>
 
-        <button className="btn-whatsapp-submit" type="button" disabled={sending} onClick={() => void submitWA()}>
+        <button
+          className="btn-whatsapp-submit"
+          type="button"
+          disabled={sending}
+          onClick={() => void submitWA()}
+        >
           <i className="fa-brands fa-whatsapp" style={{ fontSize: "18px" }} />
           <span>{sending ? "Mengunggah lampiran..." : "Kirim Dokumen Izin ke Pak Shendy"}</span>
         </button>
       </div>
 
       <div className="jadwal-copy-row">
-        <button type="button" className="jadwal-copy-btn pagi" onClick={() => void copySchedule("pagi")}>
-          <i className="fa-solid fa-sun" /> Salin Jadwal Pagi
+        <button
+          type="button"
+          className="jadwal-copy-btn pagi"
+          onClick={() => void copySchedule("pagi")}
+        >
+          <i className="fa-solid fa-sun" />
+          Salin Jadwal Pagi
         </button>
-        <button type="button" className="jadwal-copy-btn siang" onClick={() => void copySchedule("siang")}>
-          <i className="fa-solid fa-moon" /> Salin Jadwal Siang
+        <button
+          type="button"
+          className="jadwal-copy-btn siang"
+          onClick={() => void copySchedule("siang")}
+        >
+          <i className="fa-solid fa-moon" />
+          Salin Jadwal Siang
         </button>
       </div>
 
-      {renderScheduleBlock("JADWAL SESI 1 (PAGI) - X TKJ 5", "fa-sun", "#facc15", sched.pagi)}
-      {renderScheduleBlock("JADWAL SESI 2 (SIANG) - X TKJ 5", "fa-moon", "#38bdf8", sched.siang)}
+      {renderScheduleBlock(
+        "JADWAL SESI 1 (PAGI) - X TKJ 5",
+        "fa-sun",
+        "#facc15",
+        sched.pagi
+      )}
+      {renderScheduleBlock(
+        "JADWAL SESI 2 (SIANG) - X TKJ 5",
+        "fa-moon",
+        "#38bdf8",
+        sched.siang
+      )}
 
       {toast && (
         <div className="app-toast-overlay" onClick={() => setToast(null)}>
           <div className="app-toast" onClick={(e) => e.stopPropagation()}>
             <div className="app-toast-msg">{toast}</div>
-            <button type="button" className="app-toast-btn" onClick={() => setToast(null)}>OK</button>
+            <button type="button" className="app-toast-btn" onClick={() => setToast(null)}>
+              OK
+            </button>
           </div>
         </div>
       )}
     </>
   );
 }
+  
