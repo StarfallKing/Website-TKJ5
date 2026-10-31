@@ -109,11 +109,9 @@ export default function AdminAbsensiPage() {
         else if (st === "S") mS++;
         else if (st === "A") mA++;
         
-        // Header kolom persis "Hari 1", "Hari 2", dst.
         rowData[`Hari ${d}`] = st !== "-" ? st : "-";
       }
 
-      // Kolom rekap akhir persis seperti standar gambar
       rowData["Hadir"] = mH;
       rowData["Izin"] = mI;
       rowData["Sakit"] = mS;
@@ -126,7 +124,6 @@ export default function AdminAbsensiPage() {
     exportToExcel(dataToExport, `Absensi-${cleanMonthName}`, `Absensi ${m.name}`);
   };
 
-  // Tampilkan loading screen jika sesi belum siap
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
@@ -137,10 +134,25 @@ export default function AdminAbsensiPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* 2. ADMIN HEADER */}
+      {/* 1. ADMIN HEADER */}
       <AdminHeader />
 
-      {/* 1. REKAP RATA-RATA ATAS */}
+      {/* 2. KARTU JUDUL UTAMA (SESUAI GAMBAR REFERENSI) */}
+      <div className="glass-card text-center" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div className="title-sub">DATA KEHADIRAN & ABSENSI</div>
+        <p
+          style={{
+            fontSize: 12,
+            color: "#ffffff",
+            fontWeight: 700,
+            lineHeight: 1.4,
+          }}
+        >
+          Rekapan Kehadiran Kelas TKJ–5
+        </p>
+      </div>
+
+      {/* 3. REKAP RATA-RATA ATAS */}
       <div
         style={{
           display: "grid",
@@ -241,7 +253,7 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* 2. REKAP AKUMULASI 1 TAHUN AJARAN */}
+      {/* 4. REKAP AKUMULASI 1 TAHUN AJARAN */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           style={{
@@ -397,7 +409,7 @@ export default function AdminAbsensiPage() {
         </div>
       </div>
 
-      {/* REKAP HARIAN PER BULAN & TABEL HARIAN (TANPA NISN DI WEB) */}
+      {/* 5. REKAP HARIAN PER BULAN & TABEL HARIAN */}
       <div className="glass-card" style={{ padding: 12 }}>
         <div
           style={{
@@ -477,7 +489,7 @@ export default function AdminAbsensiPage() {
           })}
         </div>
 
-        {/* Tabel Harian (Tanpa Kolom NISN agar 1:1 persis dengan publik) */}
+        {/* Tabel Harian */}
         <div className="table-responsive">
           <table className="absensi-table monthly-table" style={{ width: "100%" }}>
             <thead>
@@ -560,5 +572,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-        }
-        
+                }
+          
