@@ -56,6 +56,8 @@ type AppData = {
   paymentOverrides: Record<string, boolean>;
   attendanceMap: Record<string, StatusHarian>;
   maintenanceMode: boolean;
+  forcedSession: "pagi" | "siang" | null;
+  holidayDays: Record<string, boolean>;
   activityLog: ActivityLogItem[];
   siteContent: SiteContent;
   schedule: ScheduleData;
@@ -67,6 +69,7 @@ type AppData = {
   logout: () => void;
   setSiteContent: (c: SiteContent) => Promise<void>;
   setMaintenanceMode: (value: boolean) => Promise<void>;
+  setForcedSessionAndHoliday: (session: "pagi" | "siang" | null, holidays: Record<string, boolean>) => Promise<void>;
   setSchedule: (s: ScheduleData) => Promise<void>;
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
@@ -152,6 +155,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     Record<string, StatusHarian>
   >(seedAttendance || {});
   const [maintenanceMode, setMaintenanceModeState] = useState(false);
+  const [forcedSession, setForcedSessionState] = useState<"pagi" | "siang" | null>(null);
+  const [holidayDays, setHolidayDaysState] = useState<Record<string, boolean>>({});
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [siteContent, setSiteContentState] =
     useState<SiteContent>(defaultSiteContent);
@@ -325,6 +330,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       if (setRes.data) {
         setMaintenanceModeState(!!setRes.data.maintenance);
+        setForcedSessionState(setRes.data.forced_session || null);
+        setHolidayDaysState(setRes.data.holiday_days || {});
       }
 
       if (actRes.data?.length) {
@@ -458,6 +465,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     pushLog(value ? "Maintenance ON" : "Maintenance OFF");
   }
 
+  async function setForcedSessionAndHoliday(session: "pagi" | "siang" | null, holidays: Record<string, boolean>) {
+    setForcedSessionState(session);
+    setHolidayDaysState(holidays);
+    await supabase.from("app_settings").upsert({
+      id: 1,
+      forced_session: session,
+      holiday_days: holidays,
+      updated_at: new Date().toISOString(),
+    });
+  }
+
   async function setSiteContent(c: SiteContent) {
     setSiteContentState(c);
     await supabase.from("site_content").upsert({
@@ -543,6 +561,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       paymentOverrides,
       attendanceMap,
       maintenanceMode,
+      forcedSession,
+      holidayDays,
       activityLog,
       siteContent,
       schedule,
@@ -554,6 +574,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       logout,
       setSiteContent,
       setMaintenanceMode,
+      setForcedSessionAndHoliday,
       setSchedule,
       pushLog,
       refreshFromDb,
@@ -561,17 +582,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addKasTransaction,
       deleteKasTransactions,
 
-      // --- DIPERBAIKI: PEMBERSIHAN ROLE LAMA SECARA TOTAL DI DATABASE ---
       updateStudent: async (nisn, patch) => {
         const cleanNisn = String(nisn).trim();
 
-        // 1. Update state lokal secara instan
         setStudents((prev) =>
           prev.map((s) => {
             if (String(s.nisn).trim() === cleanNisn) {
               return { ...s, ...patch };
             }
-            // Jika patch memberikan role baru, bersihkan role yang sama di siswa lain secara lokal
             if (patch.role && s.role && s.role.trim().toLowerCase() === patch.role.trim().toLowerCase()) {
               return { ...s, role: undefined, roleClass: undefined, icon: undefined };
             }
@@ -579,7 +597,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           })
         );
 
-        // 2. Jika patch menyertakan role, bersihkan role tersebut di database untuk siswa lain (mencegah dobel/nyangkut)
         if (patch.role) {
           await supabase
             .from("students")
@@ -588,7 +605,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             .neq("nisn", cleanNisn);
         }
 
-        // 3. Update data siswa target di database Supabase
         const { error } = await supabase
           .from("students")
           .update({
@@ -694,6 +710,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       paymentOverrides,
       attendanceMap,
       maintenanceMode,
+      forcedSession,
+      holidayDays,
       activityLog,
       siteContent,
       schedule,
@@ -711,4 +729,4 @@ export function useAppData() {
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
   }
-            
+        
