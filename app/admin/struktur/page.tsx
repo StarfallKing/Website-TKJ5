@@ -371,25 +371,25 @@ export default function AdminStrukturPage() {
                           cursor: "pointer",
                           display: "flex",
                           justifyContent: "space-between",
-                   <final_content>       alignItems: "center",
-                      }}
-                    >
-                      <span>{s.nama}</span>
-                      {s.role && s.role.trim().toLowerCase() !== role.trim().toLowerCase() && (
-                        <span style={{ fontSize: 9, color: "#fb923c", fontStyle: "italic" }}>
-                          (Jabat: {s.role})
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                          alignItems: "center",
+                        }}
+                      >
+                        <span>{s.nama}</span>
+                        {s.role && s.role.trim().toLowerCase() !== role.trim().toLowerCase() && (
+                          <span style={{ fontSize: 9, color: "#fb923c", fontStyle: "italic" }}>
+                            (Jabat: {s.role})
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
-            }
-          
+  }
+        
