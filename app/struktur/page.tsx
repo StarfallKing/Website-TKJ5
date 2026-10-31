@@ -126,7 +126,6 @@ function Spine({ h = 20 }: { h?: number }) {
 
 /** Garis T — lebar menyesuaikan mode (mobile / desktop) */
 function BranchBar({ wide }: { wide?: boolean }) {
-  // wide = desktop → kaki lebih ke tepi supaya nyambung ke node yang melebar
   const side = wide ? "8%" : "14%";
   return (
     <div
@@ -189,7 +188,6 @@ function PairRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        // Desktop: gap besar supaya tidak dempet di tengah
         gap: compact ? 14 : 64,
         width: "100%",
         maxWidth: compact ? 340 : 680,
@@ -206,7 +204,7 @@ function PairRow({
 }
 
 export default function StrukturPage() {
-  const { students } = useAppData();
+  const { students, siteContent } = useAppData();
   const officers = students.filter((s) => s.role);
 
   const ketua = officers.find((s) => matchRole(s.role, "Ketua Kelas"));
@@ -300,11 +298,11 @@ export default function StrukturPage() {
       <div className="flex-between" style={{ padding: "0 4px" }}>
         <div className="widget-side">
           <i className="fa-solid fa-calendar-check" style={{ color: "#60a5fa" }} />
-          <span>PERIODE 2026/2027</span>
+          <span>{siteContent.strukturPeriode || "PERIODE 2026/2027"}</span>
         </div>
         <div className="widget-side">
           <i className="fa-solid fa-users-gear" style={{ color: "#60a5fa" }} />
-          <span>{officers.length} ANGGOTA INTI</span>
+          <span>{siteContent.strukturAnggota || "9 ANGGOTA INTI"}</span>
         </div>
       </div>
 
@@ -388,4 +386,4 @@ export default function StrukturPage() {
       </div>
     </>
   );
-        }
+                                                                   }
