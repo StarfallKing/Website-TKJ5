@@ -446,10 +446,6 @@ export default function AdminAbsensiPage() {
           </button>
         </div>
 
-        <p style={{ fontSize: 11, color: "#94a3b8", marginBottom: 10, textAlign: "center" }}>
-          Ketuk sel absensi: H → I → S → A → -
-        </p>
-
         {/* Filter Bulan */}
         <div
           style={{
