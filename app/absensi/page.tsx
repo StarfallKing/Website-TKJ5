@@ -333,7 +333,7 @@ export default function AbsensiPage() {
             }}
           >
             <i className="fa-solid fa-chart-pie" style={{ fontSize: 15 }} />
-            Rekap Akumulasi 1 Tahun
+            Rekap Akumulasi Absen 1 Tahun
           </span>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
