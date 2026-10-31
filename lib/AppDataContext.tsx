@@ -58,6 +58,7 @@ type AppData = {
   maintenanceMode: boolean;
   forcedSession: "pagi" | "siang" | null;
   holidayDays: Record<string, boolean>;
+  baseDate: string | null;
   activityLog: ActivityLogItem[];
   siteContent: SiteContent;
   schedule: ScheduleData;
@@ -69,7 +70,7 @@ type AppData = {
   logout: () => void;
   setSiteContent: (c: SiteContent) => Promise<void>;
   setMaintenanceMode: (value: boolean) => Promise<void>;
-  setForcedSessionAndHoliday: (session: "pagi" | "siang" | null, holidays: Record<string, boolean>) => Promise<void>;
+  setForcedSessionAndHoliday: (session: "pagi" | "siang" | null, holidays: Record<string, boolean>, customBaseDate?: string) => Promise<void>;
   setSchedule: (s: ScheduleData) => Promise<void>;
   pushLog: (action: string) => void;
   setStudents: (s: Student[]) => void;
@@ -157,6 +158,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [maintenanceMode, setMaintenanceModeState] = useState(false);
   const [forcedSession, setForcedSessionState] = useState<"pagi" | "siang" | null>(null);
   const [holidayDays, setHolidayDaysState] = useState<Record<string, boolean>>({});
+  const [baseDate, setBaseDateState] = useState<string | null>(null);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
   const [siteContent, setSiteContentState] =
     useState<SiteContent>(defaultSiteContent);
@@ -332,6 +334,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setMaintenanceModeState(!!setRes.data.maintenance);
         setForcedSessionState(setRes.data.forced_session || null);
         setHolidayDaysState(setRes.data.holiday_days || {});
+        setBaseDateState(setRes.data.base_date || null);
       }
 
       if (actRes.data?.length) {
@@ -465,15 +468,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     pushLog(value ? "Maintenance ON" : "Maintenance OFF");
   }
 
-  async function setForcedSessionAndHoliday(session: "pagi" | "siang" | null, holidays: Record<string, boolean>) {
+  async function setForcedSessionAndHoliday(
+    session: "pagi" | "siang" | null, 
+    holidays: Record<string, boolean>,
+    customBaseDate?: string
+  ) {
     setForcedSessionState(session);
     setHolidayDaysState(holidays);
-    await supabase.from("app_settings").upsert({
+    if (customBaseDate) {
+      setBaseDateState(customBaseDate);
+    }
+
+    const payload: any = {
       id: 1,
       forced_session: session,
       holiday_days: holidays,
       updated_at: new Date().toISOString(),
-    });
+    };
+
+    if (customBaseDate) {
+      payload.base_date = customBaseDate;
+    }
+
+    await supabase.from("app_settings").upsert(payload);
   }
 
   async function setSiteContent(c: SiteContent) {
@@ -563,6 +580,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       maintenanceMode,
       forcedSession,
       holidayDays,
+      baseDate,
       activityLog,
       siteContent,
       schedule,
@@ -712,6 +730,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       maintenanceMode,
       forcedSession,
       holidayDays,
+      baseDate,
       activityLog,
       siteContent,
       schedule,
@@ -728,5 +747,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-  }
-        
+}
+  
