@@ -10,7 +10,7 @@ import {
 } from "@/lib/data";
 import { useAppData } from "@/lib/AppDataContext";
 import AdminHeader from "@/components/layout/AdminHeader";
-import { exportToExcel } from "@/utils/exportExcel"; // <-- Import helper export excel
+import { exportToExcel } from "@/utils/exportExcel";
 
 export default function AdminKasPage() {
   const router = useRouter();
@@ -141,7 +141,7 @@ export default function AdminKasPage() {
     }
   }
 
-  // Handler Export Excel Matriks Kas 1 Tahun (Sama persis formatnya dengan halaman publik)
+  // Handler Export Excel Matriks Kas 1 Tahun
   const handleExportTahunan = () => {
     const dataToExport = students.map((s, idx) => {
       const rowData: Record<string, any> = {
@@ -173,7 +173,8 @@ export default function AdminKasPage() {
 
       <div className="glass-card text-center">
         <div className="title-sub">TRANSPARANSI KAS KELAS</div>
-        <p style={{ fontSize: 11, color: "#ffffff" }}>
+        {/* Teks putih sudah dibuat bold di sini */}
+        <p style={{ fontSize: 11, color: "#ffffff", fontWeight: 800, marginTop: 4 }}>
           Rekap Uang Kas, Pemasukan & Pengeluaran X TKJ–5
         </p>
       </div>
@@ -548,5 +549,5 @@ export default function AdminKasPage() {
       </div>
     </div>
   );
-                                }
-                        
+    }
+                       
