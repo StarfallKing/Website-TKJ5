@@ -132,7 +132,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 export default function JadwalPage() {
-  const { students, schedule } = useAppData();
+  const { students, schedule, forcedSession, holidayDays } = useAppData();
   const sched: ScheduleData = schedule?.pagi ? schedule : masterSchedule;
 
   const [izinType, setIzinType] = useState<"Keperluan" | "Sakit">("Keperluan");
@@ -144,46 +144,16 @@ export default function JadwalPage() {
   const [showSug, setShowSug] = useState(false);
   const [timeStr, setTimeStr] = useState("");
   const [islandOpen, setIslandOpen] = useState(false);
-  const [forcedSession, setForcedSession] = useState<"pagi" | "siang" | null>(null);
-  const [holidayDays, setHolidayDays] = useState<Record<string, boolean>>({});
   const [tick, setTick] = useState(0);
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Ambil data pengaturan sesi paksa & tanggal merah dari Supabase secara realtime
   useEffect(() => {
-    async function fetchAppSettings() {
-      const { data } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
-      if (data) {
-        setForcedSession(data.forced_session || null);
-        setHolidayDays(data.holiday_days || {});
-      }
-    }
-    void fetchAppSettings();
-
-    const channel = supabase
-      .channel("public-app-settings")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "app_settings" },
-        (payload: any) => {
-          if (payload.new) {
-            setForcedSession(payload.new.forced_session || null);
-            setHolidayDays(payload.new.holiday_days || {});
-          }
-        }
-      )
-      .subscribe();
-
     const t = setInterval(() => {
       setTimeStr(new Date().toLocaleTimeString("id-ID"));
       setTick((v) => v + 1);
     }, 1000);
-
-    return () => {
-      clearInterval(t);
-      void supabase.removeChannel(channel);
-    };
+    return () => clearInterval(t);
   }, []);
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -613,5 +583,4 @@ export default function JadwalPage() {
       )}
     </>
   );
-          }
-    
+}
