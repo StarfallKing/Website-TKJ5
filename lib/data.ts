@@ -349,3 +349,7 @@ export const defaultSiteContent: SiteContent = {
 
 /** Histori QRIS kosong */
 export const paymentHistoryLogs: PaymentHistory[] = [];
+
+// Informasi Fleksibel Struktur Kepengurusan Kelas
+export const PERIODE_STRUKTUR = "PERIODE 2026/2027";
+export const JUMLAH_ANGGOTA_STRUKTUR = "9 ANGGOTA INTI";
