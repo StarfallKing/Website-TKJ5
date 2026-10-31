@@ -32,7 +32,7 @@ const roleIcon: Record<string, string> = {
 
 export default function AdminStrukturPage() {
   const router = useRouter();
-  const { students, updateStudent, pushLog, currentUser, authInitialized, siteContent, setSiteContent } = useAppData();
+  const { students, updateStudent, pushLog, currentUser, authInitialized, siteContent, setSiteContent, refreshFromDb } = useAppData();
   
   const [wali, setWali] = useState("Shendy Nuria Feriansyah, S.Pd");
   const [periode, setPeriode] = useState("PERIODE 2026/2027");
@@ -83,13 +83,16 @@ export default function AdminStrukturPage() {
         }
         pushLog("Struktur: Kosongkan " + role);
         alert(`Posisi ${role} berhasil dikosongkan.`);
+        if (typeof refreshFromDb === "function") {
+          await refreshFromDb();
+        }
         return;
       }
 
       const targetStudent = students.find((s) => s.nisn === nisn);
       if (!targetStudent) return;
 
-      // 1. Bersihkan dulu SEMUA siswa lain yang mungkin memegang role ini (mencegah dobel role)
+      // 1. Bersihkan dulu SEMUA siswa lain yang memegang role ini di state lokal/DB
       const existingHolders = students.filter((s) => (s.role || "").trim().toLowerCase() === cleanRole && s.nisn !== nisn);
       for (const h of existingHolders) {
         await updateStudent(h.nisn, {
@@ -99,16 +102,7 @@ export default function AdminStrukturPage() {
         });
       }
 
-      // 2. Jika siswa yang dipilih ini punya role lain di tempat berbeda, lepaskan role lamanya dulu
-      if (targetStudent.role && targetStudent.role.trim().toLowerCase() !== cleanRole) {
-        await updateStudent(nisn, {
-          role: undefined,
-          roleClass: undefined,
-          icon: undefined,
-        });
-      }
-
-      // 3. Berikan role baru ke siswa yang dipilih
+      // 2. Berikan role baru ke target siswa (fungsi updateStudent di context akan menangani reset role lamanya)
       await updateStudent(nisn, {
         role,
         roleClass: role.toLowerCase().replace(/\s+/g, "-"),
@@ -117,6 +111,11 @@ export default function AdminStrukturPage() {
 
       pushLog("Struktur: " + role + " → " + targetStudent.nama);
       alert(`Berhasil menetapkan ${targetStudent.nama} sebagai ${role}!`);
+
+      // 3. Paksa sinkronisasi ulang data dari database
+      if (typeof refreshFromDb === "function") {
+        await refreshFromDb();
+      }
     } catch (err: any) {
       alert("Gagal memperbarui struktur: " + (err.message || err));
     } finally {
@@ -361,5 +360,5 @@ export default function AdminStrukturPage() {
       })}
     </div>
   );
-      }
-    
+          }
+              
