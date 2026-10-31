@@ -4,18 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
 import type { ScheduleData, ScheduleSlot } from "@/lib/data";
-import { scheduleDays, masterSchedule } from "@/lib/data";
+import { scheduleDays, masterSchedule, getRotatedSessionWithBase } from "@/lib/data";
 import AdminHeader from "@/components/layout/AdminHeader";
-
-function getRotatedSession(): "pagi" | "siang" {
-  const baseDate = new Date(2026, 6, 20);
-  const now = new Date();
-  const diffDays = Math.floor(
-    Math.abs(now.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  const weekIndex = Math.floor(diffDays / 7);
-  return weekIndex % 2 === 0 ? "siang" : "pagi";
-}
 
 function isLessonNow(start: string, end: string) {
   const now = new Date();
@@ -25,6 +15,15 @@ function isLessonNow(start: string, end: string) {
   return cur >= sh * 60 + sm && cur < eh * 60 + em;
 }
 
+// Helper untuk mengambil tanggal Senin minggu ini (YYYY-MM-DD)
+function getMondayOfCurrentWeek(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().split("T")[0];
+}
+
 export default function AdminJadwalPage() {
   const router = useRouter();
   const {
@@ -32,6 +31,7 @@ export default function AdminJadwalPage() {
     setSchedule,
     forcedSession,
     holidayDays,
+    baseDate,
     setForcedSessionAndHoliday,
     currentUser,
     authInitialized,
@@ -47,7 +47,9 @@ export default function AdminJadwalPage() {
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const dayName = days[new Date().getDay()];
-  const currentSession = forcedSession || getRotatedSession();
+  
+  // Menggunakan rotasi fleksibel dengan basis tanggal dari DB
+  const currentSession = forcedSession || getRotatedSessionWithBase(baseDate, "siang");
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -116,6 +118,13 @@ export default function AdminJadwalPage() {
     }
   }
 
+  // Fungsi pengatur sesi estafet fleksibel
+  async function handleSetSession(targetSession: "pagi" | "siang") {
+    const mondayStr = getMondayOfCurrentWeek();
+    await setForcedSessionAndHoliday(targetSession, holidayDays, mondayStr);
+    setToast(`Sesi ditetapkan ke ${targetSession.toUpperCase()}. Minggu depan otomatis estafet berganti!`);
+  }
+
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
@@ -169,16 +178,13 @@ export default function AdminJadwalPage() {
 
         <div className="island-expanded-content" onClick={(e) => e.stopPropagation()}>
           <div style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa", marginBottom: 6 }}>
-            Kontrol Cepat Sesi & Libur Hari Ini (Sinkron Publik)
+            Kontrol Cepat Sesi & Libur Hari Ini (Estafet Otomatis)
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
             <button
               type="button"
-              onClick={() => {
-                void setForcedSessionAndHoliday("pagi", holidayDays);
-                setToast("Sesi dipaksa ke: PAGI (Sinkron ke Publik)");
-              }}
+              onClick={() => void handleSetSession("pagi")}
               style={{
                 background: currentSession === "pagi" ? "#2563eb" : "rgba(15,23,42,0.8)",
                 color: "#fff",
@@ -194,10 +200,7 @@ export default function AdminJadwalPage() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                void setForcedSessionAndHoliday("siang", holidayDays);
-                setToast("Sesi dipaksa ke: SIANG (Sinkron ke Publik)");
-              }}
+              onClick={() => void handleSetSession("siang")}
               style={{
                 background: currentSession === "siang" ? "#2563eb" : "rgba(15,23,42,0.8)",
                 color: "#fff",
@@ -217,7 +220,7 @@ export default function AdminJadwalPage() {
             type="button"
             onClick={() => {
               const nextHol = { ...holidayDays, [dayName]: !holidayDays[dayName] };
-              void setForcedSessionAndHoliday(forcedSession, nextHol);
+              void setForcedSessionAndHoliday(forcedSession, nextHol, baseDate || undefined);
               setToast(nextHol[dayName] ? `Hari ${dayName} ditetapkan sebagai Libur!` : `Status libur ${dayName} dibatalkan.`);
             }}
             style={{
@@ -263,18 +266,10 @@ export default function AdminJadwalPage() {
 
       {/* Switcher Shift */}
       <div style={{ display: "flex", gap: 8 }}>
-        <button
-          type="button"
-          className={"filter-btn" + (shift === "pagi" ? " active" : "")}
-          onClick={() => setShift("pagi")}
-        >
+        <button type="button" className={"filter-btn" + (shift === "pagi" ? " active" : "")} onClick={() => setShift("pagi")}>
           Shift Pagi
         </button>
-        <button
-          type="button"
-          className={"filter-btn" + (shift === "siang" ? " active" : "")}
-          onClick={() => setShift("siang")}
-        >
+        <button type="button" className={"filter-btn" + (shift === "siang" ? " active" : "")} onClick={() => setShift("siang")}>
           Shift Siang
         </button>
       </div>
@@ -284,9 +279,7 @@ export default function AdminJadwalPage() {
         const daySlots = currentShiftData[day] || [];
         return (
           <div key={day} className="glass-card" style={{ padding: 12 }}>
-            <div className="title-sub" style={{ marginBottom: 8, fontWeight: "bold" }}>
-              {day}
-            </div>
+            <div className="title-sub" style={{ marginBottom: 8, fontWeight: "bold" }}>{day}</div>
             {daySlots.length === 0 ? (
               <div style={{ fontSize: 12, opacity: 0.6 }}>Belum ada mata pelajaran</div>
             ) : (
@@ -323,24 +316,14 @@ export default function AdminJadwalPage() {
                 </div>
               ))
             )}
-            <button
-              type="button"
-              className="btn-action-light"
-              style={{ marginTop: 10, fontSize: 11, cursor: "pointer" }}
-              onClick={() => addSlot(day)}
-            >
+            <button type="button" className="btn-action-light" style={{ marginTop: 10, fontSize: 11, cursor: "pointer" }} onClick={() => addSlot(day)}>
               + Tambah Slot {day}
             </button>
           </div>
         );
       })}
 
-      <button
-        type="button"
-        className="btn-pay-qris"
-        disabled={saving}
-        onClick={() => void handleSave()}
-      >
+      <button type="button" className="btn-pay-qris" disabled={saving} onClick={() => void handleSave()}>
         {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
       </button>
 
@@ -354,5 +337,4 @@ export default function AdminJadwalPage() {
       )}
     </div>
   );
-          }
-                                     
+}
