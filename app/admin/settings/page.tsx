@@ -29,6 +29,7 @@ export default function AdminSettingsPage() {
 
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
@@ -76,7 +77,10 @@ export default function AdminSettingsPage() {
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    if (!targetId) return alert("ID Akun tidak terdeteksi!");
+    if (!targetId) {
+      setToast("ID Akun tidak terdeteksi!");
+      return;
+    }
 
     setSaving(true);
     const updatePayload = {
@@ -94,7 +98,7 @@ export default function AdminSettingsPage() {
     setSaving(false);
 
     if (error) {
-      alert("Gagal update data: " + error.message);
+      setToast("Gagal update data: " + error.message);
     } else {
       if (currentUser && targetId === currentUser.id) {
         setCurrentUser({
@@ -104,7 +108,7 @@ export default function AdminSettingsPage() {
       }
 
       pushLog("Update akun " + username + " (#" + targetId + ")");
-      alert("Data berhasil disimpan secara Real-time!");
+      setToast("Data akun berhasil disimpan secara real-time! ✓");
       
       if (isSuperAdmin(currentUser?.role)) {
         void loadAllUsers();
@@ -137,7 +141,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 90 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 100 }}>
       <AdminHeader />
 
       {/* HEADER CARD PROFIL */}
@@ -239,6 +243,7 @@ export default function AdminSettingsPage() {
               background: activeTab === "profile" ? "rgba(56, 189, 248, 0.15)" : "rgba(255,255,255,0.03)",
               color: activeTab === "profile" ? "#38bdf8" : "#94a3b8",
               border: "1px solid " + (activeTab === "profile" ? "rgba(56, 189, 248, 0.4)" : "rgba(255,255,255,0.05)"),
+              cursor: "pointer",
             }}
           >
             👤 Profil Akun Saya
@@ -255,6 +260,7 @@ export default function AdminSettingsPage() {
               background: activeTab === "all_users" ? "rgba(56, 189, 248, 0.15)" : "rgba(255,255,255,0.03)",
               color: activeTab === "all_users" ? "#38bdf8" : "#94a3b8",
               border: "1px solid " + (activeTab === "all_users" ? "rgba(56, 189, 248, 0.4)" : "rgba(255,255,255,0.05)"),
+              cursor: "pointer",
             }}
           >
             ⚙️ Kelola Semua Akun ({allUsers.length})
@@ -397,6 +403,7 @@ export default function AdminSettingsPage() {
                       color: "#38bdf8",
                       border: "1px solid rgba(56, 189, 248, 0.4)",
                       fontWeight: 700,
+                      cursor: "pointer",
                     }}
                     onClick={() => handleSelectUserToEdit(u)}
                   >
@@ -439,6 +446,7 @@ export default function AdminSettingsPage() {
             background: maintenanceMode ? "rgba(34,197,94,0.2)" : "rgba(244,63,94,0.2)",
             color: maintenanceMode ? "#4ade80" : "#fda4af",
             border: "none",
+            cursor: "pointer",
           }}
         >
           {maintenanceMode ? "Matikan" : "Set Maintenance"}
@@ -476,6 +484,23 @@ export default function AdminSettingsPage() {
           )}
         </div>
       </div>
+
+      {/* MODAL / TOAST NOTIFIKASI KUSTOM */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+                                   }
+            
