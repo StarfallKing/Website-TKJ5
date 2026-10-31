@@ -160,6 +160,28 @@ export function getKasPaid(siswaIndex: number, monthIndex: number) {
   return (siswaIndex * 17 + monthIndex * 31) % 100 < 82;
 }
 
+/** Fungsi Rotasi Sesi Fleksibel (Mendukung Estafet Otomatis Berdasarkan Basis Tanggal) */
+export function getRotatedSessionWithBase(
+  baseDateStr?: string | null,
+  baseSession?: "pagi" | "siang" | null
+): "pagi" | "siang" {
+  // Default acuan awal jika belum diset: Senin, 2 November 2026 sebagai SIANG
+  const baseDate = baseDateStr ? new Date(baseDateStr) : new Date(2026, 10, 2);
+  const now = new Date();
+  
+  const diffTime = now.getTime() - baseDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const weekIndex = Math.floor(diffDays / 7);
+
+  const initialSession = baseSession || "siang";
+
+  if (weekIndex % 2 === 0) {
+    return initialSession;
+  } else {
+    return initialSession === "siang" ? "pagi" : "siang";
+  }
+}
+
 export type Lesson = { mapel: string; start: string; end: string };
 
 export const masterSchedule: {
@@ -348,4 +370,4 @@ export const defaultSiteContent: SiteContent = {
 };
 
 export const paymentHistoryLogs: PaymentHistory[] = [];
-   
+  
