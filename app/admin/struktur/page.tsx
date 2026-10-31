@@ -128,9 +128,9 @@ export default function AdminStrukturPage() {
       <AdminHeader />
 
       <div className="glass-card text-center">
-        <div className="title-sub">EDIT STRUKTUR</div>
-        <p style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginTop: 4 }}>
-          1 role = 1 siswa · sinkron ke bagan publik
+        <div className="title-sub">STRUKTUR KEPENGURUSAN KELAS TKJ–5</div>
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#FFFFFF", marginTop: 4 }}>
+          Penggerak & Pengurus Utama Kelas TKJ-5 
         </p>
       </div>
 
