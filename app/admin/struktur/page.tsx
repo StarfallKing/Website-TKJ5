@@ -181,6 +181,7 @@ export default function AdminStrukturPage() {
         </p>
       </div>
 
+      {/* KONTAINER UTAMA 1: PENGATURAN PERIODE & JUMLAH ANGGOTA */}
       <div
         className="glass-card"
         style={{ display: "flex", flexDirection: "column", gap: 10 }}
@@ -225,123 +226,152 @@ export default function AdminStrukturPage() {
         </button>
       </div>
 
+      {/* KONTAINER UTAMA 2: WALI KELAS & PENGURUS INTI (KONTAINER DALAM KONTAINER) */}
       <div
         className="glass-card"
-        style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        style={{ display: "flex", flexDirection: "column", gap: 14, padding: 14 }}
       >
-        <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800 }}>
-          WALI KELAS
+        <div style={{ fontSize: 12, color: "#60a5fa", fontWeight: 800, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 8 }}>
+          WALI KELAS & DAFTAR PENGURUS KELAS
         </div>
-        <input
-          className="search-box expanded"
-          style={{ width: "100%", padding: 12 }}
-          value={wali}
-          onChange={(e) => setWali(e.target.value)}
-        />
-        <button
-          type="button"
-          className="btn-pay-qris"
-          disabled={busy}
-          onClick={() => void saveWali()}
+
+        {/* Sub-Kontainer Wali Kelas */}
+        <div
+          style={{
+            background: "rgba(15, 23, 42, 0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: 12,
+            padding: 12,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
         >
-          {busy ? "Menyimpan..." : "Simpan wali kelas"}
-        </button>
-      </div>
+          <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800 }}>
+            WALI KELAS
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 12, background: "#0f172a" }}
+            value={wali}
+            onChange={(e) => setWali(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn-pay-qris"
+            disabled={busy}
+            onClick={() => void saveWali()}
+            style={{ width: "100%" }}
+          >
+            {busy ? "Menyimpan..." : "Simpan wali kelas"}
+          </button>
+        </div>
 
-      {/* CUSTOM DROPDOWN SELECTOR UNTUK SISWA PENGURUS */}
-      {ROLES.map((role) => {
-        const currentNisn = whoHas(role);
-        const currentStudent = students.find((s) => s.nisn === currentNisn);
-        const isOpen = openDropdownRole === role;
+        <hr style={{ border: "0", borderTop: "1px solid rgba(255,255,255,0.08)", margin: "2px 0" }} />
 
-        return (
-          <div key={role} className="glass-card" style={{ marginBottom: 4, position: "relative" }}>
+        {/* Sub-Kontainer Untuk Masing-masing Pengurus Inti */}
+        {ROLES.map((role) => {
+          const currentNisn = whoHas(role);
+          const currentStudent = students.find((s) => s.nisn === currentNisn);
+          const isOpen = openDropdownRole === role;
+
+          return (
             <div
+              key={role}
               style={{
-                fontWeight: 800,
-                fontSize: 12,
-                marginBottom: 8,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <i className={"fa-solid " + (roleIcon[role] || "fa-user")} />
-              {role}
-            </div>
-
-            {/* Kotak Trigger Custom */}
-            <div
-              onClick={() => !busy && setopenDropdownRole(isOpen ? null : role)}
-              style={{
-                width: "100%",
-                padding: "12px 14px",
+                background: "rgba(15, 23, 42, 0.5)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
                 borderRadius: 12,
-                background: "rgba(15, 23, 42, 0.95)",
-                color: "#f8fafc",
-                border: "1.5px solid rgba(96, 165, 250, 0.35)",
-                fontSize: 12,
-                fontWeight: 700,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                cursor: "pointer",
-                boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08)",
+                padding: 12,
+                position: "relative",
               }}
             >
-              <span>{currentStudent ? currentStudent.nama : "— Kosongkan —"}</span>
-              <i className={`fa-solid fa-chevron-${isOpen ? "up" : "down"}`} style={{ color: "#60a5fa", fontSize: 10 }} />
-            </div>
-
-            {/* Dropdown Menu Kustom (Gaya Glassmorphism) */}
-            {isOpen && (
               <div
                 style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  marginTop: 6,
-                  maxHeight: 240,
-                  overflowY: "auto",
-                  background: "#0b0f19",
-                  border: "1.5px solid rgba(96, 165, 250, 0.4)",
-                  borderRadius: 12,
-                  zIndex: 99,
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
+                  fontWeight: 800,
+                  fontSize: 12,
+                  marginBottom: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
+                <i className={"fa-solid " + (roleIcon[role] || "fa-user")} style={{ color: "#60a5fa" }} />
+                {role}
+              </div>
+
+              {/* Kotak Trigger Custom */}
+              <div
+                onClick={() => !busy && setopenDropdownRole(isOpen ? null : role)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  background: "#0f172a",
+                  color: "#f8fafc",
+                  border: "1.5px solid rgba(96, 165, 250, 0.35)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08)",
+                }}
+              >
+                <span>{currentStudent ? currentStudent.nama : "— Kosongkan —"}</span>
+                <i className={`fa-solid fa-chevron-${isOpen ? "up" : "down"}`} style={{ color: "#60a5fa", fontSize: 10 }} />
+              </div>
+
+              {/* Dropdown Menu Kustom (Gaya Glassmorphism) */}
+              {isOpen && (
                 <div
-                  onClick={() => void assignRole(role, "")}
                   style={{
-                    padding: "10px 14px",
-                    fontSize: 12,
-                    color: "#f87171",
-                    fontWeight: 700,
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
-                    cursor: "pointer",
+                    position: "absolute",
+                    top: "100%",
+                    left: 12,
+                    right: 12,
+                    marginTop: 4,
+                    maxHeight: 240,
+                    overflowY: "auto",
+                    background: "#0b0f19",
+                    border: "1.5px solid rgba(96, 165, 250, 0.4)",
+                    borderRadius: 12,
+                    zIndex: 99,
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
                   }}
                 >
-                  — Kosongkan / Lepas Jabatan —
-                </div>
+                  <div
+                    onClick={() => void assignRole(role, "")}
+                    style={{
+                      padding: "10px 14px",
+                      fontSize: 12,
+                      color: "#f87171",
+                      fontWeight: 700,
+                      borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    — Kosongkan / Lepas Jabatan —
+                  </div>
 
-                {students.map((s) => {
-                  const isSelected = s.nisn === currentNisn;
-                  return (
-                    <div
-                      key={s.nisn}
-                      onClick={() => void assignRole(role, s.nisn)}
-                      style={{
-                        padding: "10px 14px",
-                        fontSize: 12,
-                        color: isSelected ? "#38bdf8" : "#e2e8f0",
-                        fontWeight: isSelected ? 800 : 600,
-                        background: isSelected ? "rgba(56, 189, 248, 0.15)" : "transparent",
-                        borderBottom: "1px solid rgba(255,255,255,0.05)",
-                        cursor: "pointer",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                  {students.map((s) => {
+                    const isSelected = s.nisn === currentNisn;
+                    return (
+                      <div
+                        key={s.nisn}
+                        onClick={() => void assignRole(role, s.nisn)}
+                        style={{
+                          padding: "10px 14px",
+                          fontSize: 12,
+                          color: isSelected ? "#38bdf8" : "#e2e8f0",
+                          fontWeight: isSelected ? 800 : 600,
+                          background: isSelected ? "rgba(56, 189, 248, 0.15)" : "transparent",
+                          borderBottom: "1px solid rgba(255,255,255,0.05)",
+                          cursor: "pointer",
+                          display: "flex",
+                          justifyContent: "space-between",
+                   <final_content>       alignItems: "center",
                       }}
                     >
                       <span>{s.nama}</span>
@@ -358,7 +388,8 @@ export default function AdminStrukturPage() {
           </div>
         );
       })}
+      </div>
     </div>
   );
-          }
-              
+            }
+          
