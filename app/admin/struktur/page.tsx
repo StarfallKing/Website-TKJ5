@@ -34,6 +34,8 @@ export default function AdminStrukturPage() {
   const router = useRouter();
   const { students, updateStudent, pushLog, currentUser, authInitialized } = useAppData();
   const [wali, setWali] = useState("Shendy Nuria Feriansyah, S.Pd");
+  const [periode, setPeriode] = useState("PERIODE 2026/2027");
+  const [jumlahAnggota, setJumlahAnggota] = useState("9 ANGGOTA INTI");
   const [busy, setBusy] = useState(false);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
@@ -51,8 +53,10 @@ export default function AdminStrukturPage() {
       .eq("id", 1)
       .maybeSingle()
       .then(({ data }) => {
-        const w = (data as { wali_nama?: string } | null)?.wali_nama;
-        if (w) setWali(w);
+        const settings = data as { wali_nama?: string; struktur_periode?: string; struktur_anggota?: string } | null;
+        if (settings?.wali_nama) setWali(settings.wali_nama);
+        if (settings?.struktur_periode) setPeriode(settings.struktur_periode);
+        if (settings?.struktur_anggota) setJumlahAnggota(settings.struktur_anggota);
       });
   }, [authInitialized, currentUser, router]);
 
@@ -75,7 +79,6 @@ export default function AdminStrukturPage() {
       }
       if (nisn) {
         const target = students.find((s) => s.nisn === nisn);
-        // kalau siswa sudah punya role lain, lepas dulu
         if (target?.role && target.role !== role) {
           await updateStudent(nisn, {
             role: undefined,
@@ -95,23 +98,25 @@ export default function AdminStrukturPage() {
     }
   }
 
-  async function saveWali() {
+  async function saveSettings() {
     setBusy(true);
     const { error } = await supabase.from("app_settings").upsert({
       id: 1,
       wali_nama: wali.trim(),
+      struktur_periode: periode.trim(),
+      struktur_anggota: jumlahAnggota.trim(),
       updated_at: new Date().toISOString(),
     });
     setBusy(false);
     if (error) {
       alert(
         error.message +
-          "\n(Jika kolom belum ada, jalankan di SQL: alter table app_settings add column if not exists wali_nama text;)"
+          "\n(Jika kolom belum ada, jalankan SQL: alter table app_settings add column if not exists struktur_periode text, add column if not exists struktur_anggota text;)"
       );
       return;
     }
-    pushLog("Update wali kelas: " + wali);
-    alert("Wali kelas disimpan");
+    pushLog("Update pengaturan struktur kelas");
+    alert("Pengaturan struktur berhasil disimpan!");
   }
 
   // Prevent render jika status auth belum siap
@@ -134,27 +139,60 @@ export default function AdminStrukturPage() {
         </p>
       </div>
 
-      {/* Wali */}
+      {/* Pengaturan Wali Kelas, Periode & Jumlah Anggota */}
       <div
         className="glass-card"
-        style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        style={{ display: "flex", flexDirection: "column", gap: 12 }}
       >
-        <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800 }}>
-          WALI KELAS
+        <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 800 }}>
+          PENGATURAN INFORMASI STRUKTUR
         </div>
-        <input
-          className="search-box expanded"
-          style={{ width: "100%", padding: 12 }}
-          value={wali}
-          onChange={(e) => setWali(e.target.value)}
-        />
+
+        <div>
+          <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+            WALI KELAS
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            value={wali}
+            onChange={(e) => setWali(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+            PERIODE (Badge Kiri)
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            value={periode}
+            onChange={(e) => setPeriode(e.target.value)}
+            placeholder="Contoh: PERIODE 2026/2027"
+          />
+        </div>
+
+        <div>
+          <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+            JUMLAH ANGGOTA (Badge Kanan)
+          </div>
+          <input
+            className="search-box expanded"
+            style={{ width: "100%", padding: 10 }}
+            value={jumlahAnggota}
+            onChange={(e) => setJumlahAnggota(e.target.value)}
+            placeholder="Contoh: 9 ANGGOTA INTI"
+          />
+        </div>
+
         <button
           type="button"
           className="btn-pay-qris"
           disabled={busy}
-          onClick={() => void saveWali()}
+          onClick={() => void saveSettings()}
         >
-          Simpan wali kelas
+          Simpan Pengaturan Struktur
         </button>
       </div>
 
@@ -167,7 +205,7 @@ export default function AdminStrukturPage() {
               fontSize: 12,
               marginBottom: 8,
               display: "flex",
-              alignItems: "center",
+              alignItems:---center,
               gap: 8,
             }}
           >
@@ -180,7 +218,7 @@ export default function AdminStrukturPage() {
             onChange={(e) => void assignRole(role, e.target.value)}
             style={{
               width: "100%",
-              padding: 10,
+            --  padding: 10,
               borderRadius: 10,
               background: "#0f172a",
               color: "#fff",
@@ -202,4 +240,4 @@ export default function AdminStrukturPage() {
       ))}
     </div>
   );
-}
+          }
