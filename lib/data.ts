@@ -59,7 +59,6 @@ export const allStudents: Student[] = [
   { nama: "ZIDRAM AIDIL ADHA", gender: "L", nisn: "0091703516", nis: "26100213", hadir: 28, izin: 0, sakit: 0, alpa: 0 },
 ];
 
-
 export type StatusHarian = "H" | "I" | "S" | "A" | "-";
 
 export const attendanceMap: Record<string, StatusHarian> = {};
@@ -287,7 +286,7 @@ export const monthConfigs = [
 export function schoolYearDays(startYear = 2026): number {
   const a = new Date(startYear, 6, 1).getTime();
   const b = new Date(startYear + 1, 5, 30).getTime();
-  return Math.round((b - a) / 86400000) + 1; // \~365 atau 366
+  return Math.round((b - a) / 86400000) + 1;
 }
 
 export type PaymentHistory = {
@@ -303,8 +302,8 @@ export type NewsItem = {
   title: string;
   body: string;
   imageUrl: string;
-  source: string; // teks sumber
-  sourceUrl: string; // link (opsional)
+  source: string;
+  sourceUrl: string;
 };
 
 export type SiteContent = {
@@ -316,10 +315,12 @@ export type SiteContent = {
     mapelSub: string;
     ruangLabel: string;
     ruangSub: string;
-    // Kas: label saja; nominal dari kasLog
     kasLabel: string;
   };
   news: NewsItem[];
+  waliKelas?: string;
+  strukturPeriode?: string;    // Ditambahkan untuk mengatasi error TypeScript
+  strukturAnggota?: string;    // Ditambahkan untuk mengatasi error TypeScript
 };
 
 export const defaultSiteContent: SiteContent = {
@@ -340,11 +341,13 @@ export const defaultSiteContent: SiteContent = {
         "Pelantikan Kepala Sekolah SMK PGRI 2 Cibinong Periode 2026 – 2030",
       body:
         "Selamat atas dilantiknya Dr. Andi Hermawan, M.Pd sebagai Kepala SMK PGRI 2 Cibinong. Semoga amanah ini menjadi ladang...",
-      imageUrl: "", // isi URL atau path /public/...
+      imageUrl: "",
       source: "SMK PGRI 2 Cibinong",
       sourceUrl: "",
     },
   ],
+  strukturPeriode: "PERIODE 2026/2027",
+  strukturAnggota: "9 ANGGOTA INTI",
 };
 
 /** Histori QRIS kosong */
@@ -353,3 +356,4 @@ export const paymentHistoryLogs: PaymentHistory[] = [];
 // Informasi Fleksibel Struktur Kepengurusan Kelas
 export const PERIODE_STRUKTUR = "PERIODE 2026/2027";
 export const JUMLAH_ANGGOTA_STRUKTUR = "9 ANGGOTA INTI";
+   
