@@ -1,11 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppData } from "@/lib/AppDataContext";
 import type { ScheduleData, ScheduleSlot } from "@/lib/data";
 import { scheduleDays, masterSchedule } from "@/lib/data";
 import AdminHeader from "@/components/layout/AdminHeader";
+
+function getRotatedSession(): "pagi" | "siang" {
+  const baseDate = new Date(2026, 6, 20);
+  const now = new Date();
+  const diffDays = Math.floor(
+    Math.abs(now.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const weekIndex = Math.floor(diffDays / 7);
+  return weekIndex % 2 === 0 ? "siang" : "pagi";
+}
+
+function isLessonNow(start: string, end: string) {
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  return cur >= sh * 60 + sm && cur < eh * 60 + em;
+}
 
 export default function AdminJadwalPage() {
   const router = useRouter();
@@ -19,6 +37,24 @@ export default function AdminJadwalPage() {
   const [draft, setDraft] = useState<ScheduleData>(schedule || masterSchedule);
   const [shift, setShift] = useState<"pagi" | "siang">("siang");
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // State untuk Dynamic Island di Admin
+  const [islandOpen, setIslandOpen] = useState(false);
+  const [timeStr, setTimeStr] = useState("");
+  const [manualSession, setManualSession] = useState<"pagi" | "siang" | null>(null);
+  const [holidayDays, setHolidayDays] = useState<Record<string, boolean>>({});
+
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const dayName = days[new Date().getDay()];
+  const currentSession = manualSession || getRotatedSession();
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setTimeStr(new Date().toLocaleTimeString("id-ID"));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // --- PROTEKSI RUTE & AUTH GUARD ---
   useEffect(() => {
@@ -36,6 +72,9 @@ export default function AdminJadwalPage() {
   }, [schedule]);
 
   const currentShiftData = draft?.[shift] || masterSchedule[shift] || {};
+  const todayLessons = holidayDays[dayName] 
+    ? [{ mapel: "📅 HARI LIBUR / TANGGAL MERAH", start: "00:00", end: "23:59" }] 
+    : (draft?.[currentSession]?.[dayName] || masterSchedule[currentSession]?.[dayName] || []);
 
   function updateSlot(
     day: string,
@@ -103,9 +142,20 @@ export default function AdminJadwalPage() {
     setSaving(true);
     try {
       await setSchedule(draft);
+      setToast("Jadwal berhasil disimpan ke database! ✓");
+    } catch (e: any) {
+      setToast("Gagal menyimpan jadwal: " + (e.message || e));
     } finally {
       setSaving(false);
     }
+  }
+
+  function toggleHolidayToday() {
+    setHolidayDays((prev) => ({
+      ...prev,
+      [dayName]: !prev[dayName],
+    }));
+    setToast(holidayDays[dayName] ? `Status libur untuk hari ${dayName} dibatalkan.` : `Hari ${dayName} ditetapkan sebagai Hari Libur/Tanggal Merah!`);
   }
 
   // Tampilkan loading screen jika status auth belum dibaca dari localStorage
@@ -123,6 +173,157 @@ export default function AdminJadwalPage() {
 
       <div className="glass-card text-center">
         <div className="title-sub">DATA JADWAL PELAJARAN</div>
+      </div>
+
+      {/* Dynamic Island di Admin */}
+      <div
+        className={"dynamic-island-bar" + (islandOpen ? " open" : "")}
+        onClick={() => setIslandOpen((v) => !v)}
+      >
+        <div className="island-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <i className="fa-solid fa-clock" style={{ color: "#60a5fa" }} />
+            <span style={{ fontSize: "11px", fontWeight: 800 }}>
+              {dayName.toUpperCase()} • {currentSession.toUpperCase()}
+              {holidayDays[dayName] ? " (LIBUR)" : ""}
+            </span>
+          </div>
+          <span className="island-badge">{currentSession.toUpperCase()}</span>
+        </div>
+
+        <div
+          style={{
+            fontSize: "10px",
+            color: "#94a3b8",
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 4,
+          }}
+        >
+          <span>Jam: {timeStr || "12:00:00"} WIB</span>
+          <span style={{ color: "#60a5fa", fontWeight: 700 }}>
+            {islandOpen ? "Tutup" : "Tekan Ringkasan"}{" "}
+            <i
+              className={
+                "fa-solid " + (islandOpen ? "fa-chevron-up" : "fa-chevron-down")
+              }
+              style={{ fontSize: "9px" }}
+            />
+          </span>
+        </div>
+
+        <div className="island-expanded-content" onClick={(e) => e.stopPropagation()}>
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa", marginBottom: 6 }}>
+            Kontrol Cepat Sesi & Libur Hari Ini
+          </div>
+
+          {/* Tombol Tetapkan Sesi */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={() => {
+                setManualSession("pagi");
+                setToast("Sesi dipaksa ke: PAGI");
+              }}
+              style={{
+                background: currentSession === "pagi" ? "#2563eb" : "rgba(15,23,42,0.8)",
+                color: "#fff",
+                border: "1px solid rgba(96,165,250,0.4)",
+                padding: "8px",
+                borderRadius: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              ☀️ Tetapkan Jadwal Pagi
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setManualSession("siang");
+                setToast("Sesi dipaksa ke: SIANG");
+              }}
+              style={{
+                background: currentSession === "siang" ? "#2563eb" : "rgba(15,23,42,0.8)",
+                color: "#fff",
+                border: "1px solid rgba(96,165,250,0.4)",
+                padding: "8px",
+                borderRadius: 8,
+                fontSize: 10,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              🌙 Tetapkan Jadwal Siang
+            </button>
+          </div>
+
+          {/* Tombol Tanggal Merah / Hari Libur Memanjang */}
+          <button
+            type="button"
+            onClick={toggleHolidayToday}
+            style={{
+              width: "100%",
+              background: holidayDays[dayName] ? "rgba(239, 68, 68, 0.3)" : "rgba(239, 68, 68, 0.15)",
+              color: "#f43f5e",
+              border: "1.5px solid rgba(239, 68, 68, 0.4)",
+              padding: "9px",
+              borderRadius: 8,
+              fontSize: 10,
+              fontWeight: 800,
+              cursor: "pointer",
+              marginBottom: 10,
+            }}
+          >
+            {holidayDays[dayName] ? "✓ Batalkan Status Hari Libur" : "📅 Tetapkan sebagai tanggal merah/hari libur"}
+          </button>
+
+          <div style={{ fontSize: "10px", fontWeight: 800, color: "#60a5fa", marginBottom: 4 }}>
+            Jadwal Real-Time ({dayName} - Sesi {currentSession})
+          </div>
+
+          {todayLessons.map((item, i) => {
+            const active = isLessonNow(item.start, item.end);
+            return (
+              <div
+                key={i}
+                className={
+                  "schedule-item-live" + (active ? " active-lesson" : "")
+                }
+              >
+                <div>
+                  <strong style={{ color: active ? "#60a5fa" : "#f8fafc" }}>
+                    {item.mapel}
+                  </strong>
+                  {active && !holidayDays[dayName] && (
+                    <span
+                      style={{
+                        fontSize: "8px",
+                        background: "#2563eb",
+                        color: "#fff",
+                        padding: "2px 5px",
+                        borderRadius: "4px",
+                        fontWeight: 800,
+                        marginLeft: "4px",
+                      }}
+                    >
+                      SEDANG BERLANGSUNG
+                    </span>
+                  )}
+                </div>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: active ? "#60a5fa" : "#94a3b8",
+                  }}
+                >
+                  {item.start} - {item.end}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Switcher Shift */}
@@ -255,6 +456,23 @@ export default function AdminJadwalPage() {
       >
         {saving ? "Menyimpan..." : "Simpan jadwal ke database"}
       </button>
+
+      {/* Popup Toast Custom */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+                                           }
+              
