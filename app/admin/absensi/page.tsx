@@ -89,7 +89,7 @@ export default function AdminAbsensiPage() {
     exportToExcel(dataToExport, "Rekap-Akumulasi-Absensi-1-Tahun", "Rekap Absensi");
   };
 
-  // Handler Export Excel Absensi Harian Per Bulan (Struktur 1:1 persis standar gambar)
+  // Handler Export Excel Absensi Harian Per Bulan
   const handleExportAbsensiBulanan = () => {
     const dataToExport = students.map((s, si) => {
       const rowData: Record<string, any> = {
@@ -261,11 +261,17 @@ export default function AdminAbsensiPage() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: 10,
+            gap: 10,
+            flexWrap: "wrap",
           }}
         >
-          <div className="title-sub" style={{ fontSize: 11 }}>
-            Rekap Akumulasi Absen 1 Tahun
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 160 }}>
+            <i className="fa-solid fa-chart-pie" style={{ color: "#60a5fa", fontSize: 16 }} />
+            <div className="title-sub" style={{ fontSize: 11, margin: 0, lineHeight: 1.3 }}>
+              Rekap Akumulasi Absen 1 Tahun
+            </div>
           </div>
+          
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
               type="button"
@@ -275,7 +281,7 @@ export default function AdminAbsensiPage() {
                 backgroundColor: "#22c55e",
                 color: "#ffffff",
                 border: "none",
-                padding: "6px 12px",
+                padding: "8px 14px",
                 borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -287,19 +293,25 @@ export default function AdminAbsensiPage() {
             >
               <i className="fa-solid fa-file-excel" /> Ekspor Excel
             </button>
-            <span
+            <div
               style={{
-                fontSize: 9,
-                background: "rgba(74, 222, 128, 0.15)",
+                fontSize: 10,
+                padding: "8px 10px",
+                background: "rgba(15, 23, 42, 0.7)",
                 color: "#4ade80",
-                padding: "4px 10px",
-                borderRadius: 12,
-                fontWeight: 700,
-                border: "1px solid rgba(74, 222, 128, 0.3)",
+                border: "1.5px solid rgba(74, 222, 128, 0.35)",
+                borderRadius: 8,
+                fontWeight: 800,
+                textAlign: "center",
+                lineHeight: 1.2,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
               }}
             >
-              T.A 2026/2027
-            </span>
+              <span>T.A</span>
+              <span>2026/2027</span>
+            </div>
           </div>
         </div>
 
@@ -419,13 +431,15 @@ export default function AdminAbsensiPage() {
             marginBottom: 12,
             paddingBottom: 8,
             borderBottom: "1px solid rgba(255,255,255,0.08)",
+            gap: 10,
+            flexWrap: "wrap",
           }}
         >
           <div className="title-sub" style={{ fontSize: 11, margin: 0 }}>
             REKAP HARIAN PER BULAN
           </div>
           
-          {/* TOMBOL EKSPOR & BADGE JUMLAH HARI */}
+          {/* TOMBOL EKSPOR & BADGE JUMLAH HARI (DISAMAKAN PROPORSIONAL DENGAN PUBLIC) */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
               type="button"
@@ -435,7 +449,7 @@ export default function AdminAbsensiPage() {
                 backgroundColor: "#22c55e",
                 color: "#ffffff",
                 border: "none",
-                padding: "6px 12px",
+                padding: "8px 14px",
                 borderRadius: 8,
                 fontWeight: 700,
                 cursor: "pointer",
@@ -450,12 +464,17 @@ export default function AdminAbsensiPage() {
             <div
               style={{
                 fontSize: 11,
-                padding: "6px 12px",
+                padding: "8px 12px",
                 background: "rgba(15, 23, 42, 0.7)",
                 color: "#60a5fa",
                 border: "1.5px solid rgba(96, 165, 250, 0.35)",
                 borderRadius: 8,
                 fontWeight: 800,
+                textAlign: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                whiteSpace: "nowrap",
               }}
             >
               {m.days} Hari
@@ -585,5 +604,5 @@ export default function AdminAbsensiPage() {
       </div>
     </div>
   );
-        }
-          
+                  }
+                      
