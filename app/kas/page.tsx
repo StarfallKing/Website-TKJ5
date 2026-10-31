@@ -193,7 +193,7 @@ export default function KasPage() {
             }}
           >
             <i className="fa-solid fa-calendar-check" style={{ fontSize: 15 }} />
-            Status Pembayaran Kas Perbulan
+            STATUS PEMBAYARAN KAS PERBULAN
           </span>
         </div>
 
@@ -337,7 +337,7 @@ export default function KasPage() {
             }}
           >
             <i className="fa-solid fa-table-cells" style={{ fontSize: 15 }} />
-            Rekapan Kas 1 Tahun
+            REKAPAN KAS 1 TAHUN
           </span>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
@@ -445,7 +445,7 @@ export default function KasPage() {
             }}
           >
             <i className="fa-solid fa-book" style={{ fontSize: 15 }} />
-            Catatan Pengeluaran Dan Pemasukan
+            CATATAN PENGELUARAN DAN PEMASUKAN
           </span>
         </div>
 
@@ -495,7 +495,7 @@ export default function KasPage() {
         className="btn-pay-qris"
         onClick={() => router.push("/qris")}
       >
-        Bayar Kas via QRIS
+        BAYAR KAS VIA QRIS
       </button>
     </>
   );
