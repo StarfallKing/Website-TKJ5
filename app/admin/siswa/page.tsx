@@ -79,9 +79,9 @@ export default function AdminSiswaPage() {
       <AdminHeader />
 
       <div className="glass-card text-center">
-        <div className="title-sub">DATA SISWA</div>
+        <div className="title-sub">DIREKTORI MURID</div>
         <p style={{ fontSize: 12, fontWeight: 700 }}>
-          Tambah / edit / hapus · tampilan seperti direktori
+          Data Anggota Siswa Kelas TKJ-5
         </p>
       </div>
 
