@@ -38,6 +38,7 @@ export default function AdminStrukturPage() {
   const [periode, setPeriode] = useState("PERIODE 2026/2027");
   const [jumlahAnggota, setJumlahAnggota] = useState("9 ANGGOTA INTI");
   const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   // State untuk melacak dropdown mana yang sedang terbuka (berdasarkan role name)
   const [openDropdownRole, setopenDropdownRole] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export default function AdminStrukturPage() {
           });
         }
         pushLog("Struktur: Kosongkan " + role);
-        alert(`Posisi ${role} berhasil dikosongkan.`);
+        setToast(`Posisi ${role} berhasil dikosongkan. ✓`);
         if (typeof refreshFromDb === "function") {
           await refreshFromDb();
         }
@@ -102,7 +103,7 @@ export default function AdminStrukturPage() {
         });
       }
 
-      // 2. Berikan role baru ke target siswa (fungsi updateStudent di context akan menangani reset role lamanya)
+      // 2. Berikan role baru ke target siswa
       await updateStudent(nisn, {
         role,
         roleClass: role.toLowerCase().replace(/\s+/g, "-"),
@@ -110,14 +111,14 @@ export default function AdminStrukturPage() {
       });
 
       pushLog("Struktur: " + role + " → " + targetStudent.nama);
-      alert(`Berhasil menetapkan ${targetStudent.nama} sebagai ${role}!`);
+      setToast(`Berhasil menetapkan ${targetStudent.nama} sebagai ${role}! ✓`);
 
       // 3. Paksa sinkronisasi ulang data dari database
       if (typeof refreshFromDb === "function") {
         await refreshFromDb();
       }
     } catch (err: any) {
-      alert("Gagal memperbarui struktur: " + (err.message || err));
+      setToast("Gagal memperbarui struktur: " + (err.message || err));
     } finally {
       setBusy(false);
     }
@@ -139,9 +140,9 @@ export default function AdminStrukturPage() {
       });
       
       pushLog("Update wali kelas: " + wali);
-      alert("Wali kelas berhasil disimpan & langsung sinkron!");
+      setToast("Wali kelas berhasil disimpan & langsung sinkron! ✓");
     } catch (err: any) {
-      alert("Gagal simpan wali kelas: " + (err.message || err));
+      setToast("Gagal simpan wali kelas: " + (err.message || err));
     } finally {
       setBusy(false);
     }
@@ -156,7 +157,9 @@ export default function AdminStrukturPage() {
         strukturAnggota: jumlahAnggota.trim(),
       });
       pushLog("Update Periode & Jumlah Anggota Struktur");
-      alert("Informasi Periode & Jumlah Anggota berhasil disimpan & langsung sinkron ke publik!");
+      setToast("Informasi Periode & Jumlah Anggota berhasil disimpan & sinkron! ✓");
+    } catch (err: any) {
+      setToast("Gagal menyimpan: " + (err.message || err));
     } finally {
       setBusy(false);
     }
@@ -171,7 +174,7 @@ export default function AdminStrukturPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 100 }}>
       <AdminHeader />
 
       <div className="glass-card text-center">
@@ -389,7 +392,23 @@ export default function AdminStrukturPage() {
           );
         })}
       </div>
+
+      {/* MODAL / TOAST KUSTOM UNTUK NOTIFIKASI */}
+      {toast && (
+        <div className="app-toast-overlay" onClick={() => setToast(null)}>
+          <div className="app-toast" onClick={(e) => e.stopPropagation()}>
+            <div className="app-toast-msg">{toast}</div>
+            <button
+              type="button"
+              className="app-toast-btn"
+              onClick={() => setToast(null)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-  }
-        
+            }
+            
