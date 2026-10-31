@@ -306,9 +306,6 @@ export default function AdminDashboardPage() {
             style={{ ...inp, marginTop: 6 }}
             placeholder="Sub (TOTAL : 43 SISWA)"
           />
-          <p style={{ fontSize: 9, color: "#64748b", marginTop: 6 }}>
-            Live: {students.length} · L{countL}/P{countP}
-          </p>
         </div>
 
         <div className="glass-card" style={{ padding: 12 }}>
@@ -335,9 +332,6 @@ export default function AdminDashboardPage() {
           >
             {formatRupiah(saldo)}
           </div>
-          <p style={{ fontSize: 9, color: "#64748b", marginTop: 4 }}>
-            Hitung otomatis (pembayaran murid × Rp 2.000)
-          </p>
         </div>
 
         <div className="glass-card" style={{ padding: 12 }}>
