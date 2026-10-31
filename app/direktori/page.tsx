@@ -40,14 +40,14 @@ export default function DirektoriPage() {
   };
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 100 }}>
       <div
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: "4px" }}
       >
         <div className="title-sub">DIREKTORI MURID</div>
         <p style={{ fontSize: "12px", color: "#fff", fontWeight: 700 }}>
-          Data Anggota Siswa Kelas TKJ-5
+          Data Anggota Siswa Kelas TKJ-5 ({students.length} Siswa)
         </p>
       </div>
 
@@ -153,6 +153,6 @@ export default function DirektoriPage() {
           );
         })}
       </div>
-    </>
+    </div>
   );
-              }
+                                   }
