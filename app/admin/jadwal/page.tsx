@@ -122,7 +122,7 @@ export default function AdminJadwalPage() {
       <AdminHeader />
 
       <div className="glass-card text-center">
-        <div className="title-sub">EDIT JADWAL PELAJARAN</div>
+        <div className="title-sub">DATA JADWAL PELAJARAN</div>
       </div>
 
       {/* Switcher Shift */}
