@@ -6,7 +6,6 @@ import { useAppData } from "@/lib/AppDataContext";
 import type { ScheduleData, ScheduleSlot } from "@/lib/data";
 import { scheduleDays, masterSchedule } from "@/lib/data";
 import AdminHeader from "@/components/layout/AdminHeader";
-import { supabase } from "@/lib/supabase";
 
 function getRotatedSession(): "pagi" | "siang" {
   const baseDate = new Date(2026, 6, 20);
@@ -31,6 +30,9 @@ export default function AdminJadwalPage() {
   const {
     schedule,
     setSchedule,
+    forcedSession,
+    holidayDays,
+    setForcedSessionAndHoliday,
     currentUser,
     authInitialized,
   } = useAppData();
@@ -40,33 +42,18 @@ export default function AdminJadwalPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // State Kontrol Cepat Sesi & Libur (Disinkronkan ke Supabase)
   const [islandOpen, setIslandOpen] = useState(false);
   const [timeStr, setTimeStr] = useState("");
-  const [manualSession, setManualSession] = useState<"pagi" | "siang" | null>(null);
-  const [holidayDays, setHolidayDays] = useState<Record<string, boolean>>({});
 
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const dayName = days[new Date().getDay()];
-  const currentSession = manualSession || getRotatedSession();
+  const currentSession = forcedSession || getRotatedSession();
 
   useEffect(() => {
     const t = setInterval(() => {
       setTimeStr(new Date().toLocaleTimeString("id-ID"));
     }, 1000);
     return () => clearInterval(t);
-  }, []);
-
-  // Ambil pengaturan override sesi & libur dari Supabase saat load
-  useEffect(() => {
-    async function loadAppSettings() {
-      const { data } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
-      if (data) {
-        if (data.forced_session) setManualSession(data.forced_session);
-        if (data.holiday_days) setHolidayDays(data.holiday_days);
-      }
-    }
-    void loadAppSettings();
   }, []);
 
   useEffect(() => {
@@ -129,19 +116,6 @@ export default function AdminJadwalPage() {
     }
   }
 
-  // Fungsi simpan status paksa sesi & libur ke Supabase agar publik ikut berubah
-  async function updateControlSetting(newSession: "pagi" | "siang" | null, newHol: Record<string, boolean>) {
-    setManualSession(newSession);
-    setHolidayDays(newHol);
-
-    await supabase.from("app_settings").upsert({
-      id: 1,
-      forced_session: newSession,
-      holiday_days: newHol,
-      updated_at: new Date().toISOString(),
-    });
-  }
-
   if (!authInitialized || (!currentUser && sessionStorage.getItem("admin-ok") !== "1")) {
     return (
       <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 12 }}>
@@ -202,7 +176,7 @@ export default function AdminJadwalPage() {
             <button
               type="button"
               onClick={() => {
-                void updateControlSetting("pagi", holidayDays);
+                void setForcedSessionAndHoliday("pagi", holidayDays);
                 setToast("Sesi dipaksa ke: PAGI (Sinkron ke Publik)");
               }}
               style={{
@@ -221,7 +195,7 @@ export default function AdminJadwalPage() {
             <button
               type="button"
               onClick={() => {
-                void updateControlSetting("siang", holidayDays);
+                void setForcedSessionAndHoliday("siang", holidayDays);
                 setToast("Sesi dipaksa ke: SIANG (Sinkron ke Publik)");
               }}
               style={{
@@ -243,7 +217,7 @@ export default function AdminJadwalPage() {
             type="button"
             onClick={() => {
               const nextHol = { ...holidayDays, [dayName]: !holidayDays[dayName] };
-              void updateControlSetting(manualSession, nextHol);
+              void setForcedSessionAndHoliday(forcedSession, nextHol);
               setToast(nextHol[dayName] ? `Hari ${dayName} ditetapkan sebagai Libur!` : `Status libur ${dayName} dibatalkan.`);
             }}
             style={{
@@ -380,5 +354,5 @@ export default function AdminJadwalPage() {
       )}
     </div>
   );
-    }
-    
+          }
+                                     
