@@ -264,7 +264,7 @@ export default function AdminAbsensiPage() {
           }}
         >
           <div className="title-sub" style={{ fontSize: 11 }}>
-            REKAP 1 TAHUN (ANGKA + % DARI {DAYS} HARI)
+            Rekap Akumulasi Absen 1 Tahun
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
