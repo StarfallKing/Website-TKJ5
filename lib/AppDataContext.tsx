@@ -561,12 +561,35 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addKasTransaction,
       deleteKasTransactions,
 
+      // --- DIPERBAIKI: PEMBERSIHAN ROLE LAMA SECARA TOTAL DI DATABASE ---
       updateStudent: async (nisn, patch) => {
         const cleanNisn = String(nisn).trim();
+
+        // 1. Update state lokal secara instan
         setStudents((prev) =>
-          prev.map((s) => (String(s.nisn).trim() === cleanNisn ? { ...s, ...patch } : s))
+          prev.map((s) => {
+            if (String(s.nisn).trim() === cleanNisn) {
+              return { ...s, ...patch };
+            }
+            // Jika patch memberikan role baru, bersihkan role yang sama di siswa lain secara lokal
+            if (patch.role && s.role && s.role.trim().toLowerCase() === patch.role.trim().toLowerCase()) {
+              return { ...s, role: undefined, roleClass: undefined, icon: undefined };
+            }
+            return s;
+          })
         );
-        await supabase
+
+        // 2. Jika patch menyertakan role, bersihkan role tersebut di database untuk siswa lain (mencegah dobel/nyangkut)
+        if (patch.role) {
+          await supabase
+            .from("students")
+            .update({ role: null, role_class: null, icon: null })
+            .eq("role", patch.role)
+            .neq("nisn", cleanNisn);
+        }
+
+        // 3. Update data siswa target di database Supabase
+        const { error } = await supabase
           .from("students")
           .update({
             ...(patch.nama !== undefined ? { nama: patch.nama } : {}),
@@ -584,6 +607,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             updated_at: new Date().toISOString(),
           })
           .eq("nisn", cleanNisn);
+
+        if (error) {
+          console.error("Gagal update siswa di DB:", error.message);
+        }
         pushLog("Update siswa " + cleanNisn);
       },
 
@@ -683,5 +710,5 @@ export function useAppData() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAppData must be inside AppDataProvider");
   return ctx;
-                                  }
-        
+  }
+            
