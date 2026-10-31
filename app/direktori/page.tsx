@@ -47,7 +47,7 @@ export default function DirektoriPage() {
       >
         <div className="title-sub">DIREKTORI MURID</div>
         <p style={{ fontSize: "12px", color: "#fff", fontWeight: 700 }}>
-          Data Anggota Kelas X TKJ-5
+          Data Anggota Siswa Kelas TKJ-5
         </p>
       </div>
 
