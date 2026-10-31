@@ -284,7 +284,7 @@ export default function StrukturPage() {
         className="glass-card text-center"
         style={{ display: "flex", flexDirection: "column", gap: 4 }}
       >
-        <div className="title-sub">STRUKTUR KEPENGURUSAN X TKJ–5</div>
+        <div className="title-sub">STRUKTUR KEPENGURUSAN KELAS TKJ–5</div>
         <p
           style={{
             fontSize: 12,
@@ -293,7 +293,7 @@ export default function StrukturPage() {
             lineHeight: 1.4,
           }}
         >
-          Nakhoda & Penggerak Utama Generasi Komputer Jaringan
+          Penggerak & Pengurus Utama Kelas TKJ-5
         </p>
       </div>
 
