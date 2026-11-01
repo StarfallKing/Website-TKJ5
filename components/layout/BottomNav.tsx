@@ -104,7 +104,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pil Kaca Cair Biru Pekat & Menyala (Tanpa Bug Bening) */}
+      {/* Pil Kaca Cair Tembus Pandang (Glassmorphism Estetik ke Ikon) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -115,16 +115,16 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(37, 99, 235, 0.75))",
-          backdropFilter: "blur(20px) saturate(200%)",
-          WebkitBackdropFilter: "blur(20px) saturate(200%)",
-          border: "2px solid rgba(125, 211, 252, 0.9)",
-          boxShadow: "0 0 25px rgba(56, 189, 248, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.8)",
+          background: "rgba(56, 189, 248, 0.22)", // Semi-transparan agar ikon tetap terlihat tembus pandang
+          backdropFilter: "blur(18px) saturate(180%)",
+          WebkitBackdropFilter: "blur(18px) saturate(180%)",
+          border: "1px solid rgba(56, 189, 248, 0.55)",
+          boxShadow: "0 0 20px rgba(56, 189, 248, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
           borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.12 : 1,
+          scale: dragging ? 1.08 : 1,
         }}
         transition={
           dragging
@@ -180,4 +180,5 @@ export default function BottomNav() {
       </div>
     </>
   );
-}
+      }
+                           
