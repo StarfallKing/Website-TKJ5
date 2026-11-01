@@ -105,7 +105,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 1. Tombol Slider Aktif Mengambang (Framer Motion dengan Efek Kaca Cair) */}
+      {/* Tombol Slider Aktif Mengambang (Framer Motion dengan Efek Kaca Cair Kenyal & Transparan) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -128,7 +128,7 @@ export default function BottomNav() {
         }
       />
 
-      {/* 2. Kontainer Navigasi Utama Menggunakan Kelas Asli .nav-dual-container */}
+      {/* Kontainer Navigasi Utama (Kembali ke Koordinat Asli .nav-dual-container) */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -136,8 +136,8 @@ export default function BottomNav() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Kontainer Kiri (Menggunakan LiquidGlass dari pustaka) */}
-        <div className="bubble-nav" style={{ padding: 0, overflow: "hidden", background: "transparent", border: "none" }}>
+        {/* Kontainer Kiri dengan liquid-glass-react */}
+        <div className="bubble-nav">
           <LiquidGlass
             displacementScale={20}
             blurAmount={0.08}
@@ -175,8 +175,8 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
 
-        {/* Kontainer Kanan (Menggunakan LiquidGlass dari pustaka) */}
-        <div className="bubble-nav" style={{ padding: 0, overflow: "hidden", background: "transparent", border: "none" }}>
+        {/* Kontainer Kanan dengan liquid-glass-react */}
+        <div className="bubble-nav">
           <LiquidGlass
             displacementScale={20}
             blurAmount={0.08}
