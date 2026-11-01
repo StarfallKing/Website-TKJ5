@@ -105,7 +105,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 1. Tombol Slider Aktif Kenyal (Framer Motion + Efek Kaca Cair Transparan) */}
+      {/* 1. Tombol Slider Aktif Mengambang (Framer Motion dengan Efek Kaca Cair) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -116,12 +116,6 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "rgba(255, 255, 255, 0.18)",
-          backdropFilter: "blur(25px) saturate(220%)",
-          WebkitBackdropFilter: "blur(25px) saturate(220%)",
-          border: "1.5px solid rgba(56, 189, 248, 0.85)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -2px 4px rgba(56, 189, 248, 0.4)",
-          borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
@@ -134,7 +128,7 @@ export default function BottomNav() {
         }
       />
 
-      {/* 2. Kontainer Navigasi Utama Mengembalikan Layout Asli (.nav-dual-container) */}
+      {/* 2. Kontainer Navigasi Utama Menggunakan Kelas Asli .nav-dual-container */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -142,20 +136,20 @@ export default function BottomNav() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Kontainer Kiri dengan liquid-glass-react */}
-        <div className="bubble-nav" style={{ overflow: "hidden", padding: 0, background: "transparent", border: "none" }}>
+        {/* Kontainer Kiri (Menggunakan LiquidGlass dari pustaka) */}
+        <div className="bubble-nav" style={{ padding: 0, overflow: "hidden", background: "transparent", border: "none" }}>
           <LiquidGlass
-            displacementScale={25}
-            blurAmount={0.1}
+            displacementScale={20}
+            blurAmount={0.08}
             saturation={130}
             cornerRadius={999}
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              padding: "0 8px",
+              justifyContent: "space-between",
+              padding: "0 6px",
               background: "rgba(15, 23, 42, 0.45)",
               border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
@@ -181,20 +175,20 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
 
-        {/* Kontainer Kanan dengan liquid-glass-react */}
-        <div className="bubble-nav" style={{ overflow: "hidden", padding: 0, background: "transparent", border: "none" }}>
+        {/* Kontainer Kanan (Menggunakan LiquidGlass dari pustaka) */}
+        <div className="bubble-nav" style={{ padding: 0, overflow: "hidden", background: "transparent", border: "none" }}>
           <LiquidGlass
-            displacementScale={25}
-            blurAmount={0.1}
+            displacementScale={20}
+            blurAmount={0.08}
             saturation={130}
             cornerRadius={999}
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              padding: "0 8px",
+              justifyContent: "space-between",
+              padding: "0 6px",
               background: "rgba(15, 23, 42, 0.45)",
               border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
