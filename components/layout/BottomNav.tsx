@@ -104,26 +104,47 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Gelembung Kaca Cair Menggunakan Framer Motion Spring Physics & CSS .glass-liquid-pill */}
+      {/* SVG Liquid Gooey Filter (Rahasia Efek Cair Menyatu ala Apple) */}
+      <svg style={{ position: "absolute", width: 0, height: 0, pointerEvents: "none" }}>
+        <filter id="liquid-goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+          <feColorMatrix 
+            in="blur" 
+            mode="matrix" 
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" 
+            result="goo" 
+          />
+          <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+        </filter>
+      </svg>
+
+      {/* Gelembung Kaca Cair dengan Efek Pegas Framer Motion */}
       <motion.div
-        className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
+        className="glass-liquid-pill"
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
           position: "fixed",
           bottom: "28px",
-          width: "44px",
+          width: "48px",
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
+          filter: "url(#liquid-goo)", // Menerapkan efek lelehan cair
+          background: "linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(14, 165, 233, 0.2))",
+          backdropFilter: "blur(20px) saturate(200%)",
+          WebkitBackdropFilter: "blur(20px) saturate(200%)",
+          border: "1.5px solid rgba(56, 189, 248, 0.7)",
+          boxShadow: "0 0 30px rgba(56, 189, 248, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6)",
+          borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.08 : 1,
+          scale: dragging ? 1.15 : 1,
         }}
         transition={
           dragging
             ? { duration: 0 }
-            : { type: "spring", stiffness: 380, damping: 28 }
+            : { type: "spring", stiffness: 320, damping: 22 }
         }
       />
 
@@ -174,4 +195,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-}
+    }
