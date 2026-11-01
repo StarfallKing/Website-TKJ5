@@ -104,21 +104,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* SVG Liquid Gooey Filter (Rahasia Efek Cair Menyatu ala Apple) */}
-      <svg style={{ position: "absolute", width: 0, height: 0, pointerEvents: "none" }}>
-        <filter id="liquid-goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-          <feColorMatrix 
-            in="blur" 
-            mode="matrix" 
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" 
-            result="goo" 
-          />
-          <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-        </filter>
-      </svg>
-
-      {/* Gelembung Kaca Cair dengan Efek Pegas Framer Motion */}
+      {/* Pil Kaca Cair Biru Pekat & Menyala (Tanpa Bug Bening) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -129,22 +115,21 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          filter: "url(#liquid-goo)", // Menerapkan efek lelehan cair
-          background: "linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(14, 165, 233, 0.2))",
+          background: "linear-gradient(135deg, rgba(14, 165, 233, 0.85), rgba(37, 99, 235, 0.75))",
           backdropFilter: "blur(20px) saturate(200%)",
           WebkitBackdropFilter: "blur(20px) saturate(200%)",
-          border: "1.5px solid rgba(56, 189, 248, 0.7)",
-          boxShadow: "0 0 30px rgba(56, 189, 248, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6)",
+          border: "2px solid rgba(125, 211, 252, 0.9)",
+          boxShadow: "0 0 25px rgba(56, 189, 248, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.8)",
           borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.15 : 1,
+          scale: dragging ? 1.12 : 1,
         }}
         transition={
           dragging
             ? { duration: 0 }
-            : { type: "spring", stiffness: 320, damping: 22 }
+            : { type: "spring", stiffness: 350, damping: 25 }
         }
       />
 
@@ -195,4 +180,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-    }
+}
