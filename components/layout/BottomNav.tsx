@@ -104,22 +104,10 @@ export default function BottomNav() {
   }
 
   return (
-    <div 
-      style={{
-        position: "fixed",
-        bottom: "20px",
-        left: 0,
-        right: 0,
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 999,
-        pointerEvents: "none",
-      }}
-    >
-      {/* Tombol Slider Aktif Mengambang (Framer Motion) */}
+    <>
+      {/* 1. Tombol Slider Aktif Kenyal (Framer Motion + Efek Kaca Cair Transparan) */}
       <motion.div
+        className="glass-liquid-pill"
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
           position: "fixed",
@@ -128,11 +116,11 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "rgba(255, 255, 255, 0.15)",
-          backdropFilter: "blur(20px) saturate(200%)",
-          WebkitBackdropFilter: "blur(20px) saturate(200%)",
-          border: "1.5px solid rgba(56, 189, 248, 0.8)",
-          boxShadow: "0 0 25px rgba(56, 189, 248, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.7)",
+          background: "rgba(255, 255, 255, 0.18)",
+          backdropFilter: "blur(25px) saturate(220%)",
+          WebkitBackdropFilter: "blur(25px) saturate(220%)",
+          border: "1.5px solid rgba(56, 189, 248, 0.85)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -2px 4px rgba(56, 189, 248, 0.4)",
           borderRadius: "999px",
         }}
         animate={{
@@ -146,33 +134,28 @@ export default function BottomNav() {
         }
       />
 
-      {/* Kontainer Utama Dua Pil Navigasi */}
+      {/* 2. Kontainer Navigasi Utama Mengembalikan Layout Asli (.nav-dual-container) */}
       <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "16px",
-          pointerEvents: "auto",
-          touchAction: "pan-y",
-        }}
+        className="nav-dual-container"
+        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Kontainer Kiri */}
-        <div style={{ width: "156px", height: "52px" }}>
+        {/* Kontainer Kiri dengan liquid-glass-react */}
+        <div className="bubble-nav" style={{ overflow: "hidden", padding: 0, background: "transparent", border: "none" }}>
           <LiquidGlass
             displacementScale={25}
             blurAmount={0.1}
             saturation={130}
             cornerRadius={999}
-            padding="4px 8px"
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
-              alignItems: "center",
               justifyContent: "space-between",
+              alignItems: "center",
+              padding: "0 8px",
               background: "rgba(15, 23, 42, 0.45)",
               border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
@@ -198,20 +181,20 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
 
-        {/* Kontainer Kanan */}
-        <div style={{ width: "156px", height: "52px" }}>
+        {/* Kontainer Kanan dengan liquid-glass-react */}
+        <div className="bubble-nav" style={{ overflow: "hidden", padding: 0, background: "transparent", border: "none" }}>
           <LiquidGlass
             displacementScale={25}
             blurAmount={0.1}
             saturation={130}
             cornerRadius={999}
-            padding="4px 8px"
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
-              alignItems: "center",
               justifyContent: "space-between",
+              alignItems: "center",
+              padding: "0 8px",
               background: "rgba(15, 23, 42, 0.45)",
               border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
@@ -237,6 +220,6 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
       </div>
-    </div>
+    </>
   );
-                  }
+}
