@@ -19,7 +19,7 @@ export default function BottomNav() {
   const router = useRouter();
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   
-  const [pillLeft, setPillLeft] = useState<number | null>(null);
+  const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   
   const touchStartX = useRef(0);
@@ -35,7 +35,10 @@ export default function BottomNav() {
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     if (rect.width > 0 || rect.left > 0) {
-      setPillLeft(rect.left - 2);
+      setPillStyle({
+        left: rect.left,
+        width: rect.width,
+      });
     }
   }
 
@@ -76,7 +79,10 @@ export default function BottomNav() {
     if (diff > 10) {
       if (!dragging) setDragging(true);
       isSwiping.current = true;
-      setPillLeft(currentX - 24);
+      setPillStyle((prev) => ({
+        left: currentX - 24,
+        width: prev ? prev.width : 48,
+      }));
     }
   }
 
@@ -105,21 +111,22 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Tombol Slider Aktif Mengambang (Framer Motion dengan Efek Kaca Cair Kenyal & Transparan) */}
+      {/* Tombol Slider Aktif Mengambang (Pill Kapsul Menyesuaikan Lebar Tombol) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
-          left: pillLeft !== null ? `${pillLeft}px` : "16px",
+          left: pillStyle ? `${pillStyle.left}px` : "16px",
+          width: pillStyle ? `${pillStyle.width}px` : "48px",
           position: "fixed",
-          bottom: "28px",
-          width: "48px",
-          height: "44px",
+          bottom: "34px",
+          height: "40px",
+          borderRadius: "9999px",
           zIndex: 1000,
           pointerEvents: "none",
         }}
         animate={{
-          opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.12 : 1,
+          opacity: pillStyle ? 1 : 0,
+          scale: dragging ? 1.08 : 1,
         }}
         transition={
           dragging
@@ -128,7 +135,7 @@ export default function BottomNav() {
         }
       />
 
-      {/* Kontainer Navigasi Utama (Kembali ke Koordinat Asli .nav-dual-container) */}
+      {/* Kontainer Navigasi Utama */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -216,4 +223,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-}
+                      }
