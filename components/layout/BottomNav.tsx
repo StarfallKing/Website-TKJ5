@@ -17,6 +17,7 @@ export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -34,7 +35,7 @@ export default function BottomNav() {
     if (!btn) return;
 
     const rect = btn.getBoundingClientRect();
-    if (rect.width < 10) return;
+    if (rect.width < 8) return;
 
     setPillStyle({
       left: rect.left,
@@ -43,17 +44,18 @@ export default function BottomNav() {
   }
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => updatePill(activeIndex));
-    const t1 = setTimeout(() => updatePill(activeIndex), 100);
-    const t2 = setTimeout(() => updatePill(activeIndex), 300);
+    // Update beberapa kali biar akurat
+    const timers = [
+      setTimeout(() => updatePill(activeIndex), 50),
+      setTimeout(() => updatePill(activeIndex), 150),
+      setTimeout(() => updatePill(activeIndex), 400),
+    ];
 
     const onResize = () => updatePill(activeIndex);
     window.addEventListener("resize", onResize);
 
     return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
+      timers.forEach(clearTimeout);
       window.removeEventListener("resize", onResize);
     };
   }, [activeIndex, pathname]);
@@ -75,13 +77,13 @@ export default function BottomNav() {
     const currentX = e.touches[0].clientX;
     const diff = Math.abs(currentX - touchStartX.current);
 
-    if (diff > 10) {
+    if (diff > 12) {
       if (!dragging) setDragging(true);
       isSwiping.current = true;
 
       setPillStyle((prev) => ({
-        left: currentX - (prev?.width ?? 48) / 2,
-        width: prev ? prev.width : 48,
+        left: currentX - (prev?.width ?? 44) / 2,
+        width: prev?.width ?? 44,
       }));
     }
   }
@@ -92,14 +94,15 @@ export default function BottomNav() {
 
     const touchX = e.changedTouches[0].clientX;
     let closest = activeIndex;
-    let min = Infinity;
+    let minDist = Infinity;
 
     buttonsRef.current.forEach((btn, i) => {
       if (!btn) return;
       const rect = btn.getBoundingClientRect();
-      const dist = Math.abs(touchX - (rect.left + rect.width / 2));
-      if (dist < min) {
-        min = dist;
+      const center = rect.left + rect.width / 2;
+      const dist = Math.abs(touchX - center);
+      if (dist < minDist) {
+        minDist = dist;
         closest = i;
       }
     });
@@ -110,38 +113,39 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pill Aktif (biru mengkilap) */}
+      {/* Pill biru mengkilap */}
       <motion.div
         className="glass-liquid-pill"
         style={{
-          left: pillStyle ? `${pillStyle.left}px` : "16px",
-          width: pillStyle ? `${pillStyle.width}px` : "48px",
+          left: pillStyle ? `${pillStyle.left}px` : "-100px",
+          width: pillStyle ? `${pillStyle.width}px` : "44px",
           position: "fixed",
-          bottom: "30px",
-          height: "44px",
+          bottom: "28px",
+          height: "48px",
           borderRadius: "9999px",
           zIndex: 1000,
           pointerEvents: "none",
         }}
         animate={{
           opacity: pillStyle ? 1 : 0,
-          scale: dragging ? 1.08 : 1,
+          scale: dragging ? 1.1 : 1,
         }}
         transition={
           dragging
             ? { duration: 0 }
-            : { type: "spring", stiffness: 380, damping: 26 }
+            : { type: "spring", stiffness: 400, damping: 28 }
         }
       />
 
-      {/* Kontainer Navigasi */}
+      {/* Navigasi dua bubble */}
       <div
+        ref={containerRef}
         className="nav-dual-container"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Kiri */}
+        {/* Bubble Kiri */}
         <div className="bubble-nav">
           {navItems.slice(0, 3).map((item, i) => (
             <button
@@ -161,7 +165,7 @@ export default function BottomNav() {
           ))}
         </div>
 
-        {/* Kanan */}
+        {/* Bubble Kanan */}
         <div className="bubble-nav">
           {navItems.slice(3, 6).map((item, i) => (
             <button
