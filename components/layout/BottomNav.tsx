@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { LiquidGlass } from "liquid-glass-react";
+import LiquidGlass from "liquid-glass-react"; // Perbaikan: diimpor sebagai default import (tanpa kurung kurawal)
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -105,7 +105,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 1. Tombol Slider Bergerak (Framer Motion + LiquidGlass Sesuai Dokumentasi) */}
+      {/* 1. Tombol Slider Bergerak (Framer Motion + LiquidGlass) */}
       <motion.div
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
@@ -243,5 +243,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-          }
-                      
+}
