@@ -104,7 +104,20 @@ export default function BottomNav() {
   }
 
   return (
-    <>
+    <div 
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        left: 0,
+        right: 0,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 999,
+        pointerEvents: "none",
+      }}
+    >
       {/* Tombol Slider Aktif Mengambang (Framer Motion) */}
       <motion.div
         style={{
@@ -133,18 +146,13 @@ export default function BottomNav() {
         }
       />
 
-      {/* Kontainer Utama Navigasi Bawah (Dipaksa Fixed di Bawah Layar) */}
+      {/* Kontainer Utama Dua Pil Navigasi */}
       <div
         style={{
-          position: "fixed",
-          bottom: "20px",
-          left: 0,
-          right: 0,
           display: "flex",
           justifyContent: "center",
           gap: "16px",
-          zIndex: 999,
-          padding: "0 16px",
+          pointerEvents: "auto",
           touchAction: "pan-y",
         }}
         onTouchStart={onTouchStart}
@@ -229,6 +237,6 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
       </div>
-    </>
+    </div>
   );
-              }
+                  }
