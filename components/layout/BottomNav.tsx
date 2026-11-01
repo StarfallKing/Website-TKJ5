@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -15,47 +15,11 @@ const navItems = [
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  
-  // Menggunakan null sebagai nilai awal agar tidak 'nyasar' di 0px saat iOS layout belum siap
-  const [pillLeft, setPillLeft] = useState<number | null>(null);
-  const [dragging, setDragging] = useState(false);
-  
-  const touchStartX = useRef(0);
-  const isSwiping = useRef(false);
 
   const activeIndex = Math.max(
     0,
     navItems.findIndex((item) => item.path === pathname)
   );
-
-  function updatePill(index: number) {
-    const btn = buttonsRef.current[index];
-    if (!btn) return;
-    const rect = btn.getBoundingClientRect();
-    // Validasi agar Safari iOS tidak mengembalikan nilai 0 saat render awal
-    if (rect.width > 0 || rect.left > 0) {
-      setPillLeft(rect.left - 1);
-    }
-  }
-
-  useEffect(() => {
-    // Memaksa browser menghitung posisi layout setelah frame pertama digambar
-    const raf = requestAnimationFrame(() => {
-      updatePill(activeIndex);
-    });
-
-    const t = setTimeout(() => updatePill(activeIndex), 150);
-
-    const onResize = () => updatePill(activeIndex);
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(t);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [activeIndex, pathname]);
 
   if (
     pathname?.startsWith("/siswa") ||
@@ -65,101 +29,76 @@ export default function BottomNav() {
     return null;
   }
 
-  function onTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-    isSwiping.current = false;
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    const currentX = e.touches[0].clientX;
-    const diff = Math.abs(currentX - touchStartX.current);
-
-    if (diff > 10) {
-      if (!dragging) setDragging(true);
-      isSwiping.current = true;
-      setPillLeft(currentX - 22);
-    }
-  }
-
-  function onTouchEnd(e: React.TouchEvent) {
-    setDragging(false);
-
-    if (!isSwiping.current) return;
-
-    const touchX = e.changedTouches[0].clientX;
-    let closest = activeIndex;
-    let min = Infinity;
-
-    buttonsRef.current.forEach((btn, i) => {
-      if (!btn) return;
-      const rect = btn.getBoundingClientRect();
-      const dist = Math.abs(touchX - (rect.left + rect.width / 2));
-      if (dist < min) {
-        min = dist;
-        closest = i;
-      }
-    });
-
-    router.push(navItems[closest].path);
-    updatePill(closest);
-  }
-
   return (
-    <>
-      <div
-        className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
-        style={{
-          left: pillLeft !== null ? `${pillLeft}px` : "16px",
-          opacity: pillLeft !== null ? 1 : 0, // Fade in saat posisi tepat terdeteksi
-          transition: dragging ? "none" : "left 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
-        }}
-      />
-
-      <div
-        className="nav-dual-container"
-        style={{ touchAction: "pan-y" }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <div className="bubble-nav">
-          {navItems.slice(0, 3).map((item, i) => (
+    <div className="nav-dual-container" style={{ touchAction: "pan-y" }}>
+      {/* Kapsul Kiri (3 Menu Pertama) */}
+      <div className="bubble-nav liquid-container" style={{ position: "relative", display: "flex", gap: "6px", padding: "6px", borderRadius: "32px" }}>
+        {navItems.slice(0, 3).map((item, i) => {
+          const isActive = pathname === item.path;
+          return (
             <button
               key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i] = el;
-              }}
               type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i);
-                router.push(item.path);
-              }}
+              className={`nav-btn ${isActive ? "active" : ""}`}
+              onClick={() => router.push(item.path)}
+              style={{ position: "relative", zIndex: 2, background: "transparent", border: "none", cursor: "pointer", padding: "10px 16px" }}
             >
-              <i className={`fa-solid ${item.icon}`} />
+              {isActive && (
+                <motion.div
+                  layoutId="activeLiquidPill"
+                  className="liquid-pill-bg"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(56, 189, 248, 0.25)",
+                    border: "1px solid rgba(56, 189, 248, 0.5)",
+                    borderRadius: "24px",
+                    boxShadow: "0 0 20px rgba(56, 189, 248, 0.35)",
+                    zIndex: -1,
+                  }}
+                  transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                />
+              )}
+              <i className={`fa-solid ${item.icon}`} style={{ color: isActive ? "#38bdf8" : "#94a3b8", fontSize: "16px" }} />
             </button>
-          ))}
-        </div>
-
-        <div className="bubble-nav">
-          {navItems.slice(3, 6).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i + 3] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i + 3);
-                router.push(item.path);
-              }}
-            >
-              <i className={`fa-solid ${item.icon}`} />
-            </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </>
+
+      {/* Kapsul Kanan (3 Menu Terakhir) */}
+      <div className="bubble-nav liquid-container" style={{ position: "relative", display: "flex", gap: "6px", padding: "6px", borderRadius: "32px" }}>
+        {navItems.slice(3, 6).map((item, i) => {
+          const actualIndex = i + 3;
+          const isActive = pathname === item.path;
+          return (
+            <button
+              key={item.path}
+              type="button"
+              className={`nav-btn ${isActive ? "active" : ""}`}
+              onClick={() => router.push(item.path)}
+              style={{ position: "relative", zIndex: 2, background: "transparent", border: "none", cursor: "pointer", padding: "10px 16px" }}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeLiquidPill"
+                  className="liquid-pill-bg"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(56, 189, 248, 0.25)",
+                    border: "1px solid rgba(56, 189, 248, 0.5)",
+                    borderRadius: "24px",
+                    boxShadow: "0 0 20px rgba(56, 189, 248, 0.35)",
+                    zIndex: -1,
+                  }}
+                  transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                />
+              )}
+              <i className={`fa-solid ${item.icon}`} style={{ color: isActive ? "#38bdf8" : "#94a3b8", fontSize: "16px" }} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
-}
+                        }
