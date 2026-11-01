@@ -18,10 +18,10 @@ export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  
+
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  
+
   const touchStartX = useRef(0);
   const isSwiping = useRef(false);
 
@@ -33,13 +33,14 @@ export default function BottomNav() {
   function updatePill(index: number) {
     const btn = buttonsRef.current[index];
     if (!btn) return;
+
     const rect = btn.getBoundingClientRect();
-    if (rect.width > 0 || rect.left > 0) {
-      setPillStyle({
-        left: rect.left,
-        width: rect.width,
-      });
-    }
+    if (rect.width < 10) return; // pastikan sudah ter-render
+
+    setPillStyle({
+      left: rect.left,
+      width: rect.width,
+    });
   }
 
   useEffect(() => {
@@ -47,7 +48,8 @@ export default function BottomNav() {
       updatePill(activeIndex);
     });
 
-    const t = setTimeout(() => updatePill(activeIndex), 150);
+    const t = setTimeout(() => updatePill(activeIndex), 120);
+    const t2 = setTimeout(() => updatePill(activeIndex), 300); // backup
 
     const onResize = () => updatePill(activeIndex);
     window.addEventListener("resize", onResize);
@@ -55,6 +57,7 @@ export default function BottomNav() {
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(t);
+      clearTimeout(t2);
       window.removeEventListener("resize", onResize);
     };
   }, [activeIndex, pathname]);
@@ -79,8 +82,9 @@ export default function BottomNav() {
     if (diff > 10) {
       if (!dragging) setDragging(true);
       isSwiping.current = true;
+
       setPillStyle((prev) => ({
-        left: currentX - 24,
+        left: currentX - (prev?.width ?? 48) / 2,
         width: prev ? prev.width : 48,
       }));
     }
@@ -111,7 +115,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Tombol Slider Aktif Mengambang (Pill Kapsul Menyesuaikan Lebar Tombol) */}
+      {/* Pill Aktif (Floating) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -135,7 +139,7 @@ export default function BottomNav() {
         }
       />
 
-      {/* Kontainer Navigasi Utama */}
+      {/* Kontainer Navigasi */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -143,25 +147,35 @@ export default function BottomNav() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Kontainer Kiri dengan liquid-glass-react */}
+        {/* Kiri */}
         <div className="bubble-nav">
           <LiquidGlass
-            displacementScale={20}
-            blurAmount={0.08}
-            saturation={130}
+            displacementScale={18}
+            blurAmount={0.07}
+            saturation={140}
+            aberrationIntensity={1.5}
+            elasticity={0} // penting!
             cornerRadius={999}
+            padding="0 6px"
             style={{
               width: "100%",
               height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 6px",
-              background: "rgba(15, 23, 42, 0.45)",
-              border: "1.5px solid rgba(255, 255, 255, 0.18)",
+              position: "relative",
+              top: "50%",
+              left: "50%",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", position: "relative", zIndex: 2 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+                height: "100%",
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
               {navItems.slice(0, 3).map((item, i) => (
                 <button
                   key={item.path}
@@ -182,25 +196,35 @@ export default function BottomNav() {
           </LiquidGlass>
         </div>
 
-        {/* Kontainer Kanan dengan liquid-glass-react */}
+        {/* Kanan */}
         <div className="bubble-nav">
           <LiquidGlass
-            displacementScale={20}
-            blurAmount={0.08}
-            saturation={130}
+            displacementScale={18}
+            blurAmount={0.07}
+            saturation={140}
+            aberrationIntensity={1.5}
+            elasticity={0}
             cornerRadius={999}
+            padding="0 6px"
             style={{
               width: "100%",
               height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 6px",
-              background: "rgba(15, 23, 42, 0.45)",
-              border: "1.5px solid rgba(255, 255, 255, 0.18)",
+              position: "relative",
+              top: "50%",
+              left: "50%",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", position: "relative", zIndex: 2 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+                height: "100%",
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
               {navItems.slice(3, 6).map((item, i) => (
                 <button
                   key={item.path}
@@ -223,4 +247,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-                      }
+}
