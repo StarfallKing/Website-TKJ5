@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { LiquidGlass } from "liquid-glass-react";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -104,35 +105,55 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Gelembung Kaca Bening Tembus Pandang (Glassmorphism Murni) */}
+      {/* 1. Tombol Slider Bergerak (Framer Motion + LiquidGlass Sesuai Dokumentasi) */}
       <motion.div
-        className="glass-liquid-pill"
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
           position: "fixed",
           bottom: "28px",
-          width: "48px",
-          height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "rgba(255, 255, 255, 0.12)", // Kaca putih transparan bening
-          backdropFilter: "blur(25px) saturate(200%)",
-          WebkitBackdropFilter: "blur(25px) saturate(200%)",
-          border: "1.5px solid rgba(56, 189, 248, 0.65)", // Garis tepi neon biru tipis
-          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.6), inset 0 -1px 2px rgba(56, 189, 248, 0.4)",
-          borderRadius: "999px",
+          opacity: pillLeft !== null ? 1 : 0,
         }}
         animate={{
-          opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.08 : 1,
+          scale: dragging ? 1.12 : 1,
         }}
         transition={
           dragging
             ? { duration: 0 }
-            : { type: "spring", stiffness: 350, damping: 25 }
+            : { type: "spring", stiffness: 380, damping: 25 }
         }
-      />
+      >
+        <LiquidGlass
+          displacementScale={45}
+          blurAmount={0.15}
+          saturation={140}
+          aberrationIntensity={1.5}
+          elasticity={0.35}
+          cornerRadius={100}
+          padding="0px"
+          style={{
+            width: "48px",
+            height: "44px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div 
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              borderRadius: "100px",
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "1.5px solid rgba(56, 189, 248, 0.7)",
+              boxShadow: "0 0 25px rgba(56, 189, 248, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.7)"
+            }} 
+          />
+        </LiquidGlass>
+      </motion.div>
 
+      {/* 2. Dua Kontainer Pil Navigasi Menggunakan LiquidGlass */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -140,60 +161,87 @@ export default function BottomNav() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div 
-          className="bubble-nav" 
-          style={{ 
-            background: "rgba(15, 23, 42, 0.45)", // Dibuat lebih transparan agar kontainer bawah tidak pekat
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1.5px solid rgba(255, 255, 255, 0.15)"
-          }}
-        >
-          {navItems.slice(0, 3).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i);
-                router.push(item.path);
-              }}
-            >
-              <i className={`fa-solid ${item.icon}`} />
-            </button>
-          ))}
+        {/* Kontainer Kiri */}
+        <div style={{ width: "156px", height: "52px" }}>
+          <LiquidGlass
+            displacementScale={20}
+            blurAmount={0.1}
+            saturation={130}
+            elasticity={0.3}
+            cornerRadius={999}
+            padding="4px 8px"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "rgba(15, 23, 42, 0.4)",
+              border: "1.5px solid rgba(255, 255, 255, 0.15)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              {navItems.slice(0, 3).map((item, i) => (
+                <button
+                  key={item.path}
+                  ref={(el) => {
+                    buttonsRef.current[i] = el;
+                  }}
+                  type="button"
+                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+                  onClick={() => {
+                    updatePill(i);
+                    router.push(item.path);
+                  }}
+                >
+                  <i className={`fa-solid ${item.icon}`} />
+                </button>
+              ))}
+            </div>
+          </LiquidGlass>
         </div>
 
-        <div 
-          className="bubble-nav" 
-          style={{ 
-            background: "rgba(15, 23, 42, 0.45)", 
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1.5px solid rgba(255, 255, 255, 0.15)"
-          }}
-        >
-          {navItems.slice(3, 6).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i + 3] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i + 3);
-                router.push(item.path);
-              }}
-            >
-              <i className={`fa-solid ${item.icon}`} />
-            </button>
-          ))}
+        {/* Kontainer Kanan */}
+        <div style={{ width: "156px", height: "52px" }}>
+          <LiquidGlass
+            displacementScale={20}
+            blurAmount={0.1}
+            saturation={130}
+            elasticity={0.3}
+            cornerRadius={999}
+            padding="4px 8px"
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "rgba(15, 23, 42, 0.4)",
+              border: "1.5px solid rgba(255, 255, 255, 0.15)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              {navItems.slice(3, 6).map((item, i) => (
+                <button
+                  key={item.path}
+                  ref={(el) => {
+                    buttonsRef.current[i + 3] = el;
+                  }}
+                  type="button"
+                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+                  onClick={() => {
+                    updatePill(i + 3);
+                    router.push(item.path);
+                  }}
+                >
+                  <i className={`fa-solid ${item.icon}`} />
+                </button>
+              ))}
+            </div>
+          </LiquidGlass>
         </div>
       </div>
     </>
   );
-}
+          }
+                      
