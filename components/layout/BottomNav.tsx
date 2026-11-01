@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import LiquidGlass from "liquid-glass-react"; // Perbaikan: diimpor sebagai default import (tanpa kurung kurawal)
+import LiquidGlass from "liquid-glass-react";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -105,17 +105,25 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 1. Tombol Slider Bergerak (Framer Motion + LiquidGlass) */}
+      {/* 1. Tombol Slider Aktif (Framer Motion Spring + Kaca Cair Transparan) */}
       <motion.div
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
           position: "fixed",
           bottom: "28px",
+          width: "48px",
+          height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          opacity: pillLeft !== null ? 1 : 0,
+          background: "rgba(255, 255, 255, 0.15)",
+          backdropFilter: "blur(20px) saturate(200%)",
+          WebkitBackdropFilter: "blur(20px) saturate(200%)",
+          border: "1.5px solid rgba(56, 189, 248, 0.8)",
+          boxShadow: "0 0 25px rgba(56, 189, 248, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.7)",
+          borderRadius: "999px",
         }}
         animate={{
+          opacity: pillLeft !== null ? 1 : 0,
           scale: dragging ? 1.12 : 1,
         }}
         transition={
@@ -123,37 +131,9 @@ export default function BottomNav() {
             ? { duration: 0 }
             : { type: "spring", stiffness: 380, damping: 25 }
         }
-      >
-        <LiquidGlass
-          displacementScale={45}
-          blurAmount={0.15}
-          saturation={140}
-          aberrationIntensity={1.5}
-          elasticity={0.35}
-          cornerRadius={100}
-          padding="0px"
-          style={{
-            width: "48px",
-            height: "44px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div 
-            style={{ 
-              width: "100%", 
-              height: "100%", 
-              borderRadius: "100px",
-              background: "rgba(255, 255, 255, 0.1)",
-              border: "1.5px solid rgba(56, 189, 248, 0.7)",
-              boxShadow: "0 0 25px rgba(56, 189, 248, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.7)"
-            }} 
-          />
-        </LiquidGlass>
-      </motion.div>
+      />
 
-      {/* 2. Dua Kontainer Pil Navigasi Menggunakan LiquidGlass */}
+      {/* 2. Dua Kontainer Pil Menggunakan Pustaka liquid-glass-react */}
       <div
         className="nav-dual-container"
         style={{ touchAction: "pan-y" }}
@@ -164,23 +144,22 @@ export default function BottomNav() {
         {/* Kontainer Kiri */}
         <div style={{ width: "156px", height: "52px" }}>
           <LiquidGlass
-            displacementScale={20}
+            displacementScale={30}
             blurAmount={0.1}
             saturation={130}
-            elasticity={0.3}
-            cornerRadius={999}
-            padding="4px 8px"
+            cornerRadius={100}
+            padding="6px 8px"
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              background: "rgba(15, 23, 42, 0.4)",
-              border: "1.5px solid rgba(255, 255, 255, 0.15)",
+              background: "rgba(15, 23, 42, 0.45)",
+              border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", position: "relative", zIndex: 2 }}>
               {navItems.slice(0, 3).map((item, i) => (
                 <button
                   key={item.path}
@@ -204,23 +183,22 @@ export default function BottomNav() {
         {/* Kontainer Kanan */}
         <div style={{ width: "156px", height: "52px" }}>
           <LiquidGlass
-            displacementScale={20}
+            displacementScale={30}
             blurAmount={0.1}
             saturation={130}
-            elasticity={0.3}
-            cornerRadius={999}
-            padding="4px 8px"
+            cornerRadius={100}
+            padding="6px 8px"
             style={{
               width: "100%",
               height: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              background: "rgba(15, 23, 42, 0.4)",
-              border: "1.5px solid rgba(255, 255, 255, 0.15)",
+              background: "rgba(15, 23, 42, 0.45)",
+              border: "1.5px solid rgba(255, 255, 255, 0.18)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", position: "relative", zIndex: 2 }}>
               {navItems.slice(3, 6).map((item, i) => (
                 <button
                   key={item.path}
@@ -243,4 +221,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-}
+      }
