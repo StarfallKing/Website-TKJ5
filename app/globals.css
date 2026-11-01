@@ -1497,7 +1497,7 @@ body {
 
 .nav-dual-container {
   position: fixed;
-  bottom: 22px;
+  bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 28px);
@@ -1551,7 +1551,7 @@ body {
 /* Pill biru mengkilap */
 .glass-liquid-pill {
   position: fixed;
-  bottom: 25px;
+  bottom: 31px;
   height: 50px;
   border-radius: 9999px;
   z-index: 950;
@@ -1863,7 +1863,6 @@ body {
 @media (min-width: 768px) {
   .absensi-avg-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
   }
 }
 
@@ -1908,4 +1907,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-}
+  }
