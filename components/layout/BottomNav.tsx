@@ -105,7 +105,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* 1. Tombol Slider Aktif (Framer Motion Spring + Kaca Cair Transparan) */}
+      {/* Tombol Slider Aktif Mengambang (Framer Motion) */}
       <motion.div
         style={{
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
@@ -133,10 +133,20 @@ export default function BottomNav() {
         }
       />
 
-      {/* 2. Dua Kontainer Pil Menggunakan Pustaka liquid-glass-react */}
+      {/* Kontainer Utama Navigasi Bawah (Dipaksa Fixed di Bawah Layar) */}
       <div
-        className="nav-dual-container"
-        style={{ touchAction: "pan-y" }}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          gap: "16px",
+          zIndex: 999,
+          padding: "0 16px",
+          touchAction: "pan-y",
+        }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -144,11 +154,11 @@ export default function BottomNav() {
         {/* Kontainer Kiri */}
         <div style={{ width: "156px", height: "52px" }}>
           <LiquidGlass
-            displacementScale={30}
+            displacementScale={25}
             blurAmount={0.1}
             saturation={130}
-            cornerRadius={100}
-            padding="6px 8px"
+            cornerRadius={999}
+            padding="4px 8px"
             style={{
               width: "100%",
               height: "100%",
@@ -183,11 +193,11 @@ export default function BottomNav() {
         {/* Kontainer Kanan */}
         <div style={{ width: "156px", height: "52px" }}>
           <LiquidGlass
-            displacementScale={30}
+            displacementScale={25}
             blurAmount={0.1}
             saturation={130}
-            cornerRadius={100}
-            padding="6px 8px"
+            cornerRadius={999}
+            padding="4px 8px"
             style={{
               width: "100%",
               height: "100%",
@@ -221,4 +231,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-      }
+              }
