@@ -35,7 +35,7 @@ export default function BottomNav() {
     if (!btn) return;
 
     const rect = btn.getBoundingClientRect();
-    if (rect.width < 10) return; // pastikan sudah ter-render
+    if (rect.width < 10) return;
 
     setPillStyle({
       left: rect.left,
@@ -44,19 +44,16 @@ export default function BottomNav() {
   }
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      updatePill(activeIndex);
-    });
-
-    const t = setTimeout(() => updatePill(activeIndex), 120);
-    const t2 = setTimeout(() => updatePill(activeIndex), 300); // backup
+    const raf = requestAnimationFrame(() => updatePill(activeIndex));
+    const t1 = setTimeout(() => updatePill(activeIndex), 100);
+    const t2 = setTimeout(() => updatePill(activeIndex), 300);
 
     const onResize = () => updatePill(activeIndex);
     window.addEventListener("resize", onResize);
 
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(t);
+      clearTimeout(t1);
       clearTimeout(t2);
       window.removeEventListener("resize", onResize);
     };
@@ -92,7 +89,6 @@ export default function BottomNav() {
 
   function onTouchEnd(e: React.TouchEvent) {
     setDragging(false);
-
     if (!isSwiping.current) return;
 
     const touchX = e.changedTouches[0].clientX;
@@ -115,15 +111,15 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pill Aktif (Floating) */}
+      {/* Pill Aktif */}
       <motion.div
         className="glass-liquid-pill"
         style={{
           left: pillStyle ? `${pillStyle.left}px` : "16px",
           width: pillStyle ? `${pillStyle.width}px` : "48px",
           position: "fixed",
-          bottom: "34px",
-          height: "40px",
+          bottom: "30px",
+          height: "44px",
           borderRadius: "9999px",
           zIndex: 1000,
           pointerEvents: "none",
@@ -139,10 +135,9 @@ export default function BottomNav() {
         }
       />
 
-      {/* Kontainer Navigasi */}
+      {/* Navigasi */}
       <div
         className="nav-dual-container"
-        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -150,32 +145,20 @@ export default function BottomNav() {
         {/* Kiri */}
         <div className="bubble-nav">
           <LiquidGlass
-            displacementScale={18}
-            blurAmount={0.07}
+            displacementScale={16}
+            blurAmount={0.08}
             saturation={140}
-            aberrationIntensity={1.5}
-            elasticity={0} // penting!
+            aberrationIntensity={1.2}
+            elasticity={0}
             cornerRadius={999}
-            padding="0 6px"
+            padding="0px"
             style={{
-              width: "100%",
-              height: "100%",
+              width: "156px",
+              height: "52px",
               position: "relative",
-              top: "50%",
-              left: "50%",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                width: "100%",
-                height: "100%",
-                position: "relative",
-                zIndex: 2,
-              }}
-            >
+            <div className="nav-inner">
               {navItems.slice(0, 3).map((item, i) => (
                 <button
                   key={item.path}
@@ -199,32 +182,20 @@ export default function BottomNav() {
         {/* Kanan */}
         <div className="bubble-nav">
           <LiquidGlass
-            displacementScale={18}
-            blurAmount={0.07}
+            displacementScale={16}
+            blurAmount={0.08}
             saturation={140}
-            aberrationIntensity={1.5}
+            aberrationIntensity={1.2}
             elasticity={0}
             cornerRadius={999}
-            padding="0 6px"
+            padding="0px"
             style={{
-              width: "100%",
-              height: "100%",
+              width: "156px",
+              height: "52px",
               position: "relative",
-              top: "50%",
-              left: "50%",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                width: "100%",
-                height: "100%",
-                position: "relative",
-                zIndex: 2,
-              }}
-            >
+            <div className="nav-inner">
               {navItems.slice(3, 6).map((item, i) => (
                 <button
                   key={item.path}
@@ -247,4 +218,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-}
+        }
