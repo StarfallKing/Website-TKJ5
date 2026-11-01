@@ -104,7 +104,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Gelembung Kaca Cair: Tembus Pandang, Kenyal, dan Bersinar Neon */}
+      {/* Gelembung Kaca Bening Tembus Pandang (Glassmorphism Murni) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -115,16 +115,16 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "rgba(56, 189, 248, 0.18)", // Sangat transparan, ikon di dalam dijamin tembus pandang & terlihat jelas
-          backdropFilter: "blur(20px) saturate(220%)",
-          WebkitBackdropFilter: "blur(20px) saturate(220%)",
-          border: "1.5px solid rgba(125, 211, 252, 0.9)", // Garis tepi bersinar terang
-          boxShadow: "0 0 25px rgba(56, 189, 248, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.8)", // Efek kilau cahaya air kaca
+          background: "rgba(255, 255, 255, 0.12)", // Kaca putih transparan bening
+          backdropFilter: "blur(25px) saturate(200%)",
+          WebkitBackdropFilter: "blur(25px) saturate(200%)",
+          border: "1.5px solid rgba(56, 189, 248, 0.65)", // Garis tepi neon biru tipis
+          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.6), inset 0 -1px 2px rgba(56, 189, 248, 0.4)",
           borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.12 : 1,
+          scale: dragging ? 1.08 : 1,
         }}
         transition={
           dragging
@@ -140,7 +140,15 @@ export default function BottomNav() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="bubble-nav">
+        <div 
+          className="bubble-nav" 
+          style={{ 
+            background: "rgba(15, 23, 42, 0.45)", // Dibuat lebih transparan agar kontainer bawah tidak pekat
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1.5px solid rgba(255, 255, 255, 0.15)"
+          }}
+        >
           {navItems.slice(0, 3).map((item, i) => (
             <button
               key={item.path}
@@ -159,7 +167,15 @@ export default function BottomNav() {
           ))}
         </div>
 
-        <div className="bubble-nav">
+        <div 
+          className="bubble-nav" 
+          style={{ 
+            background: "rgba(15, 23, 42, 0.45)", 
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1.5px solid rgba(255, 255, 255, 0.15)"
+          }}
+        >
           {navItems.slice(3, 6).map((item, i) => (
             <button
               key={item.path}
@@ -180,5 +196,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-      }
-        
+}
