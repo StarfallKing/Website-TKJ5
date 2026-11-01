@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import LiquidGlass from "liquid-glass-react";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -111,7 +110,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pill Aktif */}
+      {/* Pill Aktif (biru mengkilap) */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -131,11 +130,11 @@ export default function BottomNav() {
         transition={
           dragging
             ? { duration: 0 }
-            : { type: "spring", stiffness: 380, damping: 25 }
+            : { type: "spring", stiffness: 380, damping: 26 }
         }
       />
 
-      {/* Navigasi */}
+      {/* Kontainer Navigasi */}
       <div
         className="nav-dual-container"
         onTouchStart={onTouchStart}
@@ -144,78 +143,44 @@ export default function BottomNav() {
       >
         {/* Kiri */}
         <div className="bubble-nav">
-          <LiquidGlass
-            displacementScale={16}
-            blurAmount={0.08}
-            saturation={140}
-            aberrationIntensity={1.2}
-            elasticity={0}
-            cornerRadius={999}
-            padding="0px"
-            style={{
-              width: "156px",
-              height: "52px",
-              position: "relative",
-            }}
-          >
-            <div className="nav-inner">
-              {navItems.slice(0, 3).map((item, i) => (
-                <button
-                  key={item.path}
-                  ref={(el) => {
-                    buttonsRef.current[i] = el;
-                  }}
-                  type="button"
-                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-                  onClick={() => {
-                    updatePill(i);
-                    router.push(item.path);
-                  }}
-                >
-                  <i className={`fa-solid ${item.icon}`} />
-                </button>
-              ))}
-            </div>
-          </LiquidGlass>
+          {navItems.slice(0, 3).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
 
         {/* Kanan */}
         <div className="bubble-nav">
-          <LiquidGlass
-            displacementScale={16}
-            blurAmount={0.08}
-            saturation={140}
-            aberrationIntensity={1.2}
-            elasticity={0}
-            cornerRadius={999}
-            padding="0px"
-            style={{
-              width: "156px",
-              height: "52px",
-              position: "relative",
-            }}
-          >
-            <div className="nav-inner">
-              {navItems.slice(3, 6).map((item, i) => (
-                <button
-                  key={item.path}
-                  ref={(el) => {
-                    buttonsRef.current[i + 3] = el;
-                  }}
-                  type="button"
-                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-                  onClick={() => {
-                    updatePill(i + 3);
-                    router.push(item.path);
-                  }}
-                >
-                  <i className={`fa-solid ${item.icon}`} />
-                </button>
-              ))}
-            </div>
-          </LiquidGlass>
+          {navItems.slice(3, 6).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i + 3] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i + 3);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
       </div>
     </>
   );
-        }
+}
