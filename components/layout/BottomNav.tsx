@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -74,7 +75,7 @@ export default function BottomNav() {
     if (diff > 10) {
       if (!dragging) setDragging(true);
       isSwiping.current = true;
-      setPillLeft(currentX - 26);
+      setPillLeft(currentX - 24);
     }
   }
 
@@ -103,130 +104,74 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Gelembung Liquid Pill Mengambang Hanya Muncul/Aktif Saat Digeser atau Bertransisi */}
-      <div
-        className="glass-liquid-pill"
+      {/* Gelembung Kaca Cair Menggunakan Framer Motion Spring Physics & CSS .glass-liquid-pill */}
+      <motion.div
+        className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
         style={{
-          position: "fixed",
-          bottom: "22px",
-          height: "44px",
-          width: "48px",
-          borderRadius: "24px",
-          pointerEvents: "none",
-          zIndex: 999,
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
-          opacity: dragging ? 1 : 0, // Hanya keliatan pekat saat di-swipe/geser biar efek cairnya dapet
-          background: "rgba(56, 189, 248, 0.25)",
-          backdropFilter: "blur(16px) saturate(180%)",
-          WebkitBackdropFilter: "blur(16px) saturate(180%)",
-          border: "1px solid rgba(56, 189, 248, 0.5)",
-          boxShadow: "0 0 25px rgba(56, 189, 248, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
-          transition: dragging ? "none" : "left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease",
+          position: "fixed",
+          bottom: "28px",
+          width: "44px",
+          height: "44px",
+          zIndex: 1000,
+          pointerEvents: "none",
         }}
+        animate={{
+          opacity: pillLeft !== null ? 1 : 0,
+          scale: dragging ? 1.08 : 1,
+        }}
+        transition={
+          dragging
+            ? { duration: 0 }
+            : { type: "spring", stiffness: 380, damping: 28 }
+        }
       />
 
       <div
-        className="nav-dual-container liquid-container"
-        style={{ 
-          touchAction: "pan-y",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "6px 10px",
-          borderRadius: "36px",
-        }}
+        className="nav-dual-container"
+        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="bubble-nav" style={{ display: "flex", gap: "6px" }}>
-          {navItems.slice(0, 3).map((item, i) => {
-            const isActive = pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                ref={(el) => {
-                  buttonsRef.current[i] = el;
-                }}
-                type="button"
-                className={`nav-btn ${isActive ? "active" : ""}`}
-                onClick={() => {
-                  updatePill(i);
-                  router.push(item.path);
-                }}
-                style={{
-                  background: isActive ? "rgba(56, 189, 248, 0.2)" : "transparent",
-                  border: isActive ? "1px solid rgba(56, 189, 248, 0.4)" : "1px solid transparent",
-                  borderRadius: "22px",
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                  position: "relative",
-                  zIndex: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: isActive ? "0 0 15px rgba(56, 189, 248, 0.3)" : "none",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <i 
-                  className={`fa-solid ${item.icon}`} 
-                  style={{ 
-                    color: isActive ? "#38bdf8" : "#94a3b8", 
-                    fontSize: "16px",
-                    transition: "color 0.3s ease" 
-                  }} 
-                />
-              </button>
-            );
-          })}
+        <div className="bubble-nav">
+          {navItems.slice(0, 3).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
 
-        <div className="bubble-nav" style={{ display: "flex", gap: "6px" }}>
-          {navItems.slice(3, 6).map((item, i) => {
-            const actualIndex = i + 3;
-            const isActive = pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                ref={(el) => {
-                  buttonsRef.current[actualIndex] = el;
-                }}
-                type="button"
-                className={`nav-btn ${isActive ? "active" : ""}`}
-                onClick={() => {
-                  updatePill(actualIndex);
-                  router.push(item.path);
-                }}
-                style={{
-                  background: isActive ? "rgba(56, 189, 248, 0.2)" : "transparent",
-                  border: isActive ? "1px solid rgba(56, 189, 248, 0.4)" : "1px solid transparent",
-                  borderRadius: "22px",
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                  position: "relative",
-                  zIndex: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: isActive ? "0 0 15px rgba(56, 189, 248, 0.3)" : "none",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <i 
-                  className={`fa-solid ${item.icon}`} 
-                  style={{ 
-                    color: isActive ? "#38bdf8" : "#94a3b8", 
-                    fontSize: "16px",
-                    transition: "color 0.3s ease" 
-                  }} 
-                />
-              </button>
-            );
-          })}
+        <div className="bubble-nav">
+          {navItems.slice(3, 6).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i + 3] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i + 3);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
       </div>
     </>
   );
 }
-  
