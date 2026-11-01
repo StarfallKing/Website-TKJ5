@@ -1491,6 +1491,10 @@ body {
   }
 }
 
+/* ==============================
+   BOTTOM NAVIGATION + LIQUID GLASS
+   ============================== */
+
 .nav-dual-container {
   position: fixed;
   bottom: 24px;
@@ -1504,17 +1508,21 @@ body {
   align-items: center;
   z-index: 900;
   touch-action: none;
+  pointer-events: auto;
 }
 
+/* Container kiri & kanan */
 .bubble-nav {
   width: 156px;
   height: 52px;
   position: relative;
   border-radius: 999px;
-  overflow: hidden;
+  /* JANGAN pakai overflow: hidden dulu, karena bisa nge-clip filter SVG dari liquid-glass */
+  /* overflow: hidden; */
+  flex-shrink: 0;
 }
 
-
+/* Tombol navigasi */
 .nav-btn {
   background: none;
   border: none;
@@ -1526,33 +1534,53 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1001;
+  z-index: 10;
   position: relative;
   transition: color 0.2s ease, transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-btn.active {
   color: #ffffff;
-  transform: scale(1.1);
+  transform: scale(1.12);
 }
 
+/* Pill aktif (yang bergerak) */
 .glass-liquid-pill {
   position: fixed;
-  bottom: 28px;
-  width: 44px;
+  bottom: 30px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  border-radius: 9999px;
+  z-index: 950;
   pointer-events: none;
-  transition: left 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Efek glass untuk pill */
+  background: rgba(56, 189, 248, 0.22);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  box-shadow: 
+    0 4px 20px rgba(14, 165, 233, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
 }
 
+/* Optional: biar lebih liquid saat dragging */
 .glass-liquid-pill.dragging {
   transition: none !important;
+  transform: scale(1.08);
 }
+
+.liquid-container {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+/* ==============================
+   LIGHT THEME
+   ============================== */
 
 [data-theme="light"] body,
 [data-theme="light"] html {
@@ -1599,12 +1627,6 @@ body {
   background: rgba(147, 51, 234, 0.25);
 }
 
-[data-theme="light"] .bubble-nav {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(15, 23, 42, 0.15);
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-}
-
 [data-theme="light"] .nav-btn {
   color: #64748b;
 }
@@ -1614,9 +1636,11 @@ body {
 }
 
 [data-theme="light"] .glass-liquid-pill {
-  background: rgba(37, 99, 235, 0.25);
-  border-color: rgba(37, 99, 235, 0.5);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 
+    0 4px 18px rgba(37, 99, 235, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
 [data-theme="light"] .absensi-table th {
@@ -1893,20 +1917,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-  }
-
-.liquid-container {
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(20px) saturate(200%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
-}
-
-.glass-liquid-pill {
-  background: rgba(56, 189, 248, 0.25);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
   }
