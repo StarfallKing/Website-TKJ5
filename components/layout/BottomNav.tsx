@@ -33,7 +33,7 @@ export default function BottomNav() {
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     if (rect.width > 0 || rect.left > 0) {
-      setPillLeft(rect.left - 1);
+      setPillLeft(rect.left - 2);
     }
   }
 
@@ -74,7 +74,7 @@ export default function BottomNav() {
     if (diff > 10) {
       if (!dragging) setDragging(true);
       isSwiping.current = true;
-      setPillLeft(currentX - 22);
+      setPillLeft(currentX - 26);
     }
   }
 
@@ -103,18 +103,25 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pil Geser Liquid Glass Melayang */}
+      {/* Gelembung Liquid Pill Mengambang Hanya Muncul/Aktif Saat Digeser atau Bertransisi */}
       <div
-        className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
+        className="glass-liquid-pill"
         style={{
+          position: "fixed",
+          bottom: "22px",
+          height: "44px",
+          width: "48px",
+          borderRadius: "24px",
+          pointerEvents: "none",
+          zIndex: 999,
           left: pillLeft !== null ? `${pillLeft}px` : "16px",
-          opacity: pillLeft !== null ? 1 : 0,
-          transition: dragging ? "none" : "left 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
+          opacity: dragging ? 1 : 0, // Hanya keliatan pekat saat di-swipe/geser biar efek cairnya dapet
           background: "rgba(56, 189, 248, 0.25)",
           backdropFilter: "blur(16px) saturate(180%)",
           WebkitBackdropFilter: "blur(16px) saturate(180%)",
           border: "1px solid rgba(56, 189, 248, 0.5)",
-          boxShadow: "0 0 20px rgba(56, 189, 248, 0.35)",
+          boxShadow: "0 0 25px rgba(56, 189, 248, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+          transition: dragging ? "none" : "left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease",
         }}
       />
 
@@ -133,45 +140,93 @@ export default function BottomNav() {
         onTouchEnd={onTouchEnd}
       >
         <div className="bubble-nav" style={{ display: "flex", gap: "6px" }}>
-          {navItems.slice(0, 3).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i);
-                router.push(item.path);
-              }}
-              style={{ background: "transparent", border: "none", cursor: "pointer", padding: "10px 16px", position: "relative", zIndex: 2 }}
-            >
-              <i className={`fa-solid ${item.icon}`} style={{ color: pathname === item.path ? "#38bdf8" : "#94a3b8", fontSize: "16px" }} />
-            </button>
-          ))}
+          {navItems.slice(0, 3).map((item, i) => {
+            const isActive = pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                ref={(el) => {
+                  buttonsRef.current[i] = el;
+                }}
+                type="button"
+                className={`nav-btn ${isActive ? "active" : ""}`}
+                onClick={() => {
+                  updatePill(i);
+                  router.push(item.path);
+                }}
+                style={{
+                  background: isActive ? "rgba(56, 189, 248, 0.2)" : "transparent",
+                  border: isActive ? "1px solid rgba(56, 189, 248, 0.4)" : "1px solid transparent",
+                  borderRadius: "22px",
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                  position: "relative",
+                  zIndex: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: isActive ? "0 0 15px rgba(56, 189, 248, 0.3)" : "none",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <i 
+                  className={`fa-solid ${item.icon}`} 
+                  style={{ 
+                    color: isActive ? "#38bdf8" : "#94a3b8", 
+                    fontSize: "16px",
+                    transition: "color 0.3s ease" 
+                  }} 
+                />
+              </button>
+            );
+          })}
         </div>
 
         <div className="bubble-nav" style={{ display: "flex", gap: "6px" }}>
-          {navItems.slice(3, 6).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i + 3] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i + 3);
-                router.push(item.path);
-              }}
-              style={{ background: "transparent", border: "none", cursor: "pointer", padding: "10px 16px", position: "relative", zIndex: 2 }}
-            >
-              <i className={`fa-solid ${item.icon}`} style={{ color: pathname === item.path ? "#38bdf8" : "#94a3b8", fontSize: "16px" }} />
-            </button>
-          ))}
+          {navItems.slice(3, 6).map((item, i) => {
+            const actualIndex = i + 3;
+            const isActive = pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                ref={(el) => {
+                  buttonsRef.current[actualIndex] = el;
+                }}
+                type="button"
+                className={`nav-btn ${isActive ? "active" : ""}`}
+                onClick={() => {
+                  updatePill(actualIndex);
+                  router.push(item.path);
+                }}
+                style={{
+                  background: isActive ? "rgba(56, 189, 248, 0.2)" : "transparent",
+                  border: isActive ? "1px solid rgba(56, 189, 248, 0.4)" : "1px solid transparent",
+                  borderRadius: "22px",
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                  position: "relative",
+                  zIndex: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: isActive ? "0 0 15px rgba(56, 189, 248, 0.3)" : "none",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <i 
+                  className={`fa-solid ${item.icon}`} 
+                  style={{ 
+                    color: isActive ? "#38bdf8" : "#94a3b8", 
+                    fontSize: "16px",
+                    transition: "color 0.3s ease" 
+                  }} 
+                />
+              </button>
+            );
+          })}
         </div>
       </div>
     </>
   );
-          }
+}
+  
