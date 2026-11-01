@@ -104,7 +104,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pil Kaca Cair Tembus Pandang (Glassmorphism Estetik ke Ikon) */}
+      {/* Gelembung Kaca Cair: Tembus Pandang, Kenyal, dan Bersinar Neon */}
       <motion.div
         className="glass-liquid-pill"
         style={{
@@ -115,16 +115,16 @@ export default function BottomNav() {
           height: "44px",
           zIndex: 1000,
           pointerEvents: "none",
-          background: "rgba(56, 189, 248, 0.22)", // Semi-transparan agar ikon tetap terlihat tembus pandang
-          backdropFilter: "blur(18px) saturate(180%)",
-          WebkitBackdropFilter: "blur(18px) saturate(180%)",
-          border: "1px solid rgba(56, 189, 248, 0.55)",
-          boxShadow: "0 0 20px rgba(56, 189, 248, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+          background: "rgba(56, 189, 248, 0.18)", // Sangat transparan, ikon di dalam dijamin tembus pandang & terlihat jelas
+          backdropFilter: "blur(20px) saturate(220%)",
+          WebkitBackdropFilter: "blur(20px) saturate(220%)",
+          border: "1.5px solid rgba(125, 211, 252, 0.9)", // Garis tepi bersinar terang
+          boxShadow: "0 0 25px rgba(56, 189, 248, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.8)", // Efek kilau cahaya air kaca
           borderRadius: "999px",
         }}
         animate={{
           opacity: pillLeft !== null ? 1 : 0,
-          scale: dragging ? 1.08 : 1,
+          scale: dragging ? 1.12 : 1,
         }}
         transition={
           dragging
@@ -181,4 +181,4 @@ export default function BottomNav() {
     </>
   );
       }
-                           
+        
