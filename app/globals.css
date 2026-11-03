@@ -152,7 +152,7 @@ body {
   min-height: 88px;
 }
 
-/* HOME */
+/* HOME: HP 2x2 · Desktop 4x1 */
 .home-widgets {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1171,7 +1171,7 @@ body {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-/* ===== Ringkasan jadwal ===== */
+/* ===== Ringkasan jadwal: card kecil (bukan pil expand) ===== */
 .dynamic-island-bar {
   width: 100%;
   max-width: 100%;
@@ -1259,6 +1259,7 @@ body {
   }
 }
 
+/* Tombol salin jadwal pagi / siang */
 .jadwal-copy-row {
   display: flex;
   gap: 10px;
@@ -1306,6 +1307,7 @@ body {
   }
 }
 
+/* Popup custom (ganti alert browser) */
 .app-toast-overlay {
   position: fixed;
   inset: 0;
@@ -1489,15 +1491,12 @@ body {
   }
 }
 
-/* ===============================
-   BOTTOM NAV (Stabil)
-================================= */
-
 .nav-dual-container {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
+  margin: 0 auto;
   width: calc(100% - 32px);
   max-width: 340px;
   display: flex;
@@ -1505,7 +1504,6 @@ body {
   align-items: center;
   z-index: 900;
   touch-action: none;
-  gap: 12px;
 }
 
 .bubble-nav {
@@ -1524,15 +1522,6 @@ body {
   -webkit-backdrop-filter: blur(16px);
 }
 
-.glass-liquid-pill-wrapper {
-  position: fixed;
-  bottom: 28px;
-  width: 44px;
-  height: 44px;
-  z-index: 1000;
-  pointer-events: none;
-}
-
 .nav-btn {
   background: none;
   border: none;
@@ -1544,21 +1533,34 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1001;
   position: relative;
-  z-index: 10;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-btn.active {
   color: #ffffff;
-  transform: scale(1.12);
+  transform: scale(1.1);
 }
 
-.nav-btn i {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+.glass-liquid-pill {
+  position: fixed;
+  bottom: 28px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  transition: left 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Light Theme */
+.glass-liquid-pill.dragging {
+  transition: none !important;
+}
+
 [data-theme="light"] body,
 [data-theme="light"] html {
   background-color: #e2e8f0;
@@ -1618,6 +1620,12 @@ body {
   color: #0f172a;
 }
 
+[data-theme="light"] .glass-liquid-pill {
+  background: rgba(37, 99, 235, 0.25);
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
 [data-theme="light"] .absensi-table th {
   background: rgba(226, 232, 240, 0.95);
   color: #64748b;
@@ -1648,7 +1656,7 @@ body {
   color: #0f172a;
 }
 
-/* Struktur */
+/* Struktur: HP = node ringkas · Desktop = tree avatar */
 .struktur-mobile {
   display: flex;
   flex-direction: column;
@@ -1682,7 +1690,7 @@ body {
   text-align: center;
 }
 
-/* Direktori */
+/* Direktori filter pills */
 .direktori-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1738,7 +1746,7 @@ body {
   }
 }
 
-/* Siswa */
+/* Siswa detail header */
 .siswa-detail-header-mobile {
   display: flex;
 }
@@ -1760,6 +1768,7 @@ body {
   }
 }
 
+/* Profile TikTok-style di desktop */
 .siswa-profile-card {
   display: flex;
   flex-direction: column;
@@ -1835,7 +1844,7 @@ body {
   }
 }
 
-/* Absensi */
+/* Absensi: rata-rata H/I/S/A — mobile 2×2 · desktop 4×1 */
 .absensi-avg-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1850,7 +1859,7 @@ body {
   }
 }
 
-/* Kas */
+/* Kas widgets — mobile kecil, desktop besar */
 .kas-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1891,4 +1900,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-}
+  }
