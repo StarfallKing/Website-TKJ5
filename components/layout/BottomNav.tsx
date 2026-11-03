@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import LiquidGlass from "liquid-glass-react";
 
 const navItems = [
   { path: "/", icon: "fa-house" },
@@ -16,11 +17,9 @@ export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  
-  // Menggunakan null sebagai nilai awal agar tidak 'nyasar' di 0px saat iOS layout belum siap
   const [pillLeft, setPillLeft] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
-  
+
   const touchStartX = useRef(0);
   const isSwiping = useRef(false);
 
@@ -33,14 +32,12 @@ export default function BottomNav() {
     const btn = buttonsRef.current[index];
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
-    // Validasi agar Safari iOS tidak mengembalikan nilai 0 saat render awal
     if (rect.width > 0 || rect.left > 0) {
       setPillLeft(rect.left - 1);
     }
   }
 
   useEffect(() => {
-    // Memaksa browser menghitung posisi layout setelah frame pertama digambar
     const raf = requestAnimationFrame(() => {
       updatePill(activeIndex);
     });
@@ -106,59 +103,100 @@ export default function BottomNav() {
 
   return (
     <>
-      <div
-        className={`glass-liquid-pill ${dragging ? "dragging" : ""}`}
-        style={{
-          left: pillLeft !== null ? `${pillLeft}px` : "16px",
-          opacity: pillLeft !== null ? 1 : 0, // Fade in saat posisi tepat terdeteksi
-          transition: dragging ? "none" : "left 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
-        }}
-      />
+      {/* ===== LIQUID GLASS PILL (yang bergerak) ===== */}
+      {pillLeft !== null && (
+        <div
+          className="glass-liquid-pill-wrapper"
+          style={{
+            left: `${pillLeft}px`,
+            transition: dragging
+              ? "none"
+              : "left 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <LiquidGlass
+            displacementScale={58}
+            blurAmount={0.11}
+            saturation={145}
+            aberrationIntensity={1.9}
+            elasticity={0.38}
+            cornerRadius={999}
+            padding="0"
+            style={{ width: 44, height: 44 }}
+          >
+            <div className="w-full h-full rounded-full bg-white/15" />
+          </LiquidGlass>
+        </div>
+      )}
 
+      {/* ===== 2 CONTAINER PIL ===== */}
       <div
         className="nav-dual-container"
-        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="bubble-nav">
-          {navItems.slice(0, 3).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i);
-                router.push(item.path);
-              }}
-            >
-              <i className={`fa-solid ${item.icon}`} />
-            </button>
-          ))}
-        </div>
+        {/* Pil Kiri (Home, Struktur, Direktori) */}
+        <LiquidGlass
+          displacementScale={42}
+          blurAmount={0.23}
+          saturation={125}
+          aberrationIntensity={1.5}
+          elasticity={0.18}
+          cornerRadius={999}
+          padding="4px 6px"
+          style={{ width: 156, height: 52 }}
+        >
+          <div className="flex justify-between items-center w-full h-full px-1">
+            {navItems.slice(0, 3).map((item, i) => (
+              <button
+                key={item.path}
+                ref={(el) => {
+                  buttonsRef.current[i] = el;
+                }}
+                type="button"
+                className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+                onClick={() => {
+                  updatePill(i);
+                  router.push(item.path);
+                }}
+              >
+                <i className={`fa-solid ${item.icon}`} />
+              </button>
+            ))}
+          </div>
+        </LiquidGlass>
 
-        <div className="bubble-nav">
-          {navItems.slice(3, 6).map((item, i) => (
-            <button
-              key={item.path}
-              ref={(el) => {
-                buttonsRef.current[i + 3] = el;
-              }}
-              type="button"
-              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-              onClick={() => {
-                updatePill(i + 3);
-                router.push(item.path);
-              }}
-            >
-              <i className={`fa-solid ${item.icon}`} />
-            </button>
-          ))}
-        </div>
+        {/* Pil Kanan (Absensi, Kas, Jadwal) */}
+        <LiquidGlass
+          displacementScale={42}
+          blurAmount={0.23}
+          saturation={125}
+          aberrationIntensity={1.5}
+          elasticity={0.18}
+          cornerRadius={999}
+          padding="4px 6px"
+          style={{ width: 156, height: 52 }}
+        >
+          <div className="flex justify-between items-center w-full h-full px-1">
+            {navItems.slice(3, 6).map((item, i) => (
+              <button
+                key={item.path}
+                ref={(el) => {
+                  buttonsRef.current[i + 3] = el;
+                }}
+                type="button"
+                className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+                onClick={() => {
+                  updatePill(i + 3);
+                  router.push(item.path);
+                }}
+              >
+                <i className={`fa-solid ${item.icon}`} />
+              </button>
+            ))}
+          </div>
+        </LiquidGlass>
       </div>
     </>
   );
