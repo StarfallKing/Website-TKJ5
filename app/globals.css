@@ -152,7 +152,7 @@ body {
   min-height: 88px;
 }
 
-/* HOME: HP 2x2 · Desktop 4x1 */
+/* HOME */
 .home-widgets {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1490,8 +1490,13 @@ body {
 }
 
 /* ===============================
-   BOTTOM NAV - LIQUID GLASS (BARU)
+   BOTTOM NAV - LIQUID GLASS
 ================================= */
+
+.bottom-nav-root {
+  position: relative;
+  z-index: 900;
+}
 
 .nav-dual-container {
   position: fixed !important;
@@ -1503,9 +1508,26 @@ body {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
+  gap: 12px !important;
   z-index: 900 !important;
   touch-action: none !important;
-  gap: 12px !important;
+}
+
+.bubble-nav {
+  width: 156px !important;
+  height: 52px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.bubble-inner {
+  width: 100%;
+  height: 100%;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 6px !important;
 }
 
 .glass-liquid-pill-wrapper {
@@ -1521,7 +1543,6 @@ body {
   background: none !important;
   border: none !important;
   font-size: 16px !important;
-  cursor: pointer !important;
   color: #94a3b8 !important;
   width: 44px !important;
   height: 44px !important;
@@ -1539,7 +1560,7 @@ body {
 }
 
 .nav-btn i {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 /* Light Theme */
@@ -1660,7 +1681,7 @@ body {
   text-align: center;
 }
 
-/* Direktori filter pills */
+/* Direktori */
 .direktori-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1716,7 +1737,7 @@ body {
   }
 }
 
-/* Siswa detail header */
+/* Siswa */
 .siswa-detail-header-mobile {
   display: flex;
 }
@@ -1738,7 +1759,6 @@ body {
   }
 }
 
-/* Profile */
 .siswa-profile-card {
   display: flex;
   flex-direction: column;
@@ -1814,7 +1834,7 @@ body {
   }
 }
 
-/* Absensi avg */
+/* Absensi */
 .absensi-avg-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1829,7 +1849,7 @@ body {
   }
 }
 
-/* Kas widgets */
+/* Kas */
 .kas-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1870,4 +1890,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-    }
+  }
