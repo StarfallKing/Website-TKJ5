@@ -38,7 +38,7 @@ export default function BottomNav() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => updatePill(activeIndex), 100);
+    const timer = setTimeout(() => updatePill(activeIndex), 120);
     const onResize = () => updatePill(activeIndex);
     window.addEventListener("resize", onResize);
     return () => {
@@ -47,6 +47,7 @@ export default function BottomNav() {
     };
   }, [activeIndex, pathname]);
 
+  // Sembunyikan di halaman tertentu
   if (
     pathname?.startsWith("/siswa") ||
     pathname?.startsWith("/qris") ||
@@ -93,14 +94,16 @@ export default function BottomNav() {
   }
 
   return (
-    <div className="bottom-nav-root">
+    <>
       {/* Pill yang bergerak */}
       {pillLeft !== null && (
         <div
           className="glass-liquid-pill-wrapper"
           style={{
             left: `${pillLeft}px`,
-            transition: dragging ? "none" : "left 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: dragging
+              ? "none"
+              : "left 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <LiquidGlass
@@ -113,7 +116,14 @@ export default function BottomNav() {
             padding="0"
             style={{ width: 44, height: 44 }}
           >
-            <div style={{ width: "100%", height: "100%", borderRadius: 999, background: "rgba(255,255,255,0.15)" }} />
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.15)",
+              }}
+            />
           </LiquidGlass>
         </div>
       )}
@@ -127,66 +137,44 @@ export default function BottomNav() {
       >
         {/* Pil Kiri */}
         <div className="bubble-nav">
-          <LiquidGlass
-            displacementScale={40}
-            blurAmount={0.22}
-            saturation={120}
-            aberrationIntensity={1.4}
-            elasticity={0.15}
-            cornerRadius={999}
-            padding="0"
-            style={{ width: "100%", height: "100%" }}
-          >
-            <div className="bubble-inner">
-              {navItems.slice(0, 3).map((item, i) => (
-                <button
-                  key={item.path}
-                  ref={(el) => { buttonsRef.current[i] = el; }}
-                  type="button"
-                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-                  onClick={() => {
-                    updatePill(i);
-                    router.push(item.path);
-                  }}
-                >
-                  <i className={`fa-solid ${item.icon}`} />
-                </button>
-              ))}
-            </div>
-          </LiquidGlass>
+          {navItems.slice(0, 3).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
 
         {/* Pil Kanan */}
         <div className="bubble-nav">
-          <LiquidGlass
-            displacementScale={40}
-            blurAmount={0.22}
-            saturation={120}
-            aberrationIntensity={1.4}
-            elasticity={0.15}
-            cornerRadius={999}
-            padding="0"
-            style={{ width: "100%", height: "100%" }}
-          >
-            <div className="bubble-inner">
-              {navItems.slice(3, 6).map((item, i) => (
-                <button
-                  key={item.path}
-                  ref={(el) => { buttonsRef.current[i + 3] = el; }}
-                  type="button"
-                  className={`nav-btn ${pathname === item.path ? "active" : ""}`}
-                  onClick={() => {
-                    updatePill(i + 3);
-                    router.push(item.path);
-                  }}
-                >
-                  <i className={`fa-solid ${item.icon}`} />
-                </button>
-              ))}
-            </div>
-          </LiquidGlass>
+          {navItems.slice(3, 6).map((item, i) => (
+            <button
+              key={item.path}
+              ref={(el) => {
+                buttonsRef.current[i + 3] = el;
+              }}
+              type="button"
+              className={`nav-btn ${pathname === item.path ? "active" : ""}`}
+              onClick={() => {
+                updatePill(i + 3);
+                router.push(item.path);
+              }}
+            >
+              <i className={`fa-solid ${item.icon}`} />
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+    </>
   );
-            }
+          }
