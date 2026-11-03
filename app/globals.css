@@ -1171,7 +1171,7 @@ body {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-/* ===== Ringkasan jadwal: card kecil (bukan pil expand) ===== */
+/* ===== Ringkasan jadwal ===== */
 .dynamic-island-bar {
   width: 100%;
   max-width: 100%;
@@ -1259,7 +1259,6 @@ body {
   }
 }
 
-/* Tombol salin jadwal pagi / siang */
 .jadwal-copy-row {
   display: flex;
   gap: 10px;
@@ -1307,7 +1306,6 @@ body {
   }
 }
 
-/* Popup custom (ganti alert browser) */
 .app-toast-overlay {
   position: fixed;
   inset: 0;
@@ -1491,76 +1489,60 @@ body {
   }
 }
 
+/* ===============================
+   BOTTOM NAV - LIQUID GLASS (BARU)
+================================= */
+
 .nav-dual-container {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0 auto;
-  width: calc(100% - 32px);
-  max-width: 340px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 900;
-  touch-action: none;
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 32px) !important;
+  max-width: 340px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  z-index: 900 !important;
+  touch-action: none !important;
+  gap: 12px !important;
 }
 
-.bubble-nav {
-  width: 156px;
-  height: 52px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  padding: 4px 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.glass-liquid-pill-wrapper {
+  position: fixed !important;
+  bottom: 28px !important;
+  width: 44px !important;
+  height: 44px !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
 }
 
 .nav-btn {
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  color: #94a3b8;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1001;
-  position: relative;
-  transition: color 0.2s ease, transform 0.2s ease;
+  background: none !important;
+  border: none !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  color: #94a3b8 !important;
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  z-index: 10 !important;
+  transition: color 0.2s ease, transform 0.2s ease !important;
 }
 
 .nav-btn.active {
-  color: #ffffff;
-  transform: scale(1.1);
+  color: #ffffff !important;
+  transform: scale(1.12) !important;
 }
 
-.glass-liquid-pill {
-  position: fixed;
-  bottom: 28px;
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.5);
-  pointer-events: none;
-  transition: left 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+.nav-btn i {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
 
-.glass-liquid-pill.dragging {
-  transition: none !important;
-}
-
+/* Light Theme */
 [data-theme="light"] body,
 [data-theme="light"] html {
   background-color: #e2e8f0;
@@ -1606,24 +1588,12 @@ body {
   background: rgba(147, 51, 234, 0.25);
 }
 
-[data-theme="light"] .bubble-nav {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(15, 23, 42, 0.15);
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-}
-
 [data-theme="light"] .nav-btn {
-  color: #64748b;
+  color: #64748b !important;
 }
 
 [data-theme="light"] .nav-btn.active {
-  color: #0f172a;
-}
-
-[data-theme="light"] .glass-liquid-pill {
-  background: rgba(37, 99, 235, 0.25);
-  border-color: rgba(37, 99, 235, 0.5);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  color: #0f172a !important;
 }
 
 [data-theme="light"] .absensi-table th {
@@ -1656,7 +1626,7 @@ body {
   color: #0f172a;
 }
 
-/* Struktur: HP = node ringkas · Desktop = tree avatar */
+/* Struktur */
 .struktur-mobile {
   display: flex;
   flex-direction: column;
@@ -1768,7 +1738,7 @@ body {
   }
 }
 
-/* Profile TikTok-style di desktop */
+/* Profile */
 .siswa-profile-card {
   display: flex;
   flex-direction: column;
@@ -1844,7 +1814,7 @@ body {
   }
 }
 
-/* Absensi: rata-rata H/I/S/A — mobile 2×2 · desktop 4×1 */
+/* Absensi avg */
 .absensi-avg-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1859,7 +1829,7 @@ body {
   }
 }
 
-/* Kas widgets — mobile kecil, desktop besar */
+/* Kas widgets */
 .kas-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1900,4 +1870,4 @@ body {
   .kas-summary-val {
     font-size: 18px;
   }
-  }
+    }
