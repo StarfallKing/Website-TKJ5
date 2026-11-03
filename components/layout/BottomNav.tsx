@@ -38,16 +38,19 @@ export default function BottomNav() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => updatePill(activeIndex), 120);
+    const raf = requestAnimationFrame(() => updatePill(activeIndex));
+    const t = setTimeout(() => updatePill(activeIndex), 150);
+
     const onResize = () => updatePill(activeIndex);
     window.addEventListener("resize", onResize);
+
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
       window.removeEventListener("resize", onResize);
     };
   }, [activeIndex, pathname]);
 
-  // Sembunyikan di halaman tertentu
   if (
     pathname?.startsWith("/siswa") ||
     pathname?.startsWith("/qris") ||
@@ -64,8 +67,9 @@ export default function BottomNav() {
   function onTouchMove(e: React.TouchEvent) {
     const currentX = e.touches[0].clientX;
     const diff = Math.abs(currentX - touchStartX.current);
+
     if (diff > 10) {
-      setDragging(true);
+      if (!dragging) setDragging(true);
       isSwiping.current = true;
       setPillLeft(currentX - 22);
     }
@@ -95,7 +99,7 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Pill yang bergerak */}
+      {/* ===== LIQUID GLASS PILL (yang bergerak) ===== */}
       {pillLeft !== null && (
         <div
           className="glass-liquid-pill-wrapper"
@@ -107,11 +111,11 @@ export default function BottomNav() {
           }}
         >
           <LiquidGlass
-            displacementScale={55}
+            displacementScale={58}
             blurAmount={0.1}
-            saturation={140}
-            aberrationIntensity={1.8}
-            elasticity={0.35}
+            saturation={145}
+            aberrationIntensity={1.9}
+            elasticity={0.38}
             cornerRadius={999}
             padding="0"
             style={{ width: 44, height: 44 }}
@@ -128,7 +132,7 @@ export default function BottomNav() {
         </div>
       )}
 
-      {/* 2 Container Pil */}
+      {/* ===== 2 CONTAINER PIL (CSS biasa) ===== */}
       <div
         className="nav-dual-container"
         onTouchStart={onTouchStart}
@@ -177,4 +181,4 @@ export default function BottomNav() {
       </div>
     </>
   );
-          }
+}
